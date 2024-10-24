@@ -1,0 +1,35 @@
+{
+  "name": "client",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test:unit": "vitest run",
+    "test": "npm run lint && npm run typecheck && npm run test:unit",
+    "lint": "eslint . --fix && prettier --check src/ *.js",
+    "format": "prettier --write src/ *.js",
+    "typecheck": "vue-tsc --noEmit"
+  },
+  "dependencies": {
+    "vue": "^3.5.12",
+    "vue-router": "^4.4.5"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.13.0",
+    "@types/node": "^22.7.9",
+    "@vitejs/plugin-vue": "^5.1.4",
+    "@vitest/eslint-plugin": "1.1.7",
+    "@vue/eslint-config-prettier": "^10.0.0",
+    "@vue/test-utils": "^2.4.6",
+    "eslint": "^9.13.0",
+    "eslint-plugin-vue": "^9.29.0",
+    "jsdom": "^25.0.1",
+    "prettier": "^3.3.3",
+    "vite": "^5.4.10",
+    "vitest": "^2.1.3",
+    "vue-tsc": "^2.1.6"
+  }
+}
