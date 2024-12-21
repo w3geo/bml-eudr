@@ -10,6 +10,7 @@ const { loggedIn, user, session, /*fetch, */ clear } = useUserSession();
   </div>
   <div v-else>
     <h1>Not logged in</h1>
-    <a href="/auth/idaustria">Login with ID Austria</a>
+    <a href="/auth/idaustria">Login with ID Austria</a><br />
+    <a href="/auth/ama">Login with eAMA</a>
   </div>
 </template>

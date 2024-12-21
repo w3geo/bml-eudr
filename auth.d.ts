@@ -1,4 +1,4 @@
-declare module "#auth-utils" {
+declare module '#auth-utils' {
   interface User {
     login: string;
   }

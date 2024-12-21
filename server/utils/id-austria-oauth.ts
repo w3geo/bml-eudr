@@ -1,16 +1,16 @@
-import type { H3Event } from "h3";
-import { eventHandler, getQuery, sendRedirect } from "h3";
-import { withQuery } from "ufo";
-import { defu } from "defu";
+import type { H3Event } from 'h3';
+import { eventHandler, getQuery, sendRedirect } from 'h3';
+import { withQuery } from 'ufo';
+import { defu } from 'defu';
 import {
   handleMissingConfiguration,
   handleAccessTokenErrorResponse,
   getOAuthRedirectURL,
   requestAccessToken,
-} from "./utils";
-import { createError } from "#imports";
-import type { OAuthConfig } from "#auth-utils";
-import { decodeJwt } from "jose";
+} from './utils';
+import { createError } from '#imports';
+import type { OAuthConfig } from '#auth-utils';
+import { decodeJwt } from 'jose';
 
 export interface OAuthIdAustriaConfig {
   /**
@@ -74,10 +74,10 @@ export function defineOAuthIdAustriaEventHandler({
       clientSecret: process.env.NUXT_OAUTH_IDAUSTRIA_CLIENT_SECRET,
       authorizationURL:
         process.env.NUXT_OAUTH_IDAUSTRIA_AUTHORIZATION_URL ||
-        "https://eid2.oesterreich.gv.at/auth/idp/profile/oidc/authorize",
+        'https://eid2.oesterreich.gv.at/auth/idp/profile/oidc/authorize',
       tokenURL:
         process.env.NUXT_OAUTH_IDAUSTRIA_TOKEN_URL ||
-        "https://eid2.oesterreich.gv.at/auth/idp/profile/oidc/token",
+        'https://eid2.oesterreich.gv.at/auth/idp/profile/oidc/token',
       authorizationParams: {},
     }) as OAuthIdAustriaConfig;
 
@@ -86,7 +86,7 @@ export function defineOAuthIdAustriaEventHandler({
     if (query.error) {
       const error = createError({
         statusCode: 401,
-        message: `IdAustria login failed: ${query.error || "Unknown error"}`,
+        message: `IdAustria login failed: ${query.error || 'Unknown error'}`,
         data: query,
       });
       if (!onError) throw error;
@@ -94,18 +94,13 @@ export function defineOAuthIdAustriaEventHandler({
     }
 
     if (!config.clientId || !config.clientSecret) {
-      return handleMissingConfiguration(
-        event,
-        "idaustria",
-        ["clientId", "clientSecret"],
-        onError
-      );
+      return handleMissingConfiguration(event, 'idaustria', ['clientId', 'clientSecret'], onError);
     }
 
     const redirectURL = config.redirectURL || getOAuthRedirectURL(event);
 
     if (!query.code) {
-      config.scope = config.scope || ["openid", "profile", "eid"];
+      config.scope = config.scope || ['openid', 'profile', 'eid'];
       // if (config.emailRequired && !config.scope.includes("user:email")) {
       //   config.scope.push("user:email");
       // }
@@ -113,18 +108,18 @@ export function defineOAuthIdAustriaEventHandler({
       return sendRedirect(
         event,
         withQuery(config.authorizationURL as string, {
-          response_type: "code",
+          response_type: 'code',
           client_id: config.clientId,
           redirect_uri: redirectURL,
-          scope: config.scope.join(" "),
+          scope: config.scope.join(' '),
           ...config.authorizationParams,
-        })
+        }),
       );
     }
 
     const tokens = await requestAccessToken(config.tokenURL as string, {
       body: {
-        grant_type: "authorization_code",
+        grant_type: 'authorization_code',
         client_id: config.clientId,
         client_secret: config.clientSecret,
         redirect_uri: redirectURL,
@@ -133,30 +128,23 @@ export function defineOAuthIdAustriaEventHandler({
     });
 
     if (tokens.error) {
-      return handleAccessTokenErrorResponse(
-        event,
-        "idaustria",
-        tokens,
-        onError
-      );
+      return handleAccessTokenErrorResponse(event, 'idaustria', tokens, onError);
     }
 
     const tokenData = await decodeJwt(tokens.id_token);
 
     const user = {
-      login: tokenData["urn:pvpgvat:oidc.bpk"],
+      login: tokenData['urn:pvpgvat:oidc.bpk'],
       Vorname: tokenData.given_name,
       Nachname: tokenData.family_name,
     };
-    const meldeadresse = tokenData["urn:eidgvat:attributes.mainAddress"];
+    const meldeadresse = tokenData['urn:eidgvat:attributes.mainAddress'];
     if (meldeadresse) {
       Object.assign(
         user,
         JSON.parse(
-          new TextDecoder().decode(
-            Uint8Array.from(atob(meldeadresse), (m) => m.codePointAt(0))
-          )
-        )
+          new TextDecoder().decode(Uint8Array.from(atob(meldeadresse), (m) => m.codePointAt(0))),
+        ),
       );
     }
 
