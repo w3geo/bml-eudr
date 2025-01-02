@@ -23,9 +23,11 @@
     "nuxt": "^3.14.1592",
     "nuxt-auth-utils": "^0.5.7",
     "vue": "latest",
-    "vue-router": "latest"
+    "vue-router": "latest",
+    "vuetify-nuxt-module": "^0.18.3"
   },
   "devDependencies": {
+    "@mdi/font": "^7.4.47",
     "prettier": "^3.4.2"
   }
 }
