@@ -2,7 +2,7 @@ export default defineEventHandler(async (event) => {
   // Try to read request body
   const body = await readBody(event).catch(() => {});
   console.log('AMA login', body);
-  if (deleteCid(body.cid)) {
+  if (await deleteCid(body.cid)) {
     try {
       const response = await fetch(
         'https://restds.services.ama.at:443/webservice-zlb-partnerseitenlogin/PartnerseitenLoginService/metadatenHolen',

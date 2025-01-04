@@ -135,8 +135,8 @@ export function defineOAuthIdAustriaEventHandler({
 
     const user = {
       login: tokenData['urn:pvpgvat:oidc.bpk'],
-      Vorname: tokenData.given_name,
-      Nachname: tokenData.family_name,
+      firstName: tokenData.given_name,
+      lastName: tokenData.family_name,
     };
     const meldeadresse = tokenData['urn:eidgvat:attributes.mainAddress'];
     if (meldeadresse) {

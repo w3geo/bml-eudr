@@ -112,24 +112,32 @@ export function handleMissingConfiguration(event, provider, missingKeys, onError
   return onError(event, error);
 }
 
-/** @type {Object<string, boolean>} */
-const cids = {};
+const dataStorage = useStorage('db');
 
 /**
  * Add a cid to the list.
  * @param {string} cid
  */
-export function addCid(cid) {
-  cids[cid] = true;
+export async function addCid(cid) {
+  try {
+    await dataStorage.setItem(cid, true);
+  } catch (e) {
+    console.error('Error adding cid', e);
+  }
 }
 
 /**
  * Delete a cid from the list.
  * @param {string} cid
- * @returns {boolean} cid was found and deleted.
+ * @returns {Promise<boolean>} cid was found and deleted.
  */
-export function deleteCid(cid) {
-  const returnValue = cids[cid];
-  delete cids[cid];
-  return returnValue;
+export async function deleteCid(cid) {
+  try {
+    const returnValue = await dataStorage.hasItem(cid);
+    await dataStorage.removeItem(cid);
+    return returnValue;
+  } catch (e) {
+    console.error('Error deleting cid', e);
+    return false;
+  }
 }
