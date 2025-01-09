@@ -1,3 +1,15 @@
+# BML-EUDR
+
+## AMA Client certificate
+
+To convert the AMA client certificate to .crt and .key files for use with Node HTTPS Agent's `cert` and `key` properties, use the following:
+
+    openssl pkcs12 -in BML-Partner.pfx -nocerts -out temp.key
+    openssl rsa -in temp.key -out ama-partner.key # remove passphrase
+    openssl pkcs12 -in BML-Partner.pfx -clcerts -nokeys -out ama-partner.crt
+
+`temp.key` can be deleted. `ama-partner.crt` is used for the agent's `cert`, `ama-partner.key` for the agent's `key`.
+
 # Nuxt Minimal Starter
 
 Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
