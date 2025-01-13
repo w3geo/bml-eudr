@@ -1,17 +1,28 @@
+<script setup>
+definePageMeta({
+  title: 'Startseite',
+});
+useSeoMeta({
+  title: 'Startseite',
+  description: 'Sorgfaltspflichterklärung im Rahmen der EU-Entwaldungsverordnung (EUDR)',
+});
+</script>
+
 <template>
   <v-container>
     <v-row>
-      <v-col cols="6">
+      <v-col>
         <v-card>
           <v-card-title>Sorgfaltspflichterklärung</v-card-title>
           <v-card-actions>
-            <v-btn to="./statement" color="primary" prepend-icon="mdi-nature-people"
+            <v-btn to="/statement" color="primary" prepend-icon="mdi-nature-people"
               >Jetzt erstellen</v-btn
             >
           </v-card-actions>
         </v-card>
       </v-col>
-      <v-col cols="6">
+
+      <v-col>
         <v-card>
           <v-card-text
             ><p>
@@ -37,7 +48,7 @@
             </p></v-card-text
           >
         </v-card>
-      </v-col></v-row
-    >
+      </v-col>
+    </v-row>
   </v-container>
 </template>
