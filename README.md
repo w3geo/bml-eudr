@@ -1,5 +1,15 @@
 # BML-EUDR
 
+## Database and migrations
+
+This project uses [Drizzle](https://orm.drizzle.team) as ORM and schema management tools. Instead of talking directly to the database, the `server/db` folder has the table and relations definitions in the `server/db/schema/` folder. When making changes to the database, migrations can be auto-generated. The process is similar to making git commits: Find a short name/slug describing your changes (it will become the name of the migration, e.g. `my-change`), then run
+
+    npx drizzle-kit generate --name=my-change
+
+This will create a migration in `server/db/migrations` and update the migrations metadata.
+
+After that, the development server (if running) needs to be restarted. Migrations will automatically be executed upon server startup (see `server/plugins/database.js`).
+
 ## Local database
 
 By default, a local PGlite database is used in development mode. To connect to a remote PostgreSQL database, set the `DATABASE_URL` environment variable.
@@ -28,70 +38,22 @@ Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduct
 
 Make sure to install dependencies:
 
-```bash
-# npm
-npm install
-
-# pnpm
-pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
-```
+    npm install
 
 ## Development Server
 
 Start the development server on `http://localhost:3000`:
 
-```bash
-# npm
-npm run dev
-
-# pnpm
-pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
-```
+    npm run dev
 
 ## Production
 
 Build the application for production:
 
-```bash
-# npm
-npm run build
-
-# pnpm
-pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
-```
+    npm run build
 
 Locally preview production build:
 
-```bash
-# npm
-npm run preview
-
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
-```
+    npm run preview
 
 Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.

@@ -1,4 +1,4 @@
-import { getUser, putUser } from '~/server/db/users';
+import users from '~/server/db/schema/users';
 
 export default defineOAuthIdAustriaEventHandler({
   async onSuccess(event, { user }) {
@@ -15,18 +15,28 @@ export default defineOAuthIdAustriaEventHandler({
     //   Stiege: '',
     //   Tuer: '1-3',
     // };
-    if (!(await getUser(user.login))) {
-      await putUser({
+    const name = `${user.firstName} ${user.lastName}`;
+    const address = `${user.Strasse} ${user.Hausnummer}${user.Stiege ? `/${user.Stiege}` : ''}${user.Tuer ? `/${user.Tuer}` : ''}, ${user.Postleitzahl} ${user.Ortschaft}`;
+    useDb()
+      .insert(users)
+      .values({
         id: user.login,
-        name: `${user.firstName} ${user.lastName}`,
-        address: `${user.Strasse} ${user.Hausnummer}${user.Stiege ? `/${user.Stiege}` : ''}${user.Tuer ? `/${user.Tuer}` : ''}, ${user.Postleitzahl} ${user.Ortschaft}`,
+        name,
+        address,
         email: null,
-        emailverified: 0,
-        identifiertype: null,
-        identifiervalue: null,
-        loginprovider: 'IDAustria',
+        emailVerified: false,
+        identifierType: null,
+        identifierValue: null,
+        loginProvider: 'IDAustria',
+      })
+      .onConflictDoUpdate({
+        target: user.id,
+        set: {
+          name,
+          address,
+        },
       });
-    }
+
     await setUserSession(event, {
       user: {
         login: user.login,
