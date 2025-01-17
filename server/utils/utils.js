@@ -114,13 +114,36 @@ export function handleMissingConfiguration(event, provider, missingKeys, onError
 
 const dataStorage = useStorage('db');
 
+let cleaningUp = false;
+async function cleanUpCids() {
+  if (cleaningUp) {
+    return;
+  }
+  const now = Date.now();
+  try {
+    cleaningUp = true;
+    const keys = await dataStorage.getKeys();
+    for (const key of keys) {
+      const value = await dataStorage.getItem(key);
+      if (typeof value === 'number' && value < now - 1000 * 60 * 60) {
+        await dataStorage.removeItem(key);
+      }
+    }
+  } catch (e) {
+    console.error('Error cleaning up cids', e);
+  } finally {
+    cleaningUp = false;
+  }
+}
+
 /**
  * Add a cid to the list.
  * @param {string} cid
  */
 export async function addCid(cid) {
   try {
-    await dataStorage.setItem(cid, true);
+    await dataStorage.setItem(cid, Date.now());
+    cleanUpCids();
   } catch (e) {
     console.error('Error adding cid', e);
   }

@@ -1,5 +1,5 @@
 import { request } from 'https';
-import { getUser, putUser } from '~/server/db/users';
+import users from '~/server/db/schema/users';
 
 export default defineEventHandler(async (event) => {
   const body = await readBody(event);
@@ -48,18 +48,26 @@ export default defineEventHandler(async (event) => {
       );
       req.end();
     });
-    if (!(await getUser(user.betriebsnummern))) {
-      await putUser({
+    useDb()
+      .insert(users)
+      .values({
         id: user.betriebsnummern,
         name: user.bewname,
         address: user.bewadr,
         email: null,
-        emailverified: 0,
-        identifiertype: 'GLN',
-        identifiervalue: user.GLN,
-        loginprovider: 'AMA',
+        emailVerified: false,
+        identifierType: 'GLN',
+        identifierValue: user.GLN,
+        loginProvider: 'AMA',
+      })
+      .onConflictDoUpdate({
+        target: user.betriebsnummern,
+        set: {
+          name: user.bewname,
+          address: user.bewadr,
+          identifierValue: user.GLN,
+        },
       });
-    }
     await setUserSession(event, {
       user: {
         login: user.betriebsnummern,

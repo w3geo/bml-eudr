@@ -1,5 +1,3 @@
-import { getUser } from '../../db/users';
-
 export default defineEventHandler(async (event) => {
   const id = event.context.params?.id;
   if (!id || (event.method !== 'GET' && event.method !== 'PUT' && event.method !== 'DELETE')) {
@@ -26,10 +24,10 @@ export default defineEventHandler(async (event) => {
   //   return;
   // }
 
-  let user;
-  user = await getUser(id);
-  if (!user) {
-    throw createError({ status: 404, statusMessage: 'Not Found' });
-  }
-  return user;
+  // let user;
+  // user = await getUser(id);
+  // if (!user) {
+  //   throw createError({ status: 404, statusMessage: 'Not Found' });
+  // }
+  // return user;
 });
