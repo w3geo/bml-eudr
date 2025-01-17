@@ -1,3 +1,8 @@
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
@@ -8,17 +13,12 @@ export default defineNuxtConfig({
   },
   modules: ['@nuxt/eslint', 'nuxt-auth-utils', 'vuetify-nuxt-module'],
   nitro: {
-    devDatabase: {
-      default: {
-        connector: 'sqlite',
-      },
-    },
     database: {
       // See server/plugins/database.js
       default: {
-        connector: 'postgresql',
+        connector: 'pglite',
         options: {
-          url: process.env.DATABASE_URL,
+          dataDir: join(__dirname, '.data', 'pglite'),
         },
       },
     },

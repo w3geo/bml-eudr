@@ -4,7 +4,6 @@ definePageMeta({
 });
 useSeoMeta({
   title: 'Profil',
-  description: 'Benutzerprofil und Anmeldung',
 });
 const { loggedIn, user, session, /*fetch, */ clear } = useUserSession();
 const { theme } = useBrowserTheme();

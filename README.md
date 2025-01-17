@@ -1,5 +1,15 @@
 # BML-EUDR
 
+## Local database
+
+By default, a local PGlite database is used in development mode. To connect to a remote PostgreSQL database, set the `DATABASE_URL` environment variable.
+
+To debug the local database, stop the development server. For a minimal database server with [pg-gateway](https://github.com/supabase-community/pg-gateway), run
+
+    npm run pglite
+
+and connect with `psql`. Note that IDEs like DBeaver currently do not work with PGlite.
+
 ## AMA Client certificate
 
 To convert the AMA client certificate to .crt and .key files for use with Node HTTPS Agent's `cert` and `key` properties, use the following:

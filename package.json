@@ -12,12 +12,14 @@
     "lint": "npm run lint:eslint && npm run lint:prettier",
     "lint:eslint": "eslint .",
     "lint:prettier": "prettier . --check",
-    "lintfix": "eslint . --fix && prettier --write --list-different ."
+    "lintfix": "eslint . --fix && prettier --write --list-different .",
+    "pglite": "node scripts/pglite-server"
   },
   "engines": {
     "node": "22.x"
   },
   "dependencies": {
+    "@electric-sql/pglite-repl": "^0.2.15",
     "@nuxt/eslint": "^0.7.3",
     "better-sqlite3": "^11.7.2",
     "db0": "^0.2.1",
@@ -32,6 +34,7 @@
     "@mdi/font": "^7.4.47",
     "@types/pg": "^8.11.10",
     "pg": "^8.13.1",
+    "pg-gateway": "^0.3.0-beta.4",
     "prettier": "^3.4.2"
   }
 }
