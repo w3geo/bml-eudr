@@ -1,5 +1,6 @@
 <script setup>
 definePageMeta({
+  middleware: ['redirect-if-authenticated'],
   title: 'Startseite',
 });
 useSeoMeta({

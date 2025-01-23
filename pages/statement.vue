@@ -1,5 +1,6 @@
 <script setup>
 definePageMeta({
+  middleware: ['authenticated-only'],
   title: 'Sorgfaltspflichterklärung',
 });
 useSeoMeta({

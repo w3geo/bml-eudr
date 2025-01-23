@@ -46,6 +46,12 @@ Start the development server on `http://localhost:3000`:
 
     npm run dev
 
+**NOTE:** In development, when using Safari as browser, you need to use https to make user sessions work:
+
+    npm run dev -- --https
+
+Then open `https://localhost:3000` in Safari.
+
 ## Production
 
 Build the application for production:
