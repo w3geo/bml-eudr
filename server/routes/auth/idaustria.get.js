@@ -17,7 +17,7 @@ export default defineOAuthIdAustriaEventHandler({
     // };
     const name = `${user.firstName} ${user.lastName}`;
     const address = `${user.Strasse} ${user.Hausnummer}${user.Stiege ? `/${user.Stiege}` : ''}${user.Tuer ? `/${user.Tuer}` : ''}, ${user.Postleitzahl} ${user.Ortschaft}`;
-    useDb()
+    await useDb()
       .insert(users)
       .values({
         id: user.login,
@@ -27,10 +27,10 @@ export default defineOAuthIdAustriaEventHandler({
         emailVerified: false,
         identifierType: null,
         identifierValue: null,
-        loginProvider: 'IDAustria',
+        loginProvider: 'IDA',
       })
       .onConflictDoUpdate({
-        target: user.id,
+        target: users.id,
         set: {
           name,
           address,

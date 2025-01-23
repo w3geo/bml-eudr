@@ -48,7 +48,7 @@ export default defineEventHandler(async (event) => {
       );
       req.end();
     });
-    useDb()
+    await useDb()
       .insert(users)
       .values({
         id: user.betriebsnummern,
@@ -61,7 +61,7 @@ export default defineEventHandler(async (event) => {
         loginProvider: 'AMA',
       })
       .onConflictDoUpdate({
-        target: user.betriebsnummern,
+        target: users.id,
         set: {
           name: user.bewname,
           address: user.bewadr,
