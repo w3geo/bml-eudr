@@ -1,7 +1,5 @@
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
+import { join } from 'node:path';
+import { defineNuxtConfig } from 'nuxt/config';
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -13,21 +11,8 @@ export default defineNuxtConfig({
   },
   modules: ['@nuxt/eslint', 'nuxt-auth-utils', 'vuetify-nuxt-module'],
   runtimeConfig: {
-    pgliteDataDir: join(__dirname, '.data', 'pglite'),
-  },
-  nitro: {
     // See server/utils/database.js and server/plugins/storage.js
-    // database: {
-    //   default: {
-    //     connector: 'pglite',
-    //     options: {
-    //       dataDir: join(__dirname, '.data', 'pglite'),
-    //     },
-    //   },
-    // },
-    // experimental: {
-    //   database: true,
-    // },
+    pgliteDataDir: join('.data', 'pglite'),
   },
   vuetify: {
     vuetifyOptions: {

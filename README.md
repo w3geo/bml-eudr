@@ -1,8 +1,14 @@
 # BML-EUDR
 
-## Database and migrations
+## Database
 
-This project uses [Drizzle](https://orm.drizzle.team) as ORM and schema management tools. Instead of talking directly to the database, the `server/db` folder has the table and relations definitions in the `server/db/schema/` folder. When making changes to the database, migrations can be auto-generated. The process is similar to making git commits: Find a short name/slug describing your changes (it will become the name of the migration, e.g. `my-change`), then run
+### Connection
+
+By default, a local PGlite database is used in development mode. To connect to a remote PostgreSQL database, set the `DATABASE_URL` and `DATABASE_CA_CERT` environment variable.
+
+### Migrations
+
+This project uses [Drizzle](https://orm.drizzle.team) for ORM and schema management. Instead of talking directly to the database, tables and relations are defined in `server/db/schema/`. When making changes to the database, migrations can be auto-generated. The process is similar to making git commits: Find a short name/slug describing your changes (it will become the name of the migration, e.g. `my-change`), then run
 
     npx drizzle-kit generate --name=my-change
 
@@ -10,15 +16,13 @@ This will create a migration in `server/db/migrations` and update the migrations
 
 After that, the development server (if running) needs to be restarted. Migrations will automatically be executed upon server startup (see `server/plugins/database.js`).
 
-## Local database
+### Database browser
 
-By default, a local PGlite database is used in development mode. To connect to a remote PostgreSQL database, set the `DATABASE_URL` environment variable.
+Drizzle provides Studio, a database browser to see what's going on in the databse. To use it, run
 
-To debug the local database, stop the development server. For a minimal database server with [pg-gateway](https://github.com/supabase-community/pg-gateway), run
+    npx drizzle-kit studio
 
-    npm run pglite
-
-and connect with `psql`. Note that IDEs like DBeaver currently do not work with PGlite.
+and open https://local.drizzle.studio in your browser. The connection parameters of the current environment will be used.
 
 ## AMA Client certificate
 
