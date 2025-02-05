@@ -7,7 +7,7 @@ definePageMeta({
 useSeoMeta({
   title: 'Profil',
 });
-const { loggedIn, user, session, clear } = useUserSession();
+const { loggedIn, clear } = useUserSession();
 const { theme } = useBrowserTheme();
 </script>
 
@@ -16,11 +16,12 @@ const { theme } = useBrowserTheme();
     <v-row>
       <v-col cols="12">
         <v-card v-if="loggedIn">
-          <v-card-title>Willkommen {{ user?.login }}!</v-card-title>
-          <v-card-text
-            >Eingeloggt seit {{ new Date(session.loggedInAt).toLocaleString('se') }}</v-card-text
-          >
+          <v-card-title>Profil</v-card-title>
+          <v-card-text>
+            <UserData />
+          </v-card-text>
           <v-card-actions>
+            <v-spacer />
             <v-btn @click="clear">Logout</v-btn>
           </v-card-actions>
         </v-card>

@@ -3,13 +3,11 @@ import users from '~/server/db/schema/users';
 
 export default defineEventHandler(async (event) => {
   if (event.method !== 'GET' && event.method !== 'PUT') {
-    throw createError({ status: 400, statusMessage: 'Bad Request' });
+    throw createError({ status: 405, statusMessage: 'Method Not Allowed' });
   }
-  const session = await getUserSession(event);
-  const userId = session.user?.login;
-  if (!userId) {
-    throw createError({ status: 404, statusMessage: 'Not found' });
-  }
+
+  const session = await requireUserSession(event);
+  const userId = session.user.login;
   const db = useDb();
 
   const [user] = await db.select().from(users).where(eq(users.id, userId));

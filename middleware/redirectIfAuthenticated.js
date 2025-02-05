@@ -3,10 +3,10 @@ export default defineNuxtRouteMiddleware((to) => {
 
   if (isAuthenticated) {
     const redirect = useCookie('redirect');
-    const path = redirect.value;
-    if (path) {
+    const destination = redirect.value;
+    if (destination) {
       redirect.value = undefined;
-      return navigateTo(path);
+      return navigateTo(destination);
     }
   }
 });

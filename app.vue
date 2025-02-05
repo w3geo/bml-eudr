@@ -22,7 +22,7 @@ const items = routes.map((route) => ({ title: route.meta.title, to: route.path }
             <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
           </template>
           <v-app-bar-title
-            ><NuxtLink class="text-decoration-none text-high-emphasis" to="/"
+            ><NuxtLink class="text-decoration-none text-grey-lighten-2" to="/"
               >EUDR Entwaldungsverordnung Tool</NuxtLink
             ></v-app-bar-title
           >

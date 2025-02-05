@@ -1,6 +1,6 @@
 import { boolean, pgTable, varchar } from 'drizzle-orm/pg-core';
 
-export default pgTable('users', {
+const users = pgTable('users', {
   id: varchar({ length: 127 }).primaryKey(),
   name: varchar({ length: 127 }).notNull(),
   address: varchar({ length: 255 }).notNull(),
@@ -10,3 +10,5 @@ export default pgTable('users', {
   identifierValue: varchar({ length: 15 }),
   loginProvider: varchar({ enum: ['AMA', 'IDA'], length: 3 }).notNull(),
 });
+
+export default users;

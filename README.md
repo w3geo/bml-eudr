@@ -56,6 +56,14 @@ Start the development server on `http://localhost:3000`:
 
 Then open `https://localhost:3000` in Safari.
 
+### Update types and auto-imports
+
+When adding files during development, run
+
+    npm install
+
+to trigger type generation and make them available for auto-import.
+
 ## Production
 
 Build the application for production:
