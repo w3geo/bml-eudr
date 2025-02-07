@@ -75,6 +75,6 @@ export default defineEventHandler(async (event) => {
       loggedInAt: Date.now(),
     });
 
-    return sendRedirect(event, '/');
+    return sendRedirect(event, '/profile');
   }
 });

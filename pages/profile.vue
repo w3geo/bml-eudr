@@ -3,6 +3,7 @@ import { DevOnly } from '#components';
 
 definePageMeta({
   title: 'Profil',
+  middleware: ['redirect-if-authenticated'],
 });
 useSeoMeta({
   title: 'Profil',
