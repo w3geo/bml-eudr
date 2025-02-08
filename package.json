@@ -9,10 +9,7 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "start": "node .output/server/index.mjs",
-    "lint": "npm run lint:eslint && npm run lint:prettier",
-    "lint:eslint": "eslint .",
-    "lint:prettier": "prettier . --check",
-    "lintfix": "eslint . --fix && prettier --write --list-different ."
+    "lint": "eslint ."
   },
   "engines": {
     "node": "22.x"
@@ -35,8 +32,8 @@
     "@mdi/font": "^7.4.47",
     "@types/pg": "^8.11.10",
     "drizzle-kit": "^0.30.2",
+    "eslint-plugin-prettier": "^5.2.3",
     "nuxi": "^3.20.0",
-    "pg-gateway": "^0.3.0-beta.4",
-    "prettier": "^3.4.2"
+    "pg-gateway": "^0.3.0-beta.4"
   }
 }

@@ -22,7 +22,7 @@ useSeoMeta({
             können Sie direkt die Ihrem Betrieb zugeordneten Flächen auswählen.</v-card-text
           >
           <v-card-actions>
-            <v-btn to="/statement" color="primary" prepend-icon="mdi-sprout">Soja</v-btn
+            <v-btn to="/statement/soy" color="primary" prepend-icon="mdi-sprout">Soja</v-btn
             ><v-spacer /><v-btn to="/statement" color="primary" prepend-icon="mdi-cow">Rind</v-btn
             ><v-spacer /><v-btn to="/statement" color="primary" prepend-icon="mdi-pine-tree"
               >Holz</v-btn
@@ -40,7 +40,7 @@ useSeoMeta({
             Sorgfaltspflichtserklärung und Verwaltung der Referenznummern erfolgt dort.</v-card-text
           >
           <v-card-actions>
-            <v-btn to="/statement" color="primary" prepend-icon="mdi-sprout">Soja</v-btn
+            <v-btn to="/statement/soy" color="primary" prepend-icon="mdi-sprout">Soja</v-btn
             ><v-spacer /><v-btn to="/statement" color="primary" prepend-icon="mdi-cow">Rind</v-btn
             ><v-spacer /><v-btn to="/statement" color="primary" prepend-icon="mdi-pine-tree"
               >Holz</v-btn

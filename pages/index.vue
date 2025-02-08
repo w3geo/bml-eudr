@@ -39,8 +39,12 @@ useSeoMeta({
           <v-card-actions>
             <v-btn to="/statement" color="primary" prepend-icon="mdi-file-sign"
               >Sorgfaltspflichterklärung</v-btn
-            ><v-spacer/>
-            <v-btn target="_blank" href="https://environment.ec.europa.eu/topics/forests/deforestation/regulation-deforestation-free-products_en?prefLang=de&etrans=de" color="primary" prepend-icon="mdi-lightbulb-on"
+            ><v-spacer />
+            <v-btn
+              target="_blank"
+              href="https://environment.ec.europa.eu/topics/forests/deforestation/regulation-deforestation-free-products_en?prefLang=de&etrans=de"
+              color="primary"
+              prepend-icon="mdi-lightbulb-on"
               >Weitere Informationen</v-btn
             >
           </v-card-actions>
