@@ -2,11 +2,12 @@
 import { DevOnly } from '#components';
 
 definePageMeta({
-  title: 'Profil',
+  title: 'Mein Konto',
   middleware: ['redirect-if-authenticated'],
+  sort: 20,
 });
 useSeoMeta({
-  title: 'Profil',
+  title: 'Mein Konto',
 });
 const { loggedIn, clear } = useUserSession();
 const { theme } = useBrowserTheme();

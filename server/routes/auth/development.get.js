@@ -27,7 +27,7 @@ export default defineEventHandler(async (event) => {
       },
       loggedInAt: Date.now(),
     });
-    return sendRedirect(event, '/profile');
+    return sendRedirect(event, '/account');
   } else {
     throw createError({ status: 404, statusMessage: 'Page not found: ' + event.path });
   }

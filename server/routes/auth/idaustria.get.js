@@ -44,6 +44,6 @@ export default defineOAuthIdAustriaEventHandler({
       loggedInAt: Date.now(),
     });
 
-    return sendRedirect(event, '/profile');
+    return sendRedirect(event, '/account');
   },
 });

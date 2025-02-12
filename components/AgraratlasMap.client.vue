@@ -1,0 +1,65 @@
+<script setup>
+import { PlaceSearch, usePlaceSearch } from '@w3geo/vue-place-search';
+import View from 'ol/View';
+import Map from 'ol/Map';
+import 'ol/ol.css';
+import LayerGroup from 'ol/layer/Group';
+import { apply } from 'ol-mapbox-style';
+import { register as registerPMTiles } from 'pmtiles-protocol';
+import { useGeographic } from 'ol/proj';
+
+const props = defineProps({ title: { type: String, default: 'Fläche oder Punkt wählen' } });
+const mapContainer = ref();
+
+useGeographic();
+registerPMTiles();
+
+const agraratlas = new LayerGroup();
+apply(agraratlas, '/style.json');
+
+const kataster = new LayerGroup({
+  minZoom: 16,
+  maxZoom: 18,
+});
+apply(kataster, 'https://kataster.bev.gv.at/styles/kataster/style_basic.json');
+
+const map = new Map({
+  target: mapContainer.value,
+  layers: [kataster, agraratlas],
+  view: new View({
+    center: [13.8, 47.5],
+    zoom: 14,
+  }),
+});
+
+usePlaceSearch(map);
+
+onMounted(async () => {
+  await nextTick();
+  map.setTarget(mapContainer.value);
+});
+</script>
+
+<template>
+  <v-layout class="d-flex fill-height">
+    <v-app-bar
+      :title="props.title"
+      color="settings.$toolbar-color"
+      density="compact"
+      flat
+      class="pr-1"
+      ><v-spacer />
+      <div><place-search /></div
+    ></v-app-bar>
+    <v-main>
+      <div ref="mapContainer" class="map" />
+    </v-main>
+  </v-layout>
+</template>
+
+<style scoped>
+.map {
+  height: 100%;
+  width: 100%;
+}
+</style>

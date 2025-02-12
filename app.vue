@@ -1,4 +1,6 @@
 <script setup>
+import { mdiAccountCircle } from '@mdi/js';
+
 useHead({
   titleTemplate: (titleChunk) =>
     titleChunk
@@ -6,10 +8,13 @@ useHead({
       : 'EUDR Entwaldungsverordnung Tool',
 });
 const { theme } = useBrowserTheme();
+const { mdAndUp } = useDisplay();
 const drawer = ref(false);
 const router = useRouter();
 const routes = router.getRoutes();
-const items = routes.map((route) => ({ title: route.meta.title, to: route.path }));
+const items = routes
+  .sort((a, b) => Number(a.meta.sort) - Number(b.meta.sort))
+  .map((route) => ({ title: route.meta.title, to: route.path }));
 </script>
 
 <template>
@@ -26,11 +31,11 @@ const items = routes.map((route) => ({ title: route.meta.title, to: route.path }
               >EUDR Entwaldungsverordnung Tool</NuxtLink
             ></v-app-bar-title
           >
-          <v-btn variant="plain" to="/profile" icon="mdi-account-circle" />
+          <v-btn variant="plain" to="/account" :icon="mdiAccountCircle" />
         </v-toolbar>
       </template>
     </v-app-bar>
-    <v-navigation-drawer v-model="drawer" location="left" max-width="200" temporary>
+    <v-navigation-drawer v-model="drawer" location="left" max-width="200" :permanent="mdAndUp">
       <v-list-item v-for="item in items" :key="item.to" link :to="item.to">{{
         item.title
       }}</v-list-item>

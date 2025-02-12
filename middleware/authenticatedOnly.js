@@ -3,6 +3,6 @@ export default defineNuxtRouteMiddleware(async (to) => {
   if (!userId) {
     const redirect = useCookie('redirect');
     redirect.value = to.fullPath;
-    return navigateTo('/profile');
+    return navigateTo('/account');
   }
 });

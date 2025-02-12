@@ -1,4 +1,5 @@
 <script setup>
+import { mdiAlertCircleOutline } from '@mdi/js';
 const { mdAndUp, xs } = useDisplay();
 const { data: userData } = await useFetch('/api/users/me');
 
@@ -60,7 +61,7 @@ const idItems = [
         ></v-text-field>
       </v-col>
       <v-col cols="12" class="text-body-1 mb-6">
-        <v-alert icon="mdi-alert-circle-outline">
+        <v-alert :icon="mdiAlertCircleOutline">
           Felder, die von Ihrem Login-Provider bereitgestellt werden, können nicht bearbeitet
           werden.
         </v-alert>
