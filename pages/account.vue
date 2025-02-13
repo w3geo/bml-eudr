@@ -11,12 +11,19 @@ useSeoMeta({
 });
 const { loggedIn, clear } = useUserSession();
 const { theme } = useBrowserTheme();
+
+const loginRetryAlert = useCookie('login-retry');
 </script>
 
 <template>
   <v-container>
     <v-row>
-      <v-col cols="12">
+      <v-col v-if="loginRetryAlert" cols="12">
+        <v-alert v-model="loginRetryAlert" closable
+          >Anmeldung fehlgeschlagen, bitte versuchen Sie es noch einmal.</v-alert
+        >
+      </v-col>
+      <v-col>
         <v-card v-if="loggedIn">
           <v-card-title>Profil</v-card-title>
           <v-card-text>
