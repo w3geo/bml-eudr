@@ -139,14 +139,22 @@ export function defineOAuthIdAustriaEventHandler({
       lastName: tokenData.family_name,
     };
     const meldeadresse = tokenData['urn:eidgvat:attributes.mainAddress'];
-    if (meldeadresse) {
-      Object.assign(
-        user,
-        JSON.parse(
-          new TextDecoder().decode(Uint8Array.from(atob(meldeadresse), (m) => m.codePointAt(0))),
-        ),
-      );
+    if (!meldeadresse) {
+      const error = createError({
+        statusCode: 401,
+        message: 'Austrian address required and not found',
+      });
+      if (onError) {
+        return onError(event, error);
+      }
+      throw error;
     }
+    Object.assign(
+      user,
+      JSON.parse(
+        new TextDecoder().decode(Uint8Array.from(atob(meldeadresse), (m) => m.codePointAt(0))),
+      ),
+    );
 
     return onSuccess(event, {
       user,
