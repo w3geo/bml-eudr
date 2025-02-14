@@ -9,7 +9,8 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "start": "node .output/server/index.mjs",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test": "npm run lint"
   },
   "engines": {
     "node": "22.x"
