@@ -142,7 +142,8 @@ export function defineOAuthIdAustriaEventHandler({
     if (!meldeadresse) {
       const error = createError({
         statusCode: 401,
-        message: 'Austrian address required and not found',
+        message:
+          'Kein Login mit diesem Account möglich. Österreichische Meldeadresse erforderlich. Bitte verwenden Sie einen anderen Account.',
       });
       if (onError) {
         return onError(event, error);

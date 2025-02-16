@@ -13,6 +13,7 @@ const { loggedIn, clear } = useUserSession();
 const { theme } = useBrowserTheme();
 
 const loginRetryAlert = useCookie('login-retry');
+const loginErrorAlert = useCookie('login-error');
 </script>
 
 <template>
@@ -22,6 +23,9 @@ const loginRetryAlert = useCookie('login-retry');
         <v-alert v-model="loginRetryAlert" closable
           >Anmeldung fehlgeschlagen, bitte versuchen Sie es noch einmal.</v-alert
         >
+      </v-col>
+      <v-col v-if="loginErrorAlert" cols="12">
+        <v-alert v-model="loginErrorAlert" closable>{{ loginErrorAlert }}</v-alert>
       </v-col>
       <v-col>
         <v-card v-if="loggedIn">
