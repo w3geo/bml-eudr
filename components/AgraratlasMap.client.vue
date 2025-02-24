@@ -8,8 +8,9 @@ import { apply } from 'ol-mapbox-style';
 import { register as registerPMTiles } from 'pmtiles-protocol';
 import { useGeographic } from 'ol/proj';
 
-const props = defineProps({ title: { type: String, default: 'Fläche oder Punkt wählen' } });
+const props = defineProps({ title: { type: String, default: 'Fläche wählen' } });
 const mapContainer = ref();
+const { user, session } = useUserSession();
 
 useGeographic();
 registerPMTiles();
@@ -37,6 +38,18 @@ usePlaceSearch(map);
 onMounted(async () => {
   await nextTick();
   map.setTarget(mapContainer.value);
+  const { data: userData } = await useFetch('/api/users/me');
+  const address = userData.value?.address;
+  if (address) {
+    const value = address.split(', ').reverse().join(' ');
+    const { data } = await $fetch(
+      `https://kataster.bev.gv.at/api/search/?layers=pg-adr-gn-rn-gst-kg-bl&term=${encodeURIComponent(value)}`,
+    );
+    if (data.features.length && data.features[0].geometry.type === 'Point') {
+      const [feature] = data.features;
+      map.getView().animate({ center: feature.geometry.coordinates, zoom: 16, duration: 500 });
+    }
+  }
 });
 </script>
 

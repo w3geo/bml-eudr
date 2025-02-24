@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
       .values({
         id: 'Developer',
         name: 'Dave Eloper',
-        address: '42 Developer Place, 1024 Developer City',
+        address: 'Zankwarn 2, 5571 Mariapfarr',
         email: null,
         emailVerified: false,
         identifierType: null,
@@ -18,7 +18,7 @@ export default defineEventHandler(async (event) => {
         target: users.id,
         set: {
           name: 'Dave Eloper',
-          address: '42 Developer Place, 1024 Developer City',
+          address: 'Zankwarn 2, 5571 Mariapfarr',
         },
       });
     await setUserSession(event, {
