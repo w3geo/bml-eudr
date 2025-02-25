@@ -76,7 +76,7 @@ export default defineEventHandler(async (event) => {
         identifierValue: user.GLN,
       },
     });
-  const session = await setUserSession(event, {
+  await setUserSession(event, {
     user: {
       login: user.betriebsnummern,
     },

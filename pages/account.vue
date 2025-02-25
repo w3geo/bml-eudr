@@ -12,8 +12,16 @@ useSeoMeta({
 const { loggedIn, clear } = useUserSession();
 const { theme } = useBrowserTheme();
 
-const loginRetryAlert = useCookie('login-retry');
-const loginErrorAlert = useCookie('login-error');
+const loginRetry = useCookie('login-retry');
+const loginRetryAlert = computed({
+  get: () => loginRetry.value === 'true',
+  set: (value) => (loginRetry.value = value ? 'true' : null),
+});
+const loginError = useCookie('login-error');
+const loginErrorAlert = computed({
+  get: () => loginError.value === 'true',
+  set: (value) => (loginError.value = value ? 'true' : null),
+});
 </script>
 
 <template>

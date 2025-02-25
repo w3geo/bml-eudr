@@ -39,18 +39,19 @@ const map = computed({
   },
 });
 
+/** @type {import('vue').Ref<Array<*>>} */
 const items = ref([]);
 </script>
 
 <template>
-  <v-dialog fullscreen v-model="map">
+  <v-dialog v-model="map" fullscreen>
     <v-card>
       <v-toolbar>
         <v-btn :icon="mdiClose" @click="map = false"></v-btn>
 
         <v-toolbar-title>{{ editProduct ? products[editProduct].title : '' }}</v-toolbar-title>
 
-        <v-spacer></v-spacer>
+        <v-spacer />
 
         <v-toolbar-items>
           <v-btn
@@ -63,7 +64,7 @@ const items = ref([]);
           ></v-btn>
         </v-toolbar-items>
       </v-toolbar>
-      <agraratlas-map></agraratlas-map>
+      <agraratlas-map />
     </v-card>
   </v-dialog>
   <v-container>
@@ -75,7 +76,7 @@ const items = ref([]);
             ><v-icon :icon="item.icon" size="50"
           /></v-card-text>
           <v-card-actions class="d-flex justify-center"
-            ><v-btn color="primary" @click="editProduct = key" :prepend-icon="mdiPlus"
+            ><v-btn color="primary" :prepend-icon="mdiPlus" @click="editProduct = key"
               >Hinzufügen</v-btn
             ></v-card-actions
           >
@@ -87,7 +88,7 @@ const items = ref([]);
             ><v-img src="/minimap.png" width="82" height="82"
           /></v-card-text>
           <v-card-actions class="d-flex justify-center"
-            ><v-btn color="primary" @click="editProduct = item" :prepend-icon="mdiSprout"
+            ><v-btn color="primary" :prepend-icon="mdiSprout" @click="editProduct = item"
               >Bearbeiten</v-btn
             ></v-card-actions
           >

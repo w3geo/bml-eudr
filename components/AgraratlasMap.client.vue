@@ -10,7 +10,6 @@ import { useGeographic } from 'ol/proj';
 
 const props = defineProps({ title: { type: String, default: 'Fläche wählen' } });
 const mapContainer = ref();
-const { user, session } = useUserSession();
 
 useGeographic();
 registerPMTiles();
@@ -42,11 +41,16 @@ onMounted(async () => {
   const address = userData.value?.address;
   if (address) {
     const value = address.split(', ').reverse().join(' ');
-    const { data } = await $fetch(
-      `https://kataster.bev.gv.at/api/search/?layers=pg-adr-gn-rn-gst-kg-bl&term=${encodeURIComponent(value)}`,
-    );
-    if (data.features.length && data.features[0].geometry.type === 'Point') {
-      const [feature] = data.features;
+
+    const { data: locationData } =
+      /** @type {ReturnType<typeof useFetch<{data: import('geojson').FeatureCollection<import('geojson').Point>}>>} */ (
+        await useFetch(
+          `https://kataster.bev.gv.at/api/search/?layers=pg-adr-gn-rn-gst-kg-bl&term=${encodeURIComponent(value)}`,
+        )
+      );
+    const { features } = locationData.value.data;
+    if (features.length && features[0].geometry.type === 'Point') {
+      const [feature] = features;
       map.getView().animate({ center: feature.geometry.coordinates, zoom: 16, duration: 500 });
     }
   }

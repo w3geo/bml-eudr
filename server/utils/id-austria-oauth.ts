@@ -138,7 +138,7 @@ export function defineOAuthIdAustriaEventHandler({
       firstName: tokenData.given_name,
       lastName: tokenData.family_name,
     };
-    const meldeadresse = tokenData['urn:eidgvat:attributes.mainAddress'];
+    const meldeadresse = tokenData['urn:eidgvat:attributes.mainAddress'] as string;
     if (!meldeadresse) {
       const error = createError({
         statusCode: 401,
@@ -153,7 +153,12 @@ export function defineOAuthIdAustriaEventHandler({
     Object.assign(
       user,
       JSON.parse(
-        new TextDecoder().decode(Uint8Array.from(atob(meldeadresse), (m) => m.codePointAt(0))),
+        new TextDecoder().decode(
+          Uint8Array.from(
+            atob(meldeadresse) as Iterable<string>,
+            (m) => m.codePointAt(0) as number,
+          ),
+        ),
       ),
     );
 
