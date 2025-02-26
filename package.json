@@ -20,6 +20,7 @@
     "@electric-sql/pglite-repl": "^0.2.16",
     "@mdi/js": "^7.4.47",
     "@nuxt/eslint": "^0.7.3",
+    "@nuxt/fonts": "^0.10.3",
     "@w3geo/vue-place-search": "^2.0.0",
     "db0": "^0.2.1",
     "drizzle-orm": "^0.38.4",

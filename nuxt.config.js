@@ -9,7 +9,7 @@ export default defineNuxtConfig({
     client: true,
     server: true,
   },
-  modules: ['@nuxt/eslint', 'nuxt-auth-utils', 'vuetify-nuxt-module'],
+  modules: ['@nuxt/fonts', '@nuxt/eslint', 'nuxt-auth-utils', 'vuetify-nuxt-module'],
   runtimeConfig: {
     // See server/utils/database.js and server/plugins/storage.js
     pgliteDataDir: join('.data', 'pglite'),
