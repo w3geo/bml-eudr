@@ -23,15 +23,6 @@
       "attribution": "Grundkarte: <a href=\"https://basemap.at/\">basemap.at</a>",
       "bounds": [8.782379, 46.358770, 17.5, 49.037872]
     },
-    "neigungsklassen": {
-      "type": "raster",
-      "tileSize": 512,
-      "tiles": [
-        "https://inspire.lfrz.gv.at/000504/ows?SERVICE=WMS&SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap&FORMAT=image%2Fpng&TRANSPARENT=true&LAYERS=neigungsklassen&STYLES=&WIDTH=512&HEIGHT=512&CRS=EPSG%3A3857&BBOX={bbox-epsg-3857}"
-      ],
-      "minzoom": 9,
-      "maxzoom": 14
-    },
     "agrargis": {
       "type": "vector",
       "url": "pmtiles://https://agraratlas.inspire.gv.at/map/tiles/agraratlas.pmtiles"
@@ -442,42 +433,6 @@
       "category": "GAB"
     }
   }, {
-    "id": "neigungsklassen",
-    "type": "raster",
-    "source": "neigungsklassen",
-    "minzoom": 9,
-    "layout": {
-      "visibility": "none"
-    },
-    "metadata": {
-      "group": "multi",
-      "classes": [{
-        "label": "0 - <10%",
-        "value": 1,
-        "color": [255, 255, 154]
-      }, {
-        "label": "10 - <18%",
-        "value": 2,
-        "color": [12, 156, 205]
-      }, {
-        "label": "18 - <25%",
-        "value": 3,
-        "color": [255, 190, 255]
-      }, {
-        "label": "25 - <35%",
-        "value": 4,
-        "color": [0, 51, 255]
-      }, {
-        "label": "35 - <50%",
-        "value": 5,
-        "color": [255, 0, 0]
-      }, {
-        "label": ">=50%",
-        "value": 6,
-        "color": [164, 164, 164]
-      }]
-    }
-  }, {
     "id": "invekos_schlaege_polygon-fill",
     "type": "fill",
     "source": "agrargis",
@@ -488,6 +443,20 @@
         ["boolean", ["feature-state", "selected"], false],
         "rgba(0, 0, 0, 0)",
         "rgba(0, 0, 0, 0.1)"
+      ]
+    }
+  }, {
+    "id": "invekos_schlaege_polygon-fill-sojabohnen",
+    "type": "fill",
+    "source": "agrargis",
+    "source-layer": "invekos_schlaege_polygon",
+    "filter": ["==", "snar_bezeichnung", "SOJABOHNEN"],
+    "paint": {
+      "fill-color": [
+        "case",
+        ["boolean", ["feature-state", "selected"], false],
+        "rgba(255, 255, 0, 0.7)",
+        "rgba(255, 255, 0, 0.5)"
       ]
     }
   }, {

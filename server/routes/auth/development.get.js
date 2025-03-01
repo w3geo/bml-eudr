@@ -2,12 +2,14 @@ import users from '~/server/db/schema/users';
 
 export default defineEventHandler(async (event) => {
   if (process.env.NODE_ENV === 'development') {
+    const name = 'Dave Eloper';
+    const address = 'Rosengasse 7, 3424 Zeiselmauer-Wolfpassing';
     await useDb()
       .insert(users)
       .values({
         id: 'Developer',
-        name: 'Dave Eloper',
-        address: 'Zankwarn 2, 5571 Mariapfarr',
+        name,
+        address,
         email: null,
         emailVerified: false,
         identifierType: null,
@@ -17,8 +19,8 @@ export default defineEventHandler(async (event) => {
       .onConflictDoUpdate({
         target: users.id,
         set: {
-          name: 'Dave Eloper',
-          address: 'Zankwarn 2, 5571 Mariapfarr',
+          name,
+          address,
         },
       });
     await setUserSession(event, {

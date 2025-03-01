@@ -13,12 +13,12 @@ const products = {
     title: 'Sojabohnen',
     icon: mdiSprout,
   },
-  rindReinrassigeZuchttiere: {
-    title: 'Rind (reinrassige Zuchttiere)',
+  Rind: {
+    title: 'Rinder',
     icon: mdiCow,
   },
-  rindAndere: {
-    title: 'Rind (andere)',
+  reinrassigesZuchtrind: {
+    title: 'Reinrassige Zuchtrinder',
     icon: mdiCow,
   },
   rohholz: {
@@ -49,20 +49,16 @@ const items = ref([]);
       <v-toolbar>
         <v-btn :icon="mdiClose" @click="map = false"></v-btn>
 
-        <v-toolbar-title>{{ editProduct ? products[editProduct].title : '' }}</v-toolbar-title>
+        <v-app-bar-title>{{ editProduct ? products[editProduct].title : '' }}</v-app-bar-title>
 
-        <v-spacer />
-
-        <v-toolbar-items>
-          <v-btn
-            text="Übernehmen"
-            variant="text"
-            @click="
-              map = false;
-              items.push({});
-            "
-          ></v-btn>
-        </v-toolbar-items>
+        <v-btn
+          text="Übernehmen"
+          variant="text"
+          @click="
+            map = false;
+            items.push({});
+          "
+        ></v-btn>
       </v-toolbar>
       <agraratlas-map />
     </v-card>
