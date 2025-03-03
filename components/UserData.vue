@@ -33,17 +33,34 @@ const idItems = [
   <v-form v-if="userData" ref="form">
     <v-row>
       <v-col :cols="mdAndUp ? 4 : 12">
-        <v-text-field v-model="userData.name" label="Name" readonly disabled></v-text-field>
+        <v-text-field
+          v-model="userData.name"
+          variant="outlined"
+          label="Name"
+          readonly
+          disabled
+        ></v-text-field>
       </v-col>
       <v-col :cols="mdAndUp ? 8 : 12">
-        <v-text-field v-model="userData.address" label="Adresse" readonly disabled></v-text-field>
+        <v-text-field
+          v-model="userData.address"
+          variant="outlined"
+          label="Adresse"
+          readonly
+          disabled
+        ></v-text-field>
       </v-col>
       <v-col :cols="mdAndUp ? 6 : 12">
-        <v-text-field v-model="userData.email" label="e-mail (optional)"></v-text-field>
+        <v-text-field
+          v-model="userData.email"
+          variant="outlined"
+          label="e-mail (optional)"
+        ></v-text-field>
       </v-col>
       <v-col :cols="mdAndUp ? 3 : xs ? 12 : 6">
         <v-select
           v-model="userData.identifierType"
+          variant="outlined"
           label="Identifikationstyp"
           :items="idItems"
           item-value="value"
@@ -55,6 +72,7 @@ const idItems = [
       <v-col :cols="mdAndUp ? 3 : xs ? 12 : 6">
         <v-text-field
           v-model="userData.identifierValue"
+          variant="outlined"
           label="Identifikationsnummer"
           :readonly="userData.loginProvider === 'AMA'"
           :disabled="userData.loginProvider === 'AMA'"

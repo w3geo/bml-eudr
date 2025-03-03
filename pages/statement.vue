@@ -60,6 +60,7 @@ const items = ref([]);
           "
         ></v-btn>
       </v-toolbar>
+      <statement-form :product="editProduct" />
       <agraratlas-map />
     </v-card>
   </v-dialog>

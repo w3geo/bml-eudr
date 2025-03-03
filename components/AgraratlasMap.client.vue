@@ -11,12 +11,17 @@ import {
   updateMapboxLayer,
 } from 'ol-mapbox-style';
 import { register as registerPMTiles } from 'pmtiles-protocol';
-import { useGeographic } from 'ol/proj';
+import { fromLonLat, getPointResolution } from 'ol/proj';
 import { mdiVectorSquareEdit, mdiVectorSquarePlus, mdiVectorSquareRemove } from '@mdi/js';
 import GeoJSON from 'ol/format/GeoJSON';
 import VectorSource from 'ol/source/Vector';
 import VectorLayer from 'ol/layer/Vector';
 import Modify from 'ol/interaction/Modify';
+import { fromExtent } from 'ol/geom/Polygon';
+import Feature from 'ol/Feature';
+import { getArea } from 'ol/sphere';
+
+const { geolocation } = useStatement();
 
 const mapContainer = ref();
 const showTooltipAdd = ref(false);
@@ -24,7 +29,6 @@ const showTooltipEdit = ref(false);
 const showTooltipRemove = ref(false);
 const mapMode = ref(0);
 
-useGeographic();
 registerPMTiles();
 
 const agraratlas = new LayerGroup();
@@ -56,9 +60,37 @@ const kataster = new LayerGroup({
 });
 apply(kataster, 'https://kataster.bev.gv.at/styles/kataster/style_basic.json');
 
-const geolocation = new VectorSource();
+/** @type {VectorSource<Feature<import('ol/geom/Polygon.js').default>>} */
+const geolocationSource = new VectorSource();
+
+/**
+ * @param {import('ol/source/Vector.js').VectorSourceEvent} e
+ */
+function calculateArea(e) {
+  const feature = e.feature;
+  if (!feature) {
+    return;
+  }
+  const geometry = feature.getGeometry();
+  if (!geometry || !geometry.getType().endsWith('Polygon')) {
+    return;
+  }
+  feature.set(
+    'Area',
+    feature.get('sl_flaeche_brutto_ha') || getArea(geometry, { projection: 'EPSG:3857' }) / 10000,
+  );
+}
+
+function updateGeolocation() {
+  const features = geolocationSource.getFeatures();
+  geolocation.value = geojsonFormat.writeFeaturesObject(features);
+}
+
+geolocationSource.on('addfeature', calculateArea);
+geolocationSource.on('changefeature', calculateArea);
+geolocationSource.on('change', updateGeolocation);
 const geolocationLayer = new VectorLayer({
-  source: geolocation,
+  source: geolocationSource,
 });
 
 const map = new Map({
@@ -66,7 +98,8 @@ const map = new Map({
   layers: [kataster, agraratlas, geolocationLayer],
 });
 
-const geojsonFormat = new GeoJSON();
+/** @type {GeoJSON<Feature<import('ol/geom/Polygon.js').default>>} */
+const geojsonFormat = new GeoJSON({ featureProjection: 'EPSG:3857' });
 
 /**
  * @param {import('ol/MapBrowserEvent.js').default<*>} event
@@ -90,10 +123,25 @@ async function addFeature(event) {
       if (!geojson || !geojson.features.length) {
         return;
       }
-      geolocation.addFeatures(geojsonFormat.readFeatures(geojson));
+      geolocationSource.addFeatures(geojsonFormat.readFeatures(geojson));
     } catch {
       //TODO show dialog
     }
+  } else {
+    const center = event.coordinate;
+    const resolution = getPointResolution(
+      'EPSG:3857',
+      map.getView().getResolution() || 1,
+      center,
+      'm',
+    );
+    const extent = [
+      center[0] - resolution * 50,
+      center[1] - resolution * 50,
+      center[0] + resolution * 50,
+      center[1] + resolution * 50,
+    ];
+    geolocationSource.addFeature(new Feature(fromExtent(extent)));
   }
 }
 
@@ -101,18 +149,19 @@ async function addFeature(event) {
  * @param {import('ol/MapBrowserEvent.js').default<*>} event
  */
 function deleteFeature(event) {
-  const feature = /** @type {import('ol/Feature.js').default} */ (
-    map.forEachFeatureAtPixel(event.pixel, (feature) => feature, {
-      layerFilter: (l) => l === geolocationLayer,
-    })
-  );
+  const feature =
+    /** @type {import('ol/Feature.js').default<import('ol/geom/Polygon.js').default>} */ (
+      map.forEachFeatureAtPixel(event.pixel, (feature) => feature, {
+        layerFilter: (l) => l === geolocationLayer,
+      })
+    );
   if (feature) {
-    geolocation.removeFeature(feature);
+    geolocationSource.removeFeature(feature);
   }
 }
 
 const edit = new Modify({
-  source: geolocation,
+  source: geolocationSource,
 });
 
 watch(
@@ -139,7 +188,7 @@ watch(
 
 usePlaceSearch(map);
 
-const extent = [9.530952, 46.372276, 17.160776, 49.020608];
+const extent = [...fromLonLat([9.530952, 46.372276]), ...fromLonLat([17.160776, 49.020608])];
 onMounted(async () => {
   await nextTick();
   map.setTarget(mapContainer.value);
@@ -149,7 +198,7 @@ onMounted(async () => {
   const address = userData?.address;
   if (address) {
     const value = address.split(', ').reverse().join(' ');
-    const animation = { center: [16.3738, 48.2082], zoom: 13, duration: 500 };
+    const animation = { center: fromLonLat([16.3738, 48.2082]), zoom: 13, duration: 500 };
     try {
       /** @type {ReturnType<typeof $fetch<{data: import('geojson').FeatureCollection<import('geojson').Point>}>>} */
       const locationData = $fetch(
@@ -158,7 +207,7 @@ onMounted(async () => {
       const { features } = (await locationData).data;
       if (features.length && features[0].geometry.type === 'Point') {
         const [feature] = features;
-        animation.center = feature.geometry.coordinates;
+        animation.center = fromLonLat(feature.geometry.coordinates);
         animation.zoom = 16;
       }
     } finally {
