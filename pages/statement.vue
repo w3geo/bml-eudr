@@ -1,5 +1,5 @@
 <script setup>
-import { mdiClose, mdiCow, mdiForestOutline, mdiPlus, mdiSprout } from '@mdi/js';
+import { mdiCheck, mdiClose, mdiPlus, mdiSprout } from '@mdi/js';
 
 definePageMeta({
   middleware: ['authenticated-only'],
@@ -8,26 +8,8 @@ definePageMeta({
 });
 
 const { mdAndUp, xs } = useDisplay();
-const products = {
-  sojabohnen: {
-    title: 'Sojabohnen',
-    icon: mdiSprout,
-  },
-  Rind: {
-    title: 'Rinder',
-    icon: mdiCow,
-  },
-  reinrassigesZuchtrind: {
-    title: 'Reinrassige Zuchtrinder',
-    icon: mdiCow,
-  },
-  rohholz: {
-    title: 'Rohholz',
-    icon: mdiForestOutline,
-  },
-};
 
-/** @type {import('vue').Ref<null|keyof products>} */
+/** @type {import('vue').Ref<null|import('~/utils/constants').EditProduct>} */
 const editProduct = ref(null);
 
 const map = computed({
@@ -41,32 +23,53 @@ const map = computed({
 
 /** @type {import('vue').Ref<Array<*>>} */
 const items = ref([]);
+
+/** @type {import('vue').Ref<boolean>} */
+const confirm = ref(false);
+
+function save() {
+  map.value = false;
+  items.value.push({});
+}
+
+function confirmAbandon() {
+  confirm.value = true;
+}
 </script>
 
 <template>
-  <v-dialog v-model="map" fullscreen>
+  <v-dialog v-model="confirm" max-width="400">
     <v-card>
-      <v-toolbar>
-        <v-btn :icon="mdiClose" @click="map = false"></v-btn>
-
-        <v-app-bar-title>{{ editProduct ? products[editProduct].title : '' }}</v-app-bar-title>
-
+      <v-card-text>Änderungen werden nicht gespeichert. Möchten Sie fortfahren?</v-card-text>
+      <v-card-actions>
+        <v-btn @click="confirm = false">Nein</v-btn>
         <v-btn
-          text="Übernehmen"
-          variant="text"
           @click="
+            confirm = false;
             map = false;
-            items.push({});
           "
-        ></v-btn>
-      </v-toolbar>
-      <statement-form :product="editProduct" />
-      <agraratlas-map />
+          >Ja</v-btn
+        >
+      </v-card-actions>
     </v-card>
   </v-dialog>
+  <v-dialog v-model="map" fullscreen>
+    <v-card v-if="editProduct">
+      <v-toolbar>
+        <v-btn :icon="mdiClose" @click="confirmAbandon"></v-btn>
+
+        <v-app-bar-title>{{ PRODUCTS[editProduct].title }}</v-app-bar-title>
+
+        <v-btn :icon="mdiCheck" @click="save"></v-btn>
+      </v-toolbar>
+      <places-form :product="editProduct" />
+      <places-map :product="editProduct" />
+    </v-card>
+  </v-dialog>
+
   <v-container>
     <v-row>
-      <v-col v-for="(item, key) in products" :key="key" :cols="mdAndUp ? 4 : xs ? 12 : 6">
+      <v-col v-for="(item, key) in PRODUCTS" :key="key" :cols="mdAndUp ? 4 : xs ? 12 : 6">
         <v-card>
           <v-card-title class="d-flex justify-center">{{ item.title }}</v-card-title>
           <v-card-text class="d-flex justify-center"

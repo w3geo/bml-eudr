@@ -1,8 +1,17 @@
 <script setup>
 import { ref } from 'vue';
 
+const props = defineProps({
+  product: {
+    type: /** @type {import('vue').PropType<import('~/utils/constants.js').EditProduct>} */ (
+      String
+    ),
+    required: true,
+  },
+});
+
 const { mdAndUp, xs } = useDisplay();
-const { area } = useStatement();
+const { area } = useStatement(props.product);
 
 const form = ref({
   area: 0,
