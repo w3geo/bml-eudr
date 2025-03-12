@@ -83,6 +83,7 @@ watch(
   <v-btn-toggle v-model="mapMode">
     <v-tooltip
       v-model="showTooltipAdd"
+      density="compact"
       open-on-click
       text="Ort hinzufügen"
       bottom
@@ -94,6 +95,7 @@ watch(
     </v-tooltip>
     <v-tooltip
       v-model="showTooltipEdit"
+      density="compact"
       open-on-click
       text="Ort bearbeiten"
       bottom
