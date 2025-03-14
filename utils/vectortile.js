@@ -3,7 +3,7 @@ import VectorTileSource from 'ol/source/VectorTile.js';
 import Map from 'ol/Map.js';
 import { createXYZ } from 'ol/tilegrid';
 import { createEmpty, equals, extend } from 'ol/extent';
-import { toGeometry } from 'ol/render/Feature.js';
+import { toFeature, toGeometry } from 'ol/render/Feature.js';
 import polygonClipping from 'polygon-clipping';
 import { MultiPolygon } from 'ol/geom';
 import Feature from 'ol/Feature.js';
@@ -113,12 +113,19 @@ export function createGetFeatureAtPixel(layerGroup, glLayer, getId, zoom) {
         getLayer(layerGroup, glLayer)
       );
     const source = /** @type {import('ol/source/VectorTile.js').default} */ (layer.getSource());
-    const renderFeature = map.forEachFeatureAtPixel(pixel, (feature) => feature, {
-      layerFilter: (l) => {
-        return l === layer;
-      },
-    });
+    const renderFeature = /** @type {import('ol/render/Feature.js').default} */ (
+      map.forEachFeatureAtPixel(pixel, (feature) => feature, {
+        layerFilter: (l) => {
+          return l === layer;
+        },
+      })
+    );
     if (renderFeature) {
+      if (renderFeature.getGeometry()?.getType().endsWith('Point')) {
+        const feature = toFeature(renderFeature);
+        feature.setId(getId(renderFeature));
+        return feature;
+      }
       return await getCompleteFeature(renderFeature, getId, source, zoom);
     } else {
       const center = map.getCoordinateFromPixel(pixel);

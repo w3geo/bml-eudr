@@ -6,6 +6,7 @@ import VectorLayer from 'ol/layer/Vector';
 /**
  * @typedef Geolocation
  * @property {import('vue').ComputedRef<number>} area
+ * @property {import('vue').Ref<number>} quantity
  * @property {import('vue').Ref<import('ol/format/GeoJSON').GeoJSONFeatureCollection>} geojson
  * @property {VectorLayer} geolocationLayer
  * @property {VectorSource} geolocationSource
@@ -69,9 +70,12 @@ export function useStatement(product) {
       );
     });
 
+    const quantity = ref(0);
+
     geolocation[product] = {
       geojson,
       area,
+      quantity,
       geolocationLayer,
       geolocationSource,
     };

@@ -62,7 +62,7 @@ function confirmAbandon() {
 
         <v-btn :icon="mdiCheck" @click="save"></v-btn>
       </v-toolbar>
-      <places-form :product="editProduct" />
+      <places-form :product="editProduct" @submit="save()" />
       <places-map :product="editProduct" />
     </v-card>
   </v-dialog>

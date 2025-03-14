@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+const emit = defineEmits(['submit']);
 
 const props = defineProps({
   product: {
@@ -10,60 +10,36 @@ const props = defineProps({
   },
 });
 
-/** @type {Object<string, {units: string, factor?: number}>} */
-const unitsAndFactors = {
-  sojabohnen: {
-    units: 't',
-    factor: 4,
-  },
-  rind: {
-    units: 'Stk.',
-  },
-  reinrassigesZuchtrind: {
-    units: 'Stk.',
-  },
-  rohholz: {
-    units: 'm³',
-    factor: 7.2,
-  },
-};
-
 const { mdAndUp, xs } = useDisplay();
-const { area, geojson } = useStatement(props.product);
+const { area, geojson, quantity } = useStatement(props.product);
 
-const form = ref({
-  area: 0,
-  quantity: 0,
-});
-
-const factor = unitsAndFactors[props.product]?.factor;
+const factor = PRODUCTS[props.product]?.factor;
 watch(area, (value) => {
-  form.value.area = value;
   if (factor) {
-    form.value.quantity = toPrecision(value * 4, 4);
+    quantity.value = toPrecision(value * 4, 4);
   }
 });
 </script>
 
 <template>
   <v-container fluid>
-    <v-form>
+    <v-form @submit.prevent="emit('submit')">
       <v-row align="center">
         <v-col :cols="mdAndUp ? 2 : xs ? 6 : 3">
           <v-text-field
-            v-model.number="form.quantity"
+            v-model.number="quantity"
             density="compact"
             variant="outlined"
             hide-details
             type="number"
             label="Menge"
-            :suffix="unitsAndFactors[product]?.units"
+            :suffix="PRODUCTS[product]?.units"
           ></v-text-field>
         </v-col>
         <v-col :cols="mdAndUp ? 2 : xs ? 6 : 3">
           <v-sheet
             >{{ geojson.features.length }} Ort{{ geojson.features.length === 1 ? '' : 'e' }}<br />{{
-              form.area
+              area
             }}
             ha</v-sheet
           >
