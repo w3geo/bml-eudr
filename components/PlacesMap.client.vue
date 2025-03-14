@@ -5,16 +5,16 @@ import 'ol/ol.css';
 import { fromLonLat } from 'ol/proj';
 
 const props = defineProps({
-  product: {
-    type: /** @type {import('vue').PropType<import('~/utils/constants.js').EditProduct>} */ (
+  commodity: {
+    type: /** @type {import('vue').PropType<import('~/utils/constants.js').EditCommodity>} */ (
       String
     ),
     required: true,
   },
 });
 
-const { geolocationLayer } = useStatement(props.product);
-const { layerGroup } = usePlaces(props.product);
+const { geolocationLayer } = useStatement(props.commodity);
+const { layerGroup } = usePlaces(props.commodity);
 
 const mapContainer = ref();
 
@@ -63,7 +63,7 @@ onMounted(async () => {
   <v-layout class="d-flex fill-height">
     <v-app-bar color="settings.$toolbar-color" density="compact" flat class="pr-1">
       <div>
-        <map-mode-toggle :map="map" :product="props.product" />
+        <map-mode-toggle :map="map" :commodity="props.commodity" />
       </div>
       <v-spacer />
       <div>

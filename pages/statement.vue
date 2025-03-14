@@ -1,5 +1,12 @@
 <script setup>
 import { mdiCheck, mdiClose, mdiPlus, mdiSprout } from '@mdi/js';
+import equal from 'fast-deep-equal';
+
+/**
+ * @typedef {Object} CommodityData
+ * @property {number} quantity
+ * @property {import('geojson').FeatureCollection} geojson
+ */
 
 definePageMeta({
   middleware: ['authenticated-only'],
@@ -9,30 +16,47 @@ definePageMeta({
 
 const { mdAndUp, xs } = useDisplay();
 
-/** @type {import('vue').Ref<null|import('~/utils/constants').EditProduct>} */
-const editProduct = ref(null);
+/** @type {import('vue').Ref<null|import('~/utils/constants').EditCommodity>} */
+const editCommodity = ref(null);
 
 const map = computed({
-  get: () => !!editProduct.value,
+  get: () => !!editCommodity.value,
   set: (value) => {
     if (!value) {
-      editProduct.value = null;
+      editCommodity.value = null;
     }
   },
 });
 
-/** @type {import('vue').Ref<Array<*>>} */
-const items = ref([]);
+/** @type {import('vue').Ref<Object<string, CommodityData>>} */
+const items = ref({});
 
 /** @type {import('vue').Ref<boolean>} */
 const confirm = ref(false);
 
-function save() {
+/**
+ * @param {import('~/utils/constants.js').EditCommodity} commodity
+ */
+function save(commodity) {
   map.value = false;
-  items.value.push({});
+  const { quantity, geojson } = useStatement(commodity);
+  items.value[commodity] = {
+    quantity: quantity.value,
+    geojson: structuredClone(geojson.value),
+  };
 }
 
-function confirmAbandon() {
+/**
+ * @param {import('~/utils/constants.js').EditCommodity} commodity
+ */
+function confirmAbandon(commodity) {
+  const { quantity, geojson } = useStatement(commodity);
+  const currentQuantity = items.value[commodity]?.quantity || 0;
+  const currentGeojson = structuredClone(items.value[commodity]?.geojson || EMPTY_GEOJSON);
+  if (quantity.value === currentQuantity || equal(geojson.value, currentGeojson)) {
+    map.value = false;
+    return;
+  }
   confirm.value = true;
 }
 </script>
@@ -53,43 +77,32 @@ function confirmAbandon() {
       </v-card-actions>
     </v-card>
   </v-dialog>
+
   <v-dialog v-model="map" fullscreen>
-    <v-card v-if="editProduct">
+    <v-card v-if="editCommodity">
       <v-toolbar>
-        <v-btn :icon="mdiClose" @click="confirmAbandon"></v-btn>
+        <v-btn :icon="mdiClose" @click="confirmAbandon(editCommodity)"></v-btn>
 
-        <v-app-bar-title>{{ PRODUCTS[editProduct].title }}</v-app-bar-title>
+        <v-app-bar-title>{{ COMMODITIES[editCommodity].title }}</v-app-bar-title>
 
-        <v-btn :icon="mdiCheck" @click="save"></v-btn>
+        <v-btn :icon="mdiCheck" @click="save(editCommodity)"></v-btn>
       </v-toolbar>
-      <places-form :product="editProduct" @submit="save()" />
-      <places-map :product="editProduct" />
+      <places-form :commodity="editCommodity" @submit="save(editCommodity)" />
+      <places-map :commodity="editCommodity" />
     </v-card>
   </v-dialog>
 
   <v-container>
     <v-row>
-      <v-col v-for="(item, key) in PRODUCTS" :key="key" :cols="mdAndUp ? 4 : xs ? 12 : 6">
+      <v-col v-for="(item, key) in COMMODITIES" :key="key" :cols="mdAndUp ? 4 : xs ? 12 : 6">
         <v-card>
           <v-card-title class="d-flex justify-center">{{ item.title }}</v-card-title>
           <v-card-text class="d-flex justify-center"
             ><v-icon :icon="item.icon" size="50"
           /></v-card-text>
           <v-card-actions class="d-flex justify-center"
-            ><v-btn color="primary" :prepend-icon="mdiPlus" @click="editProduct = key"
+            ><v-btn color="primary" :prepend-icon="mdiPlus" @click="editCommodity = key"
               >Hinzufügen</v-btn
-            ></v-card-actions
-          >
-        </v-card>
-      </v-col>
-      <v-col v-for="(item, index) in items" :key="index" :cols="mdAndUp ? 4 : xs ? 12 : 6">
-        <v-card>
-          <v-card-text class="d-flex justify-center"
-            ><v-img src="/minimap.png" width="82" height="82"
-          /></v-card-text>
-          <v-card-actions class="d-flex justify-center"
-            ><v-btn color="primary" :prepend-icon="mdiSprout" @click="editProduct = item"
-              >Bearbeiten</v-btn
             ></v-card-actions
           >
         </v-card>

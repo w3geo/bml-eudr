@@ -2,8 +2,8 @@
 const emit = defineEmits(['submit']);
 
 const props = defineProps({
-  product: {
-    type: /** @type {import('vue').PropType<import('~/utils/constants.js').EditProduct>} */ (
+  commodity: {
+    type: /** @type {import('vue').PropType<import('~/utils/constants.js').EditCommodity>} */ (
       String
     ),
     required: true,
@@ -11,9 +11,9 @@ const props = defineProps({
 });
 
 const { mdAndUp, xs } = useDisplay();
-const { area, geojson, quantity } = useStatement(props.product);
+const { area, geojson, quantity } = useStatement(props.commodity);
 
-const factor = PRODUCTS[props.product]?.factor;
+const factor = COMMODITIES[props.commodity]?.factor;
 watch(area, (value) => {
   if (factor) {
     quantity.value = toPrecision(value * 4, 4);
@@ -33,7 +33,7 @@ watch(area, (value) => {
             hide-details
             type="number"
             label="Menge"
-            :suffix="PRODUCTS[product]?.units"
+            :suffix="COMMODITIES[commodity]?.units"
           ></v-text-field>
         </v-col>
         <v-col :cols="mdAndUp ? 2 : xs ? 6 : 3">

@@ -37,13 +37,16 @@ const geojsonFormat = new GeoJSON({ featureProjection: 'EPSG:3857' });
 const geolocation = {};
 
 /**
- * @param {import('~/utils/constants').EditProduct} product
+ * @param {import('~/utils/constants').EditCommodity} commodity
  * @returns {Geolocation}
  */
-export function useStatement(product) {
-  if (!geolocation[product]) {
+export function useStatement(commodity) {
+  if (!geolocation[commodity]) {
     /** @type {VectorSource<import('ol/Feature.js').default<import('ol/geom/Polygon.js').default|import('ol/geom/MultiPolygon.js').default>>} */
     const geolocationSource = new VectorSource();
+
+    /** @type {import('vue').Ref<import('ol/format/GeoJSON').GeoJSONFeatureCollection>} */
+    const geojson = shallowRef(structuredClone(EMPTY_GEOJSON));
 
     function updateGeolocation() {
       const features = geolocationSource.getFeatures();
@@ -58,9 +61,6 @@ export function useStatement(product) {
       source: geolocationSource,
     });
 
-    /** @type {import('vue').Ref<import('ol/format/GeoJSON').GeoJSONFeatureCollection>} */
-    const geojson = shallowRef({ type: 'FeatureCollection', features: [] });
-
     const area = computed(() => {
       return toPrecision(
         geojson.value.features.reduce((acc, feature) => {
@@ -72,7 +72,7 @@ export function useStatement(product) {
 
     const quantity = ref(0);
 
-    geolocation[product] = {
+    geolocation[commodity] = {
       geojson,
       area,
       quantity,
@@ -81,5 +81,5 @@ export function useStatement(product) {
     };
   }
 
-  return geolocation[product];
+  return geolocation[commodity];
 }

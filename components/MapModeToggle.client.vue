@@ -4,8 +4,8 @@ import Modify from 'ol/interaction/Modify';
 import Map from 'ol/Map.js';
 
 const props = defineProps({
-  product: {
-    type: /** @type {import('vue').PropType<import('~/utils/constants.js').EditProduct>} */ (
+  commodity: {
+    type: /** @type {import('vue').PropType<import('~/utils/constants.js').EditCommodity>} */ (
       String
     ),
     required: true,
@@ -21,9 +21,9 @@ const showTooltipEdit = ref(false);
 const showTooltipRemove = ref(false);
 const mapMode = ref(0);
 
-const { geolocationLayer, geolocationSource } = useStatement(props.product);
+const { geolocationLayer, geolocationSource } = useStatement(props.commodity);
 
-const { getFeatureAtPixel } = usePlaces(props.product);
+const { getFeatureAtPixel } = usePlaces(props.commodity);
 
 /**
  * @param {import('ol/MapBrowserEvent.js').default<*>} event
