@@ -5,9 +5,7 @@ import Map from 'ol/Map.js';
 
 const props = defineProps({
   commodity: {
-    type: /** @type {import('vue').PropType<import('~/utils/constants.js').Commodity>} */ (
-      String
-    ),
+    type: /** @type {import('vue').PropType<import('~/utils/constants.js').Commodity>} */ (String),
     required: true,
   },
   map: {

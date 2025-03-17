@@ -6,9 +6,7 @@ import { fromLonLat } from 'ol/proj';
 
 const props = defineProps({
   commodity: {
-    type: /** @type {import('vue').PropType<import('~/utils/constants.js').Commodity>} */ (
-      String
-    ),
+    type: /** @type {import('vue').PropType<import('~/utils/constants.js').Commodity>} */ (String),
     required: true,
   },
 });
@@ -18,9 +16,13 @@ const { layerGroup } = usePlaces(props.commodity);
 
 const mapContainer = ref();
 
+const { user } = useUserSession();
+const login = user.value?.login;
+
 const map = new Map({
   target: mapContainer.value,
   layers: [layerGroup, geolocationLayer],
+  view: login ? useMapView(login).view : undefined,
 });
 
 usePlaceSearch(map);
@@ -29,7 +31,11 @@ const extent = [...fromLonLat([9.530952, 46.372276]), ...fromLonLat([17.160776, 
 onMounted(async () => {
   await nextTick();
   map.setTarget(mapContainer.value);
-  map.getView().fit(extent, { size: map.getSize(), maxZoom: 10, padding: [20, 20, 20, 20] });
+  const view = map.getView();
+  if (view.isDef()) {
+    return;
+  }
+  view.fit(extent, { size: map.getSize(), maxZoom: 10, padding: [20, 20, 20, 20] });
   mapContainer.value.classList.add('spinner');
   const userData = await $fetch('/api/users/me');
   const address = userData?.address;
@@ -50,7 +56,7 @@ onMounted(async () => {
         animation.zoom = 16;
       }
     } finally {
-      map.getView().animate(animation);
+      view.animate(animation);
       map.once('rendercomplete', () => {
         mapContainer.value.classList.remove('spinner');
       });
