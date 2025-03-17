@@ -10,6 +10,9 @@ import VectorLayer from 'ol/layer/Vector';
  * @property {import('vue').Ref<import('ol/format/GeoJSON').GeoJSONFeatureCollection>} geojson
  * @property {VectorLayer} geolocationLayer
  * @property {VectorSource} geolocationSource
+ * @property {() => void} createSnapshot
+ * @property {() => void} restoreSnapshot
+ * @property {import('vue').Ref<boolean>} modifiedSinceSnapshot
  */
 
 /**
@@ -37,7 +40,7 @@ const geojsonFormat = new GeoJSON({ featureProjection: 'EPSG:3857' });
 const geolocation = {};
 
 /**
- * @param {import('~/utils/constants').EditCommodity} commodity
+ * @param {import('~/utils/constants').Commodity} commodity
  * @returns {Geolocation}
  */
 export function useStatement(commodity) {
@@ -72,12 +75,44 @@ export function useStatement(commodity) {
 
     const quantity = ref(0);
 
+    const modifiedSinceSnapshot = ref(false);
+    watch([quantity, geojson], () => {
+      modifiedSinceSnapshot.value = true;
+    });
+
+    /** @type {{quantity: number, geojson: import('geojson').FeatureCollection}|null} */
+    let snapshot = null;
+
+    function createSnapshot() {
+      snapshot = {
+        quantity: quantity.value,
+        geojson: structuredClone(geojson.value),
+      };
+      modifiedSinceSnapshot.value = false;
+    }
+
+    function restoreSnapshot() {
+      if (snapshot) {
+        quantity.value = snapshot.quantity;
+        geojson.value = snapshot.geojson;
+        geolocationSource.clear();
+        geolocationSource.addFeatures(
+          geojsonFormat.readFeatures(geojson.value, { featureProjection: 'EPSG:3857' }),
+        );
+      }
+      snapshot = null;
+      modifiedSinceSnapshot.value = false;
+    }
+
     geolocation[commodity] = {
       geojson,
       area,
       quantity,
       geolocationLayer,
       geolocationSource,
+      createSnapshot,
+      restoreSnapshot,
+      modifiedSinceSnapshot,
     };
   }
 

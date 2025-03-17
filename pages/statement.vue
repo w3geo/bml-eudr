@@ -1,6 +1,5 @@
 <script setup>
-import { mdiCheck, mdiClose, mdiPlus, mdiSprout } from '@mdi/js';
-import equal from 'fast-deep-equal';
+import { mdiCheck, mdiClose, mdiPlus } from '@mdi/js';
 
 /**
  * @typedef {Object} CommodityData
@@ -16,7 +15,7 @@ definePageMeta({
 
 const { mdAndUp, xs } = useDisplay();
 
-/** @type {import('vue').Ref<null|import('~/utils/constants').EditCommodity>} */
+/** @type {import('vue').Ref<null|import('~/utils/constants').Commodity>} */
 const editCommodity = ref(null);
 
 const map = computed({
@@ -35,9 +34,11 @@ const items = ref({});
 const confirm = ref(false);
 
 /**
- * @param {import('~/utils/constants.js').EditCommodity} commodity
+ * @param {import('~/utils/constants.js').Commodity} commodity
  */
 function save(commodity) {
+  //FIXME do this the other way around - always save, and restore if user cancels
+  // snapshot of geojson and quantity, to restore clear source and add features from snapshot geojson
   map.value = false;
   const { quantity, geojson } = useStatement(commodity);
   items.value[commodity] = {
@@ -47,33 +48,44 @@ function save(commodity) {
 }
 
 /**
- * @param {import('~/utils/constants.js').EditCommodity} commodity
+ * @param {import('~/utils/constants.js').Commodity} commodity
+ */
+function openEditor(commodity) {
+  editCommodity.value = commodity;
+  const { createSnapshot } = useStatement(commodity);
+  createSnapshot();
+}
+
+/**
+ * @param {import('~/utils/constants.js').Commodity} commodity
  */
 function confirmAbandon(commodity) {
-  const { quantity, geojson } = useStatement(commodity);
-  const currentQuantity = items.value[commodity]?.quantity || 0;
-  const currentGeojson = structuredClone(items.value[commodity]?.geojson || EMPTY_GEOJSON);
-  if (quantity.value === currentQuantity || equal(geojson.value, currentGeojson)) {
+  const { modifiedSinceSnapshot } = useStatement(commodity);
+  if (!modifiedSinceSnapshot.value) {
     map.value = false;
     return;
   }
   confirm.value = true;
 }
+
+/**
+ * @param {import('~/utils/constants.js').Commodity} commodity
+ */
+function abandonChanges(commodity) {
+  const { restoreSnapshot } = useStatement(commodity);
+  restoreSnapshot();
+  map.value = false;
+  confirm.value = false;
+}
 </script>
 
 <template>
   <v-dialog v-model="confirm" max-width="400">
-    <v-card>
+    <v-card v-if="editCommodity">
       <v-card-text>Änderungen werden nicht gespeichert. Möchten Sie fortfahren?</v-card-text>
       <v-card-actions>
         <v-btn @click="confirm = false">Nein</v-btn>
-        <v-btn
-          @click="
-            confirm = false;
-            map = false;
-          "
-          >Ja</v-btn
-        >
+        <v-btn @click="abandonChanges(editCommodity)">Ja</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -101,7 +113,7 @@ function confirmAbandon(commodity) {
             ><v-icon :icon="item.icon" size="50"
           /></v-card-text>
           <v-card-actions class="d-flex justify-center"
-            ><v-btn color="primary" :prepend-icon="mdiPlus" @click="editCommodity = key"
+            ><v-btn color="primary" :prepend-icon="mdiPlus" @click="openEditor(key)"
               >Hinzufügen</v-btn
             ></v-card-actions
           >

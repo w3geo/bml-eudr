@@ -6,7 +6,7 @@ import { fromLonLat } from 'ol/proj';
 
 const props = defineProps({
   commodity: {
-    type: /** @type {import('vue').PropType<import('~/utils/constants.js').EditCommodity>} */ (
+    type: /** @type {import('vue').PropType<import('~/utils/constants.js').Commodity>} */ (
       String
     ),
     required: true,

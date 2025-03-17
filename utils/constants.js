@@ -1,6 +1,6 @@
 import { mdiCow, mdiForestOutline, mdiSprout } from '@mdi/js';
 
-/** @typedef {keyof COMMODITIES} EditCommodity */
+/** @typedef {keyof COMMODITIES} Commodity */
 
 /** @typedef {{ title: string, icon: string, units: string, factor?: number }} CommodityData */
 

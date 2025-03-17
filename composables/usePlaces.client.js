@@ -16,7 +16,7 @@ const snarSubstring = {
 };
 
 /**
- * @param {import('~/utils/constants').EditCommodity} commodity
+ * @param {import('~/utils/constants').Commodity} commodity
  * @returns {LayerGroup}
  */
 function createAgraratlasLayer(commodity) {
@@ -125,7 +125,7 @@ function createKatasterLayer() {
 const placesByCommodity = {};
 
 /**
- * @param {import('~/utils/constants').EditCommodity} commodity
+ * @param {import('~/utils/constants').Commodity} commodity
  * @returns {VectorTileComposable}}
  */
 export const usePlaces = (commodity) => {
