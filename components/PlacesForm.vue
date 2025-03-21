@@ -3,9 +3,7 @@ const emit = defineEmits(['submit']);
 
 const props = defineProps({
   commodity: {
-    type: /** @type {import('vue').PropType<import('~/utils/constants.js').Commodity>} */ (
-      String
-    ),
+    type: /** @type {import('vue').PropType<import('~/utils/constants.js').Commodity>} */ (String),
     required: true,
   },
 });
@@ -16,7 +14,7 @@ const { area, geojson, quantity } = useStatement(props.commodity);
 const factor = COMMODITIES[props.commodity]?.factor;
 watch(area, (value) => {
   if (factor) {
-    quantity.value = toPrecision(value * 4, 4);
+    quantity.value = toPrecision(value * 4, 2);
   }
 });
 </script>

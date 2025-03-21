@@ -13,6 +13,7 @@ import VectorLayer from 'ol/layer/Vector';
  * @property {() => void} createSnapshot
  * @property {() => void} restoreSnapshot
  * @property {import('vue').Ref<boolean>} modifiedSinceSnapshot
+ * @property {import('vue').ComputedRef<string>} summary
  */
 
 /**
@@ -75,6 +76,14 @@ export function useStatement(commodity) {
 
     const quantity = ref(0);
 
+    const summary = computed(() => {
+      if (!geojson.value.features.length) {
+        return '';
+      }
+      const places = geojson.value.features.length;
+      return `${places} Ort${places === 1 ? '' : 'e'}, ${quantity.value.toLocaleString('de-AT')} ${COMMODITIES[commodity].units}`;
+    });
+
     const modifiedSinceSnapshot = ref(false);
     watch([quantity, geojson], () => {
       modifiedSinceSnapshot.value = true;
@@ -113,6 +122,7 @@ export function useStatement(commodity) {
       createSnapshot,
       restoreSnapshot,
       modifiedSinceSnapshot,
+      summary,
     };
   }
 

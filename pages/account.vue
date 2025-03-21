@@ -12,6 +12,9 @@ useSeoMeta({
 const { loggedIn, clear } = useUserSession();
 const { theme } = useBrowserTheme();
 
+/** @type {import('vue').Ref<import('~/components/UserData.vue').default|null>} */
+const userData = ref(null);
+
 const loginRetry = useCookie('login-retry');
 const loginRetryAlert = computed({
   get: () => loginRetry.value === 'true',
@@ -39,9 +42,12 @@ const loginErrorAlert = computed({
         <v-card v-if="loggedIn">
           <v-card-title>Profil</v-card-title>
           <v-card-text>
-            <UserData />
+            <UserData ref="userData" verbose />
           </v-card-text>
           <v-card-actions>
+            <v-btn @click="async () => (await userData?.validate()) && userData?.save()"
+              >Speichern</v-btn
+            >
             <v-spacer />
             <v-btn @click="clear">Logout</v-btn>
           </v-card-actions>

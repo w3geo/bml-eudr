@@ -2,7 +2,7 @@ import { mdiCow, mdiForestOutline, mdiSprout } from '@mdi/js';
 
 /** @typedef {keyof COMMODITIES} Commodity */
 
-/** @typedef {{ title: string, icon: string, units: string, factor?: number }} CommodityData */
+/** @typedef {{ title: string, icon: string, units: 't' | 'Stk.' | 'm³', factor?: number }} CommodityData */
 
 export const COMMODITIES = {
   /** @type {CommodityData} */

@@ -71,7 +71,7 @@ export async function getCompleteFeature(feature, getId, source, zoom) {
   while (!equals(extent, newExtent)) {
     extent = newExtent;
     map.getView().fit(extent);
-    newExtent = await new Promise((resolve) =>
+    newExtent = await new Promise((resolve) => {
       map.once('rendercomplete', () => {
         features = layer
           .getFeaturesInExtent(extent)
@@ -79,8 +79,9 @@ export async function getCompleteFeature(feature, getId, source, zoom) {
         resolve(
           features.reduce((acc, cur) => extend(acc, cur.getGeometry().getExtent()), createEmpty()),
         );
-      }),
-    );
+      });
+      map.render();
+    });
   }
   const polygonCoordinates = /** @type {Array<import('polygon-clipping').Geom>} */ (
     features.map((feature) => toGeometry(feature).getCoordinates())
