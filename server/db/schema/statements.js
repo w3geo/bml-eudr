@@ -1,17 +1,27 @@
 import { json, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 import users from './users';
 
+/** @typedef {{commodities: Object<string, import('~/pages/statement.vue').CommodityData>}} StatementPayload */
+
 const statements = pgTable('statements', {
   id: uuid().primaryKey(),
   userId: varchar({ length: 127 })
     .notNull()
     .references(() => users.id),
-  statement: json(),
-  referenceNumber: varchar({ length: 31 }),
-  verificationNumber: varchar({ length: 16 }),
-  created: timestamp().notNull(),
+  statement:
+    /** @type {import('drizzle-orm').NotNull<import('drizzle-orm').$Type<import('drizzle-orm/pg-core').PgJsonBuilderInitial<"">, StatementPayload>>} */ (
+      json().notNull()
+    ),
+  referenceNumber: varchar({ length: 50 }),
+  verificationNumber: varchar({ length: 35 }),
+  status: varchar({
+    enum: ['AVAILABLE', 'SUBMITTED', 'REJECTED', 'CANCELLED', 'WITHDRAWN', 'ARCHIVED'],
+    length: 9,
+  }),
+  date: timestamp().notNull(),
 });
 
 /** @typedef {import('drizzle-orm').InferSelectModel<statements>} Statement */
+/** @typedef {'AVAILABLE' | 'SUBMITTED' | 'REJECTED' | 'CANCELLED' | 'WITHDRAWN' | 'ARCHIVED'} TracesStatus */
 
 export default statements;

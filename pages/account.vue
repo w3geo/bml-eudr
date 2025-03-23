@@ -38,14 +38,17 @@ const loginErrorAlert = computed({
       <v-col v-if="loginErrorAlert" cols="12">
         <v-alert v-model="loginErrorAlert" closable>{{ loginErrorAlert }}</v-alert>
       </v-col>
-      <v-col>
+      <v-col cols="12">
         <v-card v-if="loggedIn">
-          <v-card-title>Meine Sorgfaltspflichterklärungen</v-card-title>
+          <v-card-title>Meine Referenznummern</v-card-title>
+          <v-card-text>
+            <StatementList />
+          </v-card-text>
         </v-card>
       </v-col>
       <v-col>
         <v-card v-if="loggedIn">
-          <v-card-title>Profil</v-card-title>
+          <v-card-title>Meine Stammdaten</v-card-title>
           <v-card-text>
             <UserData ref="userData" verbose />
           </v-card-text>

@@ -1,5 +1,4 @@
 import { join } from 'path';
-import { setDatabase } from '../utils/database';
 import { drizzle as postgresDrizzle } from 'drizzle-orm/node-postgres';
 import { drizzle as pgliteDrizzle } from 'drizzle-orm/pglite';
 import { migrate as postgresMigrate } from 'drizzle-orm/node-postgres/migrator';

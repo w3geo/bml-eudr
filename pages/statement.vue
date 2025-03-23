@@ -120,7 +120,7 @@ async function submit() {
   }
   await userData.value?.save();
   try {
-    await $fetch('/api/statement', {
+    await $fetch('/api/statements', {
       method: 'POST',
       body: JSON.stringify({ commodities: items.value }),
     });
