@@ -1,5 +1,6 @@
 <script setup>
 import { mdiCheck, mdiCheckDecagram, mdiClose, mdiNoteEdit, mdiPlus } from '@mdi/js';
+import { FetchError } from 'ofetch';
 
 /**
  * @typedef {Object} CommodityData
@@ -21,6 +22,17 @@ const userData = ref(null);
 
 /** @type {import('vue').Ref<null|import('~/utils/constants').Commodity>} */
 const editCommodity = ref(null);
+
+/** @type {import('vue').Ref<string|null>} */
+const submitError = ref(null);
+const displaySubmitError = computed({
+  get: () => !!submitError.value,
+  set: (value) => {
+    if (!value) {
+      submitError.value = null;
+    }
+  },
+});
 
 const map = computed({
   get: () => !!editCommodity.value,
@@ -107,6 +119,19 @@ async function submit() {
     return;
   }
   await userData.value?.save();
+  try {
+    await $fetch('/api/statement', {
+      method: 'POST',
+      body: JSON.stringify({ commodities: items.value }),
+    });
+    useRouter().push('/account');
+  } catch (error) {
+    if (error instanceof FetchError) {
+      submitError.value = error.data.message;
+    } else if (error instanceof Error) {
+      submitError.value = error.message;
+    }
+  }
 }
 </script>
 
@@ -173,6 +198,7 @@ async function submit() {
         </v-card>
       </v-col>
     </v-row>
-    &nbsp;
+
+    <v-snackbar v-model="displaySubmitError" timeout="6000">{{ submitError }}</v-snackbar>
   </v-container>
 </template>

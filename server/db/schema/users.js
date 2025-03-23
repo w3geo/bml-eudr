@@ -11,4 +11,6 @@ const users = pgTable('users', {
   loginProvider: varchar({ enum: ['AMA', 'IDA'], length: 3 }).notNull(),
 });
 
+/** @typedef {import('drizzle-orm').InferSelectModel<users>} User */
+
 export default users;

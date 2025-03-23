@@ -40,6 +40,11 @@ const loginErrorAlert = computed({
       </v-col>
       <v-col>
         <v-card v-if="loggedIn">
+          <v-card-title>Meine Sorgfaltspflichterklärungen</v-card-title>
+        </v-card>
+      </v-col>
+      <v-col>
+        <v-card v-if="loggedIn">
           <v-card-title>Profil</v-card-title>
           <v-card-text>
             <UserData ref="userData" verbose />
