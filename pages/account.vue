@@ -11,6 +11,7 @@ useSeoMeta({
 });
 const { loggedIn, clear } = useUserSession();
 const { theme } = useBrowserTheme();
+const { xs } = useDisplay();
 
 /** @type {import('vue').Ref<import('~/components/UserData.vue').default|null>} */
 const userData = ref(null);
@@ -66,32 +67,32 @@ const loginErrorAlert = computed({
       </v-col>
     </v-row>
     <v-row>
-      <v-col cols="6">
+      <v-col :cols="xs ? 12 : 6">
         <v-card v-if="!loggedIn" class="fill-height" href="./auth/ama">
-          <v-card-title class="d-flex justify-center">Anmelden mit</v-card-title>
+          <v-card-title class="text-center">Anmelden mit</v-card-title>
           <v-card-actions class="d-flex justify-center"
-            ><v-img max-height="50" :src="`./logo_eama_${theme}.png`"
+            ><v-img height="50" :src="`./logo_eama_${theme}.png`"
           /></v-card-actions>
-          <v-card-text class="d-flex justify-center">
-            Minimaler Aufwand bei der Sorgfaltspflichterklärung</v-card-text
+          <v-card-text class="text-center"
+            >Minimaler Aufwand bei der Sorgfaltspflichterklärung</v-card-text
           >
         </v-card>
       </v-col>
-      <v-col cols="6">
+      <v-col :cols="xs ? 12 : 6">
         <v-card v-if="!loggedIn" class="fill-height" href="./auth/idaustria">
-          <v-card-title class="d-flex justify-center">Anmelden mit</v-card-title>
+          <v-card-title class="text-center">Anmelden mit</v-card-title>
           <v-card-actions class="d-flex justify-center"
-            ><v-img max-height="50" :src="`./id-austria-logo-${theme}.png`"
+            ><v-img height="50" :src="`./id-austria-logo-${theme}.png`"
           /></v-card-actions>
-          <v-card-text class="d-flex justify-center">
+          <v-card-text class="text-center">
             Für alle, die über kein eAMA Login verfügen</v-card-text
           >
         </v-card>
       </v-col>
       <DevOnly>
-        <v-col cols="6">
+        <v-col :cols="xs ? 12 : 6">
           <v-card v-if="!loggedIn" class="fill-height" href="./auth/development">
-            <v-card-title class="d-flex justify-center">Entwickler</v-card-title>
+            <v-card-title class="text-center">Entwickler</v-card-title>
           </v-card>
         </v-col>
       </DevOnly>

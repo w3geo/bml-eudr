@@ -1,7 +1,11 @@
 import { json, pgTable, timestamp, uuid, varchar } from 'drizzle-orm/pg-core';
 import users from './users';
 
-/** @typedef {{commodities: Object<string, import('~/pages/statement.vue').CommodityData>}} StatementPayload */
+/**
+ * @typedef {Object} StatementPayload
+ * @property {Object<string, import('~/pages/statement.vue').CommodityData>} commodities
+ * @property {boolean} geolocationVisible
+ */
 
 const statements = pgTable('statements', {
   id: uuid().primaryKey(),

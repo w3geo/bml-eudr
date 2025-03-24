@@ -1,5 +1,5 @@
 <script setup>
-import { mdiCheck, mdiCheckDecagram, mdiClose, mdiNoteEdit, mdiPlus } from '@mdi/js';
+import { mdiCheck, mdiCheckDecagram, mdiClose } from '@mdi/js';
 import { FetchError } from 'ofetch';
 
 /**
@@ -8,6 +8,8 @@ import { FetchError } from 'ofetch';
  * @property {import('geojson').FeatureCollection} geojson
  * @property {string} summary
  */
+
+/** @typedef {CommodityData & {key: import('~/utils/constants').Commodity}} CommodityDataWithKey */
 
 definePageMeta({
   middleware: ['authenticated-only'],
@@ -19,6 +21,9 @@ const { mdAndUp, xs } = useDisplay();
 
 /** @type {import('vue').Ref<import('~/components/UserData.vue').default|null>} */
 const userData = ref(null);
+
+/** @type {import('vue').Ref<boolean>} */
+const geolocationVisible = ref(false);
 
 /** @type {import('vue').Ref<null|import('~/utils/constants').Commodity>} */
 const editCommodity = ref(null);
@@ -43,29 +48,34 @@ const map = computed({
   },
 });
 
-/** @type {import('vue').Ref<Object<string, CommodityData>>} */
+/** @type {import('vue').Ref<Record<import('~/utils/constants.js').Commodity, CommodityData>>} */
 const items = ref(
-  /** @type {Array<import('~/utils/constants.js').Commodity>} */ (Object.keys(COMMODITIES)).reduce(
-    (items, key) => {
-      const { quantity, geojson, summary } = useStatement(key);
-      items[key] = {
-        quantity: quantity.value,
-        geojson: structuredClone(geojson.value),
-        summary: summary.value,
-      };
-      return items;
-    },
-    /** @type {Object<string, CommodityData>} */ ({}),
-  ),
+  COMMODITY_KEYS.reduce((items, key) => {
+    const { quantity, geojson, summary } = useStatement(key);
+    items[key] = {
+      quantity: quantity.value,
+      geojson: structuredClone(geojson.value),
+      summary: summary.value,
+    };
+    return items;
+  }, /** @type {Record<import('~/utils/constants.js').Commodity, CommodityData>} */ ({})),
 );
 
 /** @type {import('vue').Ref<boolean>} */
 const confirm = ref(false);
 
-const commodities = computed(() =>
-  /** @type {Array<import('~/utils/constants.js').Commodity>} */ (Object.keys(items.value))
-    .map((key) => ({ key, ...items.value[key] }))
-    .sort((a, b) => (a.summary && !b.summary ? -1 : !a.summary && !b.summary ? 0 : 1)),
+/** @type {import('vue').ComputedRef<Array<CommodityDataWithKey>>} */
+const commoditiesInStatement = computed(() =>
+  COMMODITY_KEYS.map((key) => ({ key, ...items.value[key] })).filter(
+    (commodity) => commodity.summary,
+  ),
+);
+
+/** @type {import('vue').ComputedRef<Array<CommodityDataWithKey>>} */
+const commoditiesToAdd = computed(() =>
+  COMMODITY_KEYS.map((key) => ({ key, ...items.value[key] })).filter(
+    (commodity) => !commodity.summary,
+  ),
 );
 
 const canSend = computed(() => Object.values(items.value).some((item) => item.summary));
@@ -122,7 +132,10 @@ async function submit() {
   try {
     await $fetch('/api/statements', {
       method: 'POST',
-      body: JSON.stringify({ commodities: items.value }),
+      body: JSON.stringify({
+        commodities: items.value,
+        geolocationVisible: geolocationVisible.value,
+      }),
     });
     useRouter().push('/account');
   } catch (error) {
@@ -130,6 +143,10 @@ async function submit() {
       submitError.value = error.data.message;
     } else if (error instanceof Error) {
       submitError.value = error.message;
+    }
+  } finally {
+    for (const key of COMMODITY_KEYS) {
+      useStatement(key).clear();
     }
   }
 }
@@ -165,40 +182,49 @@ async function submit() {
       <v-col cols="12">
         <v-card>
           <v-card-title>Sorgfaltspflichterklärung</v-card-title>
-          <v-card-text v-if="canSend"><UserData ref="userData" /></v-card-text>
+          <v-card-text v-if="canSend"
+            ><UserData ref="userData" class="mb-4" />
+            <v-row>
+              <v-col
+                v-for="item in commoditiesInStatement"
+                :key="item.key"
+                :cols="mdAndUp ? 4 : xs ? 12 : 6"
+              >
+                <CommodityCard :item="item" @open-editor="openEditor" />
+              </v-col>
+            </v-row>
+            <v-checkbox
+              v-model="geolocationVisible"
+              class="mt-4 checkbox-align-start"
+              hide-details
+              density="compact"
+            >
+              <template #label>
+                <div class="ml-1 text-body-2">
+                  Erzeugungsorte in anderen Sorgfaltspflichterklärungen anzeigen, wenn sie sich auf
+                  diese beziehen
+                </div>
+              </template>
+            </v-checkbox>
+            <p class="mt-4">
+              Durch Übermittlung dieser Sorgfaltserklärung bestätigt der Marktteilnehmer, dass er
+              die Sorgfaltspflicht gemäß der Verordnung (EU) 2023/1115 erfüllt hat, und dass kein
+              oder lediglich ein vernachlässigbares Risiko dahin gehend festgestellt wurde, dass die
+              relevanten Erzeugnisse gegen Artikel 3 Buchstaben a oder b dieser Verordnung
+              verstoßen.
+            </p>
+          </v-card-text>
           <v-card-actions v-if="canSend">
             <v-btn :prepend-icon="mdiCheckDecagram" color="primary" @click="submit"
-              >Abschicken</v-btn
+              >Übermitteln</v-btn
             >
           </v-card-actions>
         </v-card>
       </v-col>
-      <v-col v-for="item in commodities" :key="item.key" :cols="mdAndUp ? 4 : xs ? 12 : 6">
-        <v-card
-          :color="item.summary ? 'teal-darken-4' : ''"
-          class="d-flex flex-column align-center justify-center"
-          min-height="180"
-        >
-          <v-card-title>{{ COMMODITIES[item.key].title }}</v-card-title>
-          <v-card-text class="d-flex flex-column align-center justify-center pb-0"
-            ><v-icon :icon="COMMODITIES[item.key].icon" size="50" />
-            <div>{{ item.summary }}</div></v-card-text
-          >
-          <v-card-actions
-            ><v-btn
-              v-if="!item.summary"
-              color="primary"
-              :prepend-icon="mdiPlus"
-              @click="openEditor(item.key)"
-              >Hinzufügen</v-btn
-            ><v-btn v-else color="primary" :prepend-icon="mdiNoteEdit" @click="openEditor(item.key)"
-              >Bearbeiten</v-btn
-            ></v-card-actions
-          >
-        </v-card>
+      <v-col v-for="item in commoditiesToAdd" :key="item.key" :cols="mdAndUp ? 4 : xs ? 12 : 6">
+        <CommodityCard :item="item" @open-editor="openEditor" />
       </v-col>
     </v-row>
-
     <v-snackbar v-model="displaySubmitError" timeout="6000">{{ submitError }}</v-snackbar>
   </v-container>
 </template>

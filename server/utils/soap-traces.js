@@ -126,10 +126,11 @@ function getCommoditiesXML(commodities) {
 
 /**
  * @param {Object<string, import('~/pages/statement.vue').CommodityData>} commodities
+ * @param {boolean} geolocationVisible
  * @param {import('~/server/db/schema/users').User} user
  * @returns {string}
  */
-function getSubmitXML(commodities, user) {
+function getSubmitXML(commodities, geolocationVisible, user) {
   const username = process.env.TRACES_USERNAME;
   const password = process.env.TRACES_AUTHKEY;
   const nonce = generateNonce();
@@ -178,7 +179,7 @@ function getSubmitXML(commodities, user) {
             </v11:operator>
             <v11:countryOfActivity>AT</v11:countryOfActivity>
             ${commoditiesXML}
-            <v11:geoLocationConfidential>false</v11:geoLocationConfidential>
+            <v11:geoLocationConfidential>${!geolocationVisible}</v11:geoLocationConfidential>
           </v1:statement>
         </v1:SubmitStatementRequest>
       </soapenv:Body>
@@ -230,15 +231,16 @@ function getRetrieveXML(identifiers) {
 
 /**
  * @param {Object<string, import('~/pages/statement.vue').CommodityData>} commodities
+ * @param {boolean} geolocationVisible
  * @param {import('~/server/db/schema/users').User} user
  * @returns {Promise<{ identifier: string | undefined, error: string | undefined }>}
  */
-export async function submitDDS(commodities, user) {
+export async function submitDDS(commodities, geolocationVisible, user) {
   const submitResponse = await fetch(
     'https://acceptance.eudr.webcloud.ec.europa.eu/tracesnt/ws/EUDRSubmissionServiceV1',
     {
       method: 'POST',
-      body: getSubmitXML(commodities, user),
+      body: getSubmitXML(commodities, geolocationVisible, user),
       headers: {
         'Content-Type': 'text/xml; charset=utf-8',
         SOAPAction: 'http://ec.europa.eu/tracesnt/certificate/eudr/submission/submitDds',

@@ -14,7 +14,7 @@ export default defineEventHandler(async (event) => {
   const statement = await readBody(event);
   const commodities = statement.commodities;
 
-  const { identifier, error } = await submitDDS(commodities, user);
+  const { identifier, error } = await submitDDS(commodities, statement.geolocationVisible, user);
   if (error) {
     throw createError({ status: 500, statusMessage: 'Internal Server Error', message: error });
   }
