@@ -4,7 +4,7 @@ import GeoJSON from 'ol/format/GeoJSON';
 import VectorLayer from 'ol/layer/Vector';
 
 /**
- * @typedef Geolocation
+ * @typedef Use
  * @property {import('vue').ComputedRef<number>} area
  * @property {import('vue').Ref<number>} quantity
  * @property {import('vue').Ref<import('ol/format/GeoJSON').GeoJSONFeatureCollection>} geojson
@@ -12,6 +12,7 @@ import VectorLayer from 'ol/layer/Vector';
  * @property {VectorSource} geolocationSource
  * @property {() => void} createSnapshot
  * @property {() => void} restoreSnapshot
+ * @property {() => void} clear
  * @property {import('vue').Ref<boolean>} modifiedSinceSnapshot
  * @property {import('vue').ComputedRef<string>} summary
  */
@@ -37,15 +38,15 @@ function calculateArea(e) {
 /** @type {GeoJSON<import('ol/Feature.js').default<import('ol/geom/Polygon.js').default>>} */
 const geojsonFormat = new GeoJSON({ featureProjection: 'EPSG:3857' });
 
-/** @type {Object<string, Geolocation>} */
-const geolocation = {};
+/** @type {Object<string, Use>} */
+const use = {};
 
 /**
  * @param {import('~/utils/constants').Commodity} commodity
- * @returns {Geolocation}
+ * @returns {Use}
  */
 export function useStatement(commodity) {
-  if (!geolocation[commodity]) {
+  if (!use[commodity]) {
     /** @type {VectorSource<import('ol/Feature.js').default<import('ol/geom/Polygon.js').default|import('ol/geom/MultiPolygon.js').default>>} */
     const geolocationSource = new VectorSource();
 
@@ -113,7 +114,13 @@ export function useStatement(commodity) {
       modifiedSinceSnapshot.value = false;
     }
 
-    geolocation[commodity] = {
+    function clear() {
+      quantity.value = 0;
+      geojson.value = structuredClone(EMPTY_GEOJSON);
+      geolocationSource.clear();
+    }
+
+    use[commodity] = {
       geojson,
       area,
       quantity,
@@ -123,8 +130,9 @@ export function useStatement(commodity) {
       restoreSnapshot,
       modifiedSinceSnapshot,
       summary,
+      clear,
     };
   }
 
-  return geolocation[commodity];
+  return use[commodity];
 }

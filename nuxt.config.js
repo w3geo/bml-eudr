@@ -14,6 +14,13 @@ export default defineNuxtConfig({
     // See server/utils/database.js and server/plugins/storage.js
     pgliteDataDir: join('.data', 'pglite'),
   },
+  app: {
+    head: {
+      htmlAttrs: {
+        lang: 'de',
+      },
+    },
+  },
   vuetify: {
     vuetifyOptions: {
       icons: {
