@@ -1,6 +1,6 @@
 import { COMMODITIES } from '~/utils/constants';
 import { randomBytes, createHash } from 'crypto';
-import { DOMParser } from 'xmldom';
+import { DOMParser } from '@xmldom/xmldom';
 
 /**
  * @typedef {Object} StatementInfo
@@ -248,7 +248,7 @@ export async function submitDDS(commodities, geolocationVisible, user) {
     },
   );
   const submitResponseXML = await submitResponse.text();
-  const xml = new DOMParser().parseFromString(submitResponseXML);
+  const xml = new DOMParser().parseFromString(submitResponseXML, 'text/xml');
 
   const error = xml.getElementsByTagNameNS(errorNS, 'Message').item(0)?.textContent || undefined;
   const identifier =
@@ -275,19 +275,21 @@ export async function retrieveDDS(identifiers) {
     },
   );
   const retrieveResponseXML = await retrieveResponse.text();
-  const xml = new DOMParser().parseFromString(retrieveResponseXML);
+  const xml = new DOMParser().parseFromString(retrieveResponseXML, 'text/xml');
   const statementInfoElements = xml.getElementsByTagNameNS(retrievalNS, 'statementInfo');
   if (!statementInfoElements) {
     return null;
   }
   const statementInfos = [];
   for (let i = 0, ii = statementInfoElements.length; i < ii; i++) {
-    const statementInfo = /** @type {Element} */ (statementInfoElements.item(i));
+    const statementInfo = statementInfoElements.item(i);
     const identifier = statementInfo
-      .getElementsByTagNameNS(retrievalNS, 'identifier')
+      ?.getElementsByTagNameNS(retrievalNS, 'identifier')
       .item(0)?.textContent;
-    const date = statementInfo.getElementsByTagNameNS(retrievalNS, 'date').item(0)?.textContent;
-    const status = statementInfo.getElementsByTagNameNS(retrievalNS, 'status').item(0)?.textContent;
+    const date = statementInfo?.getElementsByTagNameNS(retrievalNS, 'date').item(0)?.textContent;
+    const status = statementInfo
+      ?.getElementsByTagNameNS(retrievalNS, 'status')
+      .item(0)?.textContent;
     if (!identifier || !date || !status) {
       continue;
     }
