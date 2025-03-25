@@ -17,16 +17,22 @@ export default defineEventHandler(async (event) => {
       ),
     );
 
-  const updatedDds = await retrieveDDS(ddsToUpdate.map((s) => s.id));
-  if (updatedDds) {
-    await Promise.all(
-      updatedDds.map((s) => db.update(statements).set(s).where(eq(statements.id, s.identifier))),
-    );
+  let tracesOk = true;
+  try {
+    const updatedDds = await retrieveDDS(ddsToUpdate.map((s) => s.id));
+    if (updatedDds) {
+      await Promise.all(
+        updatedDds.map((s) => db.update(statements).set(s).where(eq(statements.id, s.identifier))),
+      );
+    }
+  } catch (error) {
+    tracesOk = false;
+    console.error(error);
   }
   const dds = await db
     .select()
     .from(statements)
     .where(eq(statements.userId, userId))
     .orderBy(desc(statements.date));
-  return dds;
+  return tracesOk ? dds : dds.map((s) => ({ ...s, status: 'UNKNOWN' }));
 });
