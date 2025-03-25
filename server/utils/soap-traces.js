@@ -247,6 +247,12 @@ export async function submitDDS(commodities, geolocationVisible, user) {
       },
     },
   );
+  if (submitResponse.status >= 500) {
+    return {
+      identifier: undefined,
+      error: 'TRACES database currently unavailable, try again later',
+    };
+  }
   const submitResponseXML = await submitResponse.text();
   const xml = new DOMParser().parseFromString(submitResponseXML, 'text/xml');
 
