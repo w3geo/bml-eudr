@@ -19,7 +19,7 @@ const items = routes
 
 <template>
   <v-app :theme="theme">
-    <v-app-bar elevation="0" scroll-behavior="hide" scroll-threshold="50">
+    <v-app-bar elevation="0" scroll-behavior="hide" scroll-threshold="200">
       <v-img max-height="50" max-width="200" :src="`/BML_Logo_srgb_${theme}.svg`" />
       <template #extension>
         <v-toolbar density="compact" color="green-darken-4">
