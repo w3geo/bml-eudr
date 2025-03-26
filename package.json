@@ -43,6 +43,7 @@
     "@types/geojson": "^7946.0.16",
     "@types/pg": "^8.11.10",
     "drizzle-kit": "^0.30.5",
+    "eslint-config-prettier": "^10.1.1",
     "eslint-plugin-prettier": "^5.2.3",
     "nuxi": "^3.20.0",
     "pg-gateway": "^0.3.0-beta.4",
