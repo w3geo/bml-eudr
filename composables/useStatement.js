@@ -29,9 +29,11 @@ function calculateArea(e) {
   if (!geometry || !geometry.getType().endsWith('Polygon')) {
     return;
   }
+  const area = e.type === 'addfeature' ? feature.get('sl_flaeche_brutto_ha') : undefined;
   feature.set(
     'Area',
-    feature.get('sl_flaeche_brutto_ha') || getArea(geometry, { projection: 'EPSG:3857' }) / 10000,
+    area === undefined ? getArea(geometry, { projection: 'EPSG:3857' }) / 10000 : area,
+    e.type === 'addfeature',
   );
 }
 
