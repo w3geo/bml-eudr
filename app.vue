@@ -19,8 +19,10 @@ const items = routes
 
 <template>
   <v-app :theme="theme">
-    <v-app-bar elevation="0" scroll-behavior="hide" scroll-threshold="200">
-      <v-img max-height="50" max-width="200" :src="`/BML_Logo_srgb_${theme}.svg`" />
+    <v-app-bar elevation="0" scroll-behavior="hide" scroll-threshold="50">
+      <NuxtLink to="https://bmluk.gv.at/" target="_blank">
+        <v-img cover min-width="200" :src="`/BMLUK_Logo_${theme}.svg`" />
+      </NuxtLink>
       <template #extension>
         <v-toolbar density="compact" color="green-darken-4">
           <template #prepend>
@@ -35,7 +37,7 @@ const items = routes
         </v-toolbar>
       </template>
     </v-app-bar>
-    <v-navigation-drawer v-model="drawer" location="left" max-width="200" :permanent="mdAndUp">
+    <v-navigation-drawer v-model="drawer" max-width="200" :permanent="mdAndUp">
       <v-list-item v-for="item in items" :key="item.to" link :to="item.to">{{
         item.title
       }}</v-list-item>
