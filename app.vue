@@ -21,7 +21,7 @@ const items = routes
   <v-app :theme="theme">
     <v-app-bar elevation="0" scroll-behavior="hide" scroll-threshold="50">
       <NuxtLink to="https://bmluk.gv.at/" target="_blank">
-        <v-img cover min-width="200" :src="`/BMLUK_Logo_${theme}.svg`" />
+        <v-img width="199" height="63" :src="`/BMLUK_Logo_${theme}.svg`" />
       </NuxtLink>
       <template #extension>
         <v-toolbar density="compact" color="green-darken-4">
