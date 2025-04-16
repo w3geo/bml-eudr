@@ -94,6 +94,27 @@ function getCommoditiesXML(commodities) {
     const commodityMetadata =
       COMMODITIES[/** @type {import('~/utils/constants').Commodity} */ (key)];
 
+    const quantityUnits =
+      COMMODITIES[/** @type {import('~/utils/constants.js').Commodity} */ (key)].units;
+    /** @type {string} */
+    let quantityInfo;
+    switch (quantityUnits) {
+      case 'm³':
+        quantityInfo = `<v11:volume>${commodity.quantity}</v11:volume>`;
+        break;
+      case 't':
+        quantityInfo = `<v11:netWeight>${commodity.quantity * 1000}</v11:netWeight>`;
+        break;
+      case 'Stk.': // NAR - number of articles
+        quantityInfo = `
+          <v11:supplementaryUnit>${commodity.quantity}</v11:supplementaryUnit>
+          <v11:supplementaryUnitQualifier>NAR</v11:supplementaryUnitQualifier>
+        `;
+        break;
+      default:
+        throw new Error('Invalid quantity units');
+    }
+
     const speciesInfo =
       key === 'rohholz'
         ? treeSpeciesNames
@@ -110,7 +131,7 @@ function getCommoditiesXML(commodities) {
       <v11:descriptors>
         <v11:descriptionOfGoods>${commodityMetadata.title}</v11:descriptionOfGoods>
         <v11:goodsMeasure>
-          <v11:volume>88</v11:volume>
+          ${quantityInfo}
         </v11:goodsMeasure>
       </v11:descriptors>
       <v11:hsHeading>${commodityMetadata.hsHeading}</v11:hsHeading>
