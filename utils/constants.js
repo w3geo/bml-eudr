@@ -1,8 +1,25 @@
 import { mdiCow, mdiForestOutline, mdiSprout } from '@mdi/js';
 
-/** @typedef {'sojabohnen' | 'rind' | 'reinrassigesZuchtrind' | 'rohholz'} Commodity */
+/** @typedef {'sojabohnen' | 'rind' | 'holz'} Commodity */
 
-/** @typedef {{ title: string, icon: string, units: 't' | 'Stk.' | 'm³', factor?: number, hsHeading: string }} CommodityMetadata */
+/**
+ * @typedef {Object} CommodityMetadata
+ * @property {string} title
+ * @property {string} icon
+ * @property {'t' | 'Stk.' | 'm³'} units
+ * @property {number} [factor]
+ * @property {Array<HSCode>} hsHeadings
+ */
+
+export const HS_HEADING = {
+  '010229': 'Rinder',
+  '010221': 'Zuchtrinder',
+  1201: 'Sojabohnen',
+  4401: 'Brennholz',
+  4403: 'Rohholz',
+};
+
+/** @typedef {keyof HS_HEADING} HSCode */
 
 /** @type {Record<Commodity, CommodityMetadata>} */
 export const COMMODITIES = {
@@ -11,26 +28,20 @@ export const COMMODITIES = {
     icon: mdiSprout,
     units: 't',
     factor: 4,
-    hsHeading: '1201',
+    hsHeadings: [1201],
   },
   rind: {
     title: 'Rinder',
     icon: mdiCow,
     units: 'Stk.',
-    hsHeading: '010229',
+    hsHeadings: ['010229', '010221'],
   },
-  reinrassigesZuchtrind: {
-    title: 'Reinrassige Zuchtrinder',
-    icon: mdiCow,
-    units: 'Stk.',
-    hsHeading: '010221',
-  },
-  rohholz: {
-    title: 'Rohholz',
+  holz: {
+    title: 'Holz',
     icon: mdiForestOutline,
     units: 'm³',
     factor: 7.2,
-    hsHeading: '4403',
+    hsHeadings: [4403, 4401],
   },
 };
 

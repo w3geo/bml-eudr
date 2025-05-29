@@ -48,7 +48,7 @@ function createAgraratlasLayer(commodity) {
       'invekos_schlaege_polygon-fill',
     );
     removeMapboxLayer(agraratlas, 'invekos_schlaege_polygon-fill');
-    if (commodity === 'rind' || commodity === 'reinrassigesZuchtrind') {
+    if (commodity === 'rind') {
       addMapboxLayer(agraratlas, {
         id: 'invekos_hofstelle-point',
         type: 'circle',
@@ -131,9 +131,9 @@ const placesByCommodity = {};
 export const usePlaces = (commodity) => {
   if (!placesByCommodity[commodity]) {
     const layerGroup =
-      commodity === 'rohholz' ? createKatasterLayer() : createAgraratlasLayer(commodity);
+      commodity === 'holz' ? createKatasterLayer() : createAgraratlasLayer(commodity);
     const getFeatureAtPixel =
-      commodity === 'rohholz'
+      commodity === 'holz'
         ? createGetFeatureAtPixel(layerGroup, 'Wald', (feature) => feature.getId(), 16)
         : createGetFeatureAtPixel(
             layerGroup,

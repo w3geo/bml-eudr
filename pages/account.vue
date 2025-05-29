@@ -49,7 +49,7 @@ const loginErrorAlert = computed({
       </v-col>
       <v-col>
         <v-card v-if="loggedIn">
-          <v-card-title>Meine Stammdaten</v-card-title>
+          <v-card-title>Angaben zum Betrieb</v-card-title>
           <v-card-text>
             <UserData ref="userData" verbose />
           </v-card-text>

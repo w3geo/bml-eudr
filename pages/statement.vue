@@ -4,12 +4,12 @@ import { FetchError } from 'ofetch';
 
 /**
  * @typedef {Object} CommodityData
- * @property {number} quantity
+ * @property {import('~/composables/useStatement').Quantity} quantity
  * @property {import('geojson').FeatureCollection} geojson
  * @property {string} summary
  */
 
-/** @typedef {CommodityData & {key: import('~/utils/constants').Commodity}} CommodityDataWithKey */
+/** @typedef {CommodityData & {key: import('~/utils/constants.js').Commodity}} CommodityDataWithKey */
 
 definePageMeta({
   middleware: ['authenticated-only'],
@@ -20,7 +20,7 @@ definePageMeta({
 const { mdAndUp, xs } = useDisplay();
 
 /** @type {import('vue').Ref<import('~/components/UserData.vue').default|null>} */
-const userData = ref(null);
+const userDataForm = ref(null);
 
 /** @type {import('vue').Ref<boolean>} */
 const geolocationVisible = ref(false);
@@ -125,10 +125,10 @@ function abandonChanges(commodity) {
 }
 
 async function submit() {
-  if (!(await userData.value?.validate())) {
+  if (!(await userDataForm.value?.validate())) {
     return;
   }
-  await userData.value?.save();
+  await userDataForm.value?.save();
   try {
     await $fetch('/api/statements', {
       method: 'POST',
@@ -183,7 +183,7 @@ async function submit() {
         <v-card>
           <v-card-title>Sorgfaltspflichterklärung</v-card-title>
           <v-card-text v-if="canSend"
-            ><UserData ref="userData" class="mb-4" />
+            ><UserData ref="userDataForm" />
             <v-row>
               <v-col
                 v-for="item in commoditiesInStatement"

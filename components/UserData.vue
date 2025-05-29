@@ -14,10 +14,7 @@ async function validate() {
 }
 
 async function save() {
-  await $fetch('/api/users/me', {
-    method: 'PUT',
-    body: userData.value,
-  });
+  await saveUserData();
   snackbar.value = true;
 }
 
@@ -27,7 +24,7 @@ defineExpose({
 });
 
 const { mdAndUp, xs } = useDisplay();
-const { data: userData } = await useFetch('/api/users/me');
+const { saveUserData, userData } = await useUser();
 
 const idItems = [
   {
@@ -105,6 +102,15 @@ const idItems = [
           :disabled="userData.loginProvider === 'AMA'"
           :rules="[(v) => !!v || 'Identifikationsnummer ist erforderlich']"
         ></v-text-field>
+      </v-col>
+      <v-col v-if="props.verbose" :cols="mdAndUp ? 6 : 12">
+        <v-checkbox
+          v-model="userData.cattleBreedingFarm"
+          density="compact"
+          hide-details="auto"
+          variant="outlined"
+          label="Rinderhaltung: ausschließlich Zuchtbetrieb"
+        ></v-checkbox>
       </v-col>
       <v-col v-if="props.verbose" cols="12" class="text-body-1 mb-6">
         <v-alert :icon="mdiAlertCircleOutline">
