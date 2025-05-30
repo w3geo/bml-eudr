@@ -50,11 +50,11 @@ function createAgraratlasLayer(commodity) {
     removeMapboxLayer(agraratlas, 'invekos_schlaege_polygon-fill');
     if (commodity === 'rind') {
       addMapboxLayer(agraratlas, {
-        id: 'invekos_hofstelle-point',
-        type: 'circle',
-        source: 'agrargis',
+        'id': 'invekos_hofstelle-point',
+        'type': 'circle',
+        'source': 'agrargis',
         'source-layer': 'invekos_hofstellen',
-        paint: {
+        'paint': {
           'circle-radius': 7,
           'circle-color': 'rgba(255, 255, 0, 0.5)',
           'circle-stroke-color': 'rgb(238, 90, 78)',

@@ -22,8 +22,8 @@ export default defineEventHandler(async (event) => {
     key: process.env.AMA_KEY,
     headers: {
       'Content-Type': 'application/json',
-      Accept: 'application/json',
-      Authorization: `Basic ${base64}`,
+      'Accept': 'application/json',
+      'Authorization': `Basic ${base64}`,
     },
   };
   const { partnerseitenDaten: user } = await new Promise((resolve, reject) => {

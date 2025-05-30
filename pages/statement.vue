@@ -6,7 +6,6 @@ import { FetchError } from 'ofetch';
  * @typedef {Object} CommodityData
  * @property {import('~/composables/useStatement').Quantity} quantity
  * @property {import('geojson').FeatureCollection} geojson
- * @property {string} summary
  */
 
 /** @typedef {CommodityData & {key: import('~/utils/constants.js').Commodity}} CommodityDataWithKey */
@@ -51,11 +50,10 @@ const map = computed({
 /** @type {import('vue').Ref<Record<import('~/utils/constants.js').Commodity, CommodityData>>} */
 const items = ref(
   COMMODITY_KEYS.reduce((items, key) => {
-    const { quantity, geojson, summary } = useStatement(key);
+    const { quantity, geojson } = useStatement(key);
     items[key] = {
       quantity: quantity.value,
       geojson: structuredClone(geojson.value),
-      summary: summary.value,
     };
     return items;
   }, /** @type {Record<import('~/utils/constants.js').Commodity, CommodityData>} */ ({})),
@@ -67,29 +65,30 @@ const confirm = ref(false);
 /** @type {import('vue').ComputedRef<Array<CommodityDataWithKey>>} */
 const commoditiesInStatement = computed(() =>
   COMMODITY_KEYS.map((key) => ({ key, ...items.value[key] })).filter(
-    (commodity) => commodity.summary,
+    (commodity) => commodity.geojson.features.length,
   ),
 );
 
 /** @type {import('vue').ComputedRef<Array<CommodityDataWithKey>>} */
 const commoditiesToAdd = computed(() =>
   COMMODITY_KEYS.map((key) => ({ key, ...items.value[key] })).filter(
-    (commodity) => !commodity.summary,
+    (commodity) => !commodity.geojson.features.length,
   ),
 );
 
-const canSend = computed(() => Object.values(items.value).some((item) => item.summary));
+const canSend = computed(() =>
+  Object.values(items.value).some((item) => item.geojson.features.length),
+);
 
 /**
  * @param {import('~/utils/constants.js').Commodity} commodity
  */
 function savePlaces(commodity) {
   map.value = false;
-  const { quantity, geojson, summary } = useStatement(commodity);
+  const { quantity, geojson } = useStatement(commodity);
   items.value[commodity] = {
     quantity: quantity.value,
     geojson: structuredClone(geojson.value),
-    summary: summary.value,
   };
 }
 
