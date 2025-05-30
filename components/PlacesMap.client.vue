@@ -37,8 +37,8 @@ onMounted(async () => {
   }
   view.fit(extent, { size: map.getSize(), maxZoom: 10, padding: [20, 20, 20, 20] });
   mapContainer.value.classList.add('spinner');
-  const userData = await $fetch('/api/users/me');
-  const address = userData?.address;
+  const { userData } = await useUser();
+  const address = userData.value?.address;
   if (address) {
     const value = address.split(', ').reverse().join(' ');
     const animation = { center: fromLonLat([16.3738, 48.2082]), zoom: 13, duration: 500 };

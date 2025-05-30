@@ -1,4 +1,6 @@
 <script setup>
+import { mdiCardBulletedOutline } from '@mdi/js';
+
 const { mdAndUp } = useDisplay();
 const { data } = await useFetch('/api/statements');
 </script>
@@ -34,11 +36,13 @@ const { data } = await useFetch('/api/statements');
                   <td>
                     <v-icon
                       :icon="
-                        COMMODITIES[/** @type {import('~/utils/constants').Commodity} */ (key)].icon
+                        COMMODITIES[/** @type {import('~/utils/constants').Commodity} */ (key)]
+                          ?.icon || mdiCardBulletedOutline
                       "
                     />
                     {{
-                      COMMODITIES[/** @type {import('~/utils/constants').Commodity} */ (key)].title
+                      COMMODITIES[/** @type {import('~/utils/constants').Commodity} */ (key)]
+                        ?.title || key
                     }}
                   </td>
                   <td>{{ value.summary }}</td>

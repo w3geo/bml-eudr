@@ -1,4 +1,4 @@
-import { COMMODITIES } from '~/utils/constants';
+import { COMMODITIES, HS_HEADING } from '~/utils/constants';
 import { randomBytes, createHash } from 'crypto';
 import { DOMParser } from '@xmldom/xmldom';
 
@@ -90,57 +90,70 @@ function getCommoditiesXML(commodities) {
     if (!commodity.summary) {
       continue;
     }
-    const geoJSONBase64 = btoa(JSON.stringify(commodity.geojson));
-    const commodityMetadata =
-      COMMODITIES[/** @type {import('~/utils/constants').Commodity} */ (key)];
+    const hsCodes = /** @type {Array<import('~/utils/constants').HSCode>} */ (
+      Object.keys(commodity.quantity)
+    );
+    for (const hsCode of hsCodes) {
+      const geoJSONBase64 = btoa(JSON.stringify(commodity.geojson));
 
-    const quantityUnits =
-      COMMODITIES[/** @type {import('~/utils/constants.js').Commodity} */ (key)].units;
-    /** @type {string} */
-    let quantityInfo;
-    switch (quantityUnits) {
-      case 'm³':
-        quantityInfo = `<v11:volume>${commodity.quantity}</v11:volume>`;
-        break;
-      case 't':
-        quantityInfo = `<v11:netWeight>${commodity.quantity * 1000}</v11:netWeight>`;
-        break;
-      case 'Stk.': // NAR - number of articles
-        quantityInfo = `
-          <v11:supplementaryUnit>${commodity.quantity}</v11:supplementaryUnit>
-          <v11:supplementaryUnitQualifier>NAR</v11:supplementaryUnitQualifier>
-        `;
-        break;
-      default:
-        throw new Error('Invalid quantity units');
-    }
+      const quantityUnits =
+        COMMODITIES[/** @type {import('~/utils/constants.js').Commodity} */ (key)].units;
 
-    const speciesInfo =
-      key === 'rohholz'
-        ? treeSpeciesNames
-            .map(
-              ([scientificName, commonName]) => `
+      const speciesInfo =
+        key === 'holz'
+          ? treeSpeciesNames
+              .map(
+                ([scientificName, commonName]) => `
                 <v11:speciesInfo>
                   <v11:scientificName>${scientificName}</v11:scientificName>
                   <v11:commonName>${commonName}</v11:commonName>
                 </v11:speciesInfo>`,
-            )
-            .join('\n')
-        : '';
-    commodityXMLs.push(`<v11:commodities>
-      <v11:descriptors>
-        <v11:descriptionOfGoods>${commodityMetadata.title}</v11:descriptionOfGoods>
-        <v11:goodsMeasure>
-          ${quantityInfo}
-        </v11:goodsMeasure>
-      </v11:descriptors>
-      <v11:hsHeading>${commodityMetadata.hsHeading}</v11:hsHeading>
-      ${speciesInfo}
-      <v11:producers>
-        <v11:country>AT</v11:country>
-        <v11:geometryGeojson>${geoJSONBase64}</v11:geometryGeojson>
-      </v11:producers>
-    </v11:commodities>`);
+              )
+              .join('\n')
+          : '';
+      /** @type {string} */
+      let quantityInfo;
+      const quantity = /** @type {number} */ (commodity.quantity[hsCode]);
+      switch (quantityUnits) {
+        case 'm³':
+          quantityInfo = `<v11:volume>${quantity}</v11:volume>`;
+          break;
+        case 't':
+          quantityInfo = `<v11:netWeight>${quantity * 1000}</v11:netWeight>`;
+          break;
+        case 'Stk.': // NAR - number of articles
+          quantityInfo = `
+          <v11:supplementaryUnit>${quantity}</v11:supplementaryUnit>
+          <v11:supplementaryUnitQualifier>NAR</v11:supplementaryUnitQualifier>
+        `;
+          break;
+        default:
+          throw new Error('Invalid quantity units');
+      }
+      // if (hsCode === '010229' && user.cattleBreedingFarm) {
+      //   hsCode = '010221'; // Use Zuchtrinder for cattle breeding farms
+      // }
+
+      const descriptor = `
+        <v11:descriptors>
+          <v11:descriptionOfGoods>${HS_HEADING[hsCode]}</v11:descriptionOfGoods>
+          <v11:goodsMeasure>
+            ${quantityInfo}
+          </v11:goodsMeasure>
+        </v11:descriptors>`;
+      const hsHeading = `<v11:hsHeading>${hsCode}</v11:hsHeading>`;
+
+      commodityXMLs.push(`
+        <v11:commodities>
+          ${descriptor}
+          ${hsHeading}
+          ${speciesInfo}
+          <v11:producers>
+            <v11:country>AT</v11:country>
+            <v11:geometryGeojson>${geoJSONBase64}</v11:geometryGeojson>
+          </v11:producers>
+        </v11:commodities>`);
+    }
   }
   return commodityXMLs.join('\n');
 }
@@ -268,16 +281,19 @@ export async function submitDDS(commodities, geolocationVisible, user) {
       },
     },
   );
+  const submitResponseXML = await submitResponse.text();
+  const xml = new DOMParser().parseFromString(submitResponseXML, 'text/xml');
+  const error =
+    xml.getElementsByTagName('faultstring').item(0)?.textContent ||
+    xml.getElementsByTagNameNS(errorNS, 'Message').item(0)?.textContent ||
+    undefined;
   if (submitResponse.status >= 500) {
     return {
       identifier: undefined,
-      error: 'TRACES database currently unavailable, try again later',
+      error: error || 'TRACES database currently unavailable, try again later',
     };
   }
-  const submitResponseXML = await submitResponse.text();
-  const xml = new DOMParser().parseFromString(submitResponseXML, 'text/xml');
 
-  const error = xml.getElementsByTagNameNS(errorNS, 'Message').item(0)?.textContent || undefined;
   const identifier =
     xml.getElementsByTagNameNS(submissionNS, 'ddsIdentifier').item(0)?.textContent || undefined;
 

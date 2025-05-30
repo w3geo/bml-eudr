@@ -6,7 +6,7 @@ import VectorLayer from 'ol/layer/Vector';
 /**
  * @typedef Use
  * @property {import('vue').ComputedRef<number>} area
- * @property {import('vue').Ref<number>} quantity
+ * @property {import('vue').Ref<Quantity>} quantity
  * @property {import('vue').Ref<import('ol/format/GeoJSON').GeoJSONFeatureCollection>} geojson
  * @property {VectorLayer} geolocationLayer
  * @property {VectorSource} geolocationSource
@@ -15,6 +15,10 @@ import VectorLayer from 'ol/layer/Vector';
  * @property {() => void} clear
  * @property {import('vue').Ref<boolean>} modifiedSinceSnapshot
  * @property {import('vue').ComputedRef<string>} summary
+ */
+
+/**
+ * @typedef {Partial<Record<import('~/utils/constants').HSCode, number>>} Quantity
  */
 
 /**
@@ -77,14 +81,19 @@ export function useStatement(commodity) {
       );
     });
 
-    const quantity = ref(0);
+    /** @type {import('vue').Ref<Quantity>} */
+    const quantity = ref({});
 
     const summary = computed(() => {
       if (!geojson.value.features.length) {
         return '';
       }
       const places = geojson.value.features.length;
-      return `${places} Ort${places === 1 ? '' : 'e'}, ${quantity.value.toLocaleString('de-AT')} ${COMMODITIES[commodity].units}`;
+      const hsHeadings = /** @type {Array<import('~/utils/constants').HSCode>} */ (
+        Object.keys(quantity.value)
+      ).filter((key) => quantity.value[key]);
+      const total = hsHeadings.reduce((acc, key) => acc + (quantity.value[key] || 0), 0);
+      return `${hsHeadings.length > 1 ? hsHeadings.length + ' Erzeugnisse, ' : ''}${places} Ort${places === 1 ? '' : 'e'}, ${total.toLocaleString('de-AT')} ${COMMODITIES[commodity].units}`;
     });
 
     const modifiedSinceSnapshot = ref(false);
@@ -92,7 +101,7 @@ export function useStatement(commodity) {
       modifiedSinceSnapshot.value = true;
     });
 
-    /** @type {{quantity: number, geojson: import('geojson').FeatureCollection}|null} */
+    /** @type {{quantity: Quantity, geojson: import('geojson').FeatureCollection}|null} */
     let snapshot = null;
 
     function createSnapshot() {
@@ -117,7 +126,7 @@ export function useStatement(commodity) {
     }
 
     function clear() {
-      quantity.value = 0;
+      quantity.value = {};
       geojson.value = structuredClone(EMPTY_GEOJSON);
       geolocationSource.clear();
     }
