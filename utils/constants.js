@@ -14,9 +14,9 @@ import { mdiCow, mdiForestOutline, mdiSprout } from '@mdi/js';
 export const HS_HEADING = {
   '010229': 'Rinder',
   '010221': 'Zuchtrinder',
-  1201: 'Sojabohnen',
-  4401: 'Brennholz',
-  4403: 'Rohholz',
+  '1201': 'Sojabohnen',
+  '4403': 'Rohholz',
+  '4401': 'Brennholz',
 };
 
 /** @typedef {keyof HS_HEADING} HSCode */
@@ -28,7 +28,7 @@ export const COMMODITIES = {
     icon: mdiSprout,
     units: 't',
     factor: 4,
-    hsHeadings: [1201],
+    hsHeadings: ['1201'],
   },
   rind: {
     title: 'Rinder',
@@ -41,7 +41,7 @@ export const COMMODITIES = {
     icon: mdiForestOutline,
     units: 'm³',
     factor: 7.2,
-    hsHeadings: [4403, 4401],
+    hsHeadings: ['4403', '4401'],
   },
 };
 

@@ -32,7 +32,7 @@ const { data } = await useFetch('/api/statements');
           <v-table density="compact">
             <tbody>
               <template v-for="(value, key) in item.statement.commodities" :key="key">
-                <tr v-if="value.summary">
+                <tr v-if="value.geojson.features.length">
                   <td>
                     <v-icon
                       :icon="
@@ -40,12 +40,15 @@ const { data } = await useFetch('/api/statements');
                           ?.icon || mdiCardBulletedOutline
                       "
                     />
+                  </td>
+                  <td>
                     {{
-                      COMMODITIES[/** @type {import('~/utils/constants').Commodity} */ (key)]
-                        ?.title || key
+                      getCommoditySummary({
+                        key: /** @type {import('~/utils/constants').Commodity} */ (key),
+                        ...value,
+                      })
                     }}
                   </td>
-                  <td>{{ value.summary }}</td>
                 </tr>
               </template>
             </tbody>

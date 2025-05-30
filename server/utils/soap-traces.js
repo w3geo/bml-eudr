@@ -87,9 +87,6 @@ function getCommoditiesXML(commodities) {
   const commodityXMLs = [];
   for (const key in commodities) {
     const commodity = commodities[key];
-    if (!commodity.summary) {
-      continue;
-    }
     const hsCodes = /** @type {Array<import('~/utils/constants').HSCode>} */ (
       Object.keys(commodity.quantity)
     );
@@ -130,9 +127,6 @@ function getCommoditiesXML(commodities) {
         default:
           throw new Error('Invalid quantity units');
       }
-      // if (hsCode === '010229' && user.cattleBreedingFarm) {
-      //   hsCode = '010221'; // Use Zuchtrinder for cattle breeding farms
-      // }
 
       const descriptor = `
         <v11:descriptors>
@@ -277,7 +271,7 @@ export async function submitDDS(commodities, geolocationVisible, user) {
       body: getSubmitXML(commodities, geolocationVisible, user),
       headers: {
         'Content-Type': 'text/xml; charset=utf-8',
-        SOAPAction: 'http://ec.europa.eu/tracesnt/certificate/eudr/submission/submitDds',
+        'SOAPAction': 'http://ec.europa.eu/tracesnt/certificate/eudr/submission/submitDds',
       },
     },
   );
@@ -313,7 +307,7 @@ export async function retrieveDDS(identifiers) {
       body: retrieveXML,
       headers: {
         'Content-Type': 'text/xml; charset=utf-8',
-        SOAPAction: 'http://ec.europa.eu/tracesnt/certificate/eudr/retrieval/getDdsInfo',
+        'SOAPAction': 'http://ec.europa.eu/tracesnt/certificate/eudr/retrieval/getDdsInfo',
       },
     },
   );
