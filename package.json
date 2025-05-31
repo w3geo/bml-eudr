@@ -17,35 +17,33 @@
     "node": "22.x"
   },
   "dependencies": {
-    "@electric-sql/pglite-repl": "^0.2.16",
     "@mdi/js": "^7.4.47",
     "@nuxt/eslint": "^1.2.0",
     "@nuxt/fonts": "^0.11.0",
     "@w3geo/vue-place-search": "^2.0.0",
     "@xmldom/xmldom": "^0.9.8",
-    "db0": "^0.2.1",
-    "drizzle-orm": "^0.41.0",
+    "db0": "^0.3.2",
+    "drizzle-orm": "^0.44.1",
     "eslint": "^9.17.0",
-    "nuxt": "^3.16.2",
+    "nuxt": "^3.17.4",
     "nuxt-auth-utils": "^0.5.17",
-    "ol": "^10.4.0",
-    "ol-mapbox-style": "^12.5.0",
+    "ol": "^10.5.0",
+    "ol-mapbox-style": "^13.0.1",
     "pg": "^8.13.1",
     "pmtiles-protocol": "^1.0.5",
     "polygon-clipping": "^0.15.7",
     "vue": "latest",
     "vue-router": "latest",
-    "vuetify-nuxt-module": "^0.18.4"
+    "vuetify-nuxt-module": "^0.18.6"
   },
   "devDependencies": {
     "@types/crypto-js": "^4.2.2",
     "@types/geojson": "^7946.0.16",
     "@types/pg": "^8.11.10",
-    "drizzle-kit": "^0.30.5",
+    "drizzle-kit": "^0.31.1",
     "eslint-config-prettier": "^10.1.1",
     "eslint-plugin-prettier": "^5.2.3",
     "nuxi": "^3.20.0",
-    "pg-gateway": "^0.3.0-beta.4",
     "vue-tsc": "^2.1.10"
   }
 }

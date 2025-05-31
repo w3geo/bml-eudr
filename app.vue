@@ -42,7 +42,7 @@ const items = routes
         item.title
       }}</v-list-item>
     </v-navigation-drawer>
-    <v-main>
+    <v-main style="min-height: calc(100vh + 64px)">
       <NuxtPage />
     </v-main>
   </v-app>

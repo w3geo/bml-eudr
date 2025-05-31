@@ -24,7 +24,7 @@ const maps = {};
  * @returns {Map}
  */
 function getMap(feature, source, zoom) {
-  const key = feature.get('layer');
+  const key = feature.get('mvt:layer');
   if (!maps[key]) {
     const layer = new VectorTileLayer({
       renderMode: 'vector',
@@ -34,7 +34,11 @@ function getMap(feature, source, zoom) {
         }),
         tileLoadFunction: source.getTileLoadFunction(),
         tileUrlFunction: source.getTileUrlFunction(),
-        tileGrid: createXYZ({ minZoom: zoom, maxZoom: zoom }),
+        tileGrid: createXYZ({
+          minZoom: zoom,
+          maxZoom: zoom,
+          tileSize: source.getTileGrid()?.getTileSize(zoom),
+        }),
       }),
     });
     const map = new Map({
