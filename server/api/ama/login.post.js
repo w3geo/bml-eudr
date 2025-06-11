@@ -4,6 +4,7 @@ import users from '~/server/db/schema/users';
 export default defineEventHandler(async (event) => {
   try {
     const body = await readBody(event);
+    console.log('AMA login request body:', body);
     if (!body.cid || body.cid !== getCookie(event, 'eama-cid')) {
       setCookie(event, 'login-retry', 'true', {
         expires: new Date(Date.now() + 30000),
@@ -30,6 +31,7 @@ export default defineEventHandler(async (event) => {
     const { partnerseitenDaten: user } = await new Promise((resolve, reject) => {
       const req = request(options, (res) => {
         if (res.statusCode !== 200) {
+          console.error(`AMA login request failed: ${res}`);
           return reject(new Error(`Request failed with status code ${res.statusCode}`));
         }
         /** @type {Array<Buffer>} */
@@ -38,7 +40,9 @@ export default defineEventHandler(async (event) => {
           chunks.push(d);
         });
         res.on('end', () => {
-          resolve(JSON.parse(Buffer.concat(chunks).toString()));
+          const json = JSON.parse(Buffer.concat(chunks).toString());
+          console.log('AMA login payload response:', json);
+          resolve(json);
           // {
           //   partnerseitenDaten: {
           //     betriebsnummern: 1234567,
