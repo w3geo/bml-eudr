@@ -9,7 +9,13 @@ export default defineNuxtConfig({
     client: true,
     server: true,
   },
-  modules: ['@nuxt/fonts', '@nuxt/eslint', 'nuxt-auth-utils', 'vuetify-nuxt-module'],
+  modules: [
+    '@nuxt/fonts',
+    '@nuxt/eslint',
+    'nuxt-auth-utils',
+    'vuetify-nuxt-module',
+    'nuxt-nodemailer',
+  ],
   runtimeConfig: {
     // See server/utils/database.js and server/plugins/storage.js
     pgliteDataDir: join('.data', 'pglite'),
@@ -19,6 +25,16 @@ export default defineNuxtConfig({
       htmlAttrs: {
         lang: 'de',
       },
+    },
+  },
+  nodemailer: {
+    from: '',
+    host: '',
+    port: 587,
+    secure: false,
+    auth: {
+      user: '',
+      pass: '',
     },
   },
   vuetify: {

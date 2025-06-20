@@ -51,8 +51,8 @@ const idItems = [
           hide-details="auto"
           variant="outlined"
           label="Name"
-          readonly
-          disabled
+          :readonly="userData.loginProvider !== 'OTP'"
+          :disabled="userData.loginProvider !== 'OTP'"
         ></v-text-field>
       </v-col>
       <v-col :cols="mdAndUp ? 8 : 12">
@@ -62,8 +62,8 @@ const idItems = [
           hide-details="auto"
           variant="outlined"
           label="Adresse"
-          readonly
-          disabled
+          :readonly="userData.loginProvider !== 'OTP'"
+          :disabled="userData.loginProvider !== 'OTP'"
         ></v-text-field>
       </v-col>
       <v-col :cols="mdAndUp ? 6 : 12">

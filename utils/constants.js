@@ -51,3 +51,14 @@ export const EMPTY_GEOJSON = Object.freeze({
 });
 
 export const COMMODITY_KEYS = /** @type {Array<Commodity>} */ (Object.keys(COMMODITIES));
+
+const VALID_EMAIL_REGEX =
+  /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+
+/**
+ * @param {string} email
+ * @returns {true|string}
+ */
+export const validateEmail = (email) => {
+  return VALID_EMAIL_REGEX.test(email) || 'Bitte eine gültige E-Mail-Adresse eingeben';
+};
