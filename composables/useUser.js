@@ -6,9 +6,19 @@ export const useUser = async () => {
     ({ data: userData } = await useFetch('/api/users/me'));
   }
   const save = async () => {
+    const body = structuredClone(toRaw(userData.value));
+    if (body.loginProvider === 'IDA' || body.loginProvider === 'AMA') {
+      body.name = null;
+      body.address = null;
+    }
+    if (body.loginProvider === 'AMA') {
+      body.identifierType = null;
+      body.identifierValue = null;
+    }
+
     await $fetch('/api/users/me', {
       method: 'PUT',
-      body: userData.value,
+      body,
     });
   };
   return {
