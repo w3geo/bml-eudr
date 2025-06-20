@@ -103,15 +103,6 @@ const idItems = [
           :rules="[(v) => !!v || 'Identifikationsnummer ist erforderlich']"
         ></v-text-field>
       </v-col>
-      <v-col v-if="props.verbose" :cols="mdAndUp ? 6 : 12">
-        <v-checkbox
-          v-model="userData.cattleBreedingFarm"
-          density="compact"
-          hide-details="auto"
-          variant="outlined"
-          label="Rinderhaltung: ausschließlich Zuchtbetrieb"
-        ></v-checkbox>
-      </v-col>
       <v-col v-if="props.verbose" cols="12" class="text-body-1 mb-6">
         <v-alert :icon="mdiAlertCircleOutline">
           Felder, die von Ihrem Login-Provider bereitgestellt werden, können nicht bearbeitet

@@ -9,7 +9,6 @@ const users = pgTable('users', {
   identifierType: varchar({ enum: ['GLN', 'TIN', 'VAT'], length: 3 }),
   identifierValue: varchar({ length: 15 }),
   loginProvider: varchar({ enum: ['AMA', 'IDA', 'OTP'], length: 3 }).notNull(),
-  cattleBreedingFarm: boolean(),
   otp: numeric(),
 });
 
