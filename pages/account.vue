@@ -139,6 +139,7 @@ const loginError = useCookie('login-error');
     </v-row>
   </v-container>
 </template>
+
 <style scoped>
 .fill-width {
   width: 100%;

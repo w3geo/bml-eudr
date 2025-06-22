@@ -1,5 +1,11 @@
 <script setup>
-import { mdiCheck, mdiCheckDecagram, mdiClose } from '@mdi/js';
+import {
+  mdiCheck,
+  mdiCheckDecagram,
+  mdiClose,
+  mdiEmailFastOutline,
+  mdiMessageTextOutline,
+} from '@mdi/js';
 import { FetchError } from 'ofetch';
 
 /**
@@ -17,6 +23,12 @@ definePageMeta({
 });
 
 const { mdAndUp, xs } = useDisplay();
+const { data: userData } = await useFetch('/api/users/me');
+
+const statementTokenUrl =
+  userData.value?.loginProvider === 'OTP'
+    ? `${useRequestURL().origin}/statement?onBehalfOf=${userData.value?.email}&token=${userData.value?.statementToken}`
+    : undefined;
 
 /** @type {import('vue').Ref<import('~/components/UserData.vue').default|null>} */
 const userDataForm = ref(null);
@@ -220,10 +232,46 @@ async function submit() {
           </v-card-actions>
         </v-card>
       </v-col>
-      <v-col v-for="item in commoditiesToAdd" :key="item.key" :cols="mdAndUp ? 4 : xs ? 12 : 6">
-        <CommodityCard :item="item" @open-editor="openEditor" />
-      </v-col>
+      <template v-if="userData?.loginProvider !== 'OTP'">
+        <v-col v-for="item in commoditiesToAdd" :key="item.key" :cols="mdAndUp ? 4 : xs ? 12 : 6">
+          <CommodityCard :item="item" @open-editor="openEditor" />
+        </v-col>
+      </template>
+      <template v-else>
+        <v-col cols="12">
+          <v-card>
+            <v-card-title>Jemand anders beauftragen</v-card-title>
+            <v-card-text>
+              Sie können jetzt einen Link zur Erstellung einer Sorgfaltspflichterklärung
+              verschicken.
+              <b>Bitte beachten Sie:</b> Nur Personen, die über ein eAMA oder ID Austria Login
+              verfügen, können Sorgfaltspflichterklärungen erstellen.
+            </v-card-text>
+            <v-card-actions>
+              <v-btn
+                v-card-actions
+                text="E-Mail"
+                :prepend-icon="mdiEmailFastOutline"
+                color="primary"
+                :href="`mailto:?subject=EUDR Sorgfaltspflichterklärung für ${userData.email}&body=Bitte erstellen Sie eine EUDR Sorgfaltspflichterklärung für ${userData.email}: ${statementTokenUrl}`"
+              ></v-btn>
+              <v-btn
+                text="SMS"
+                :prepend-icon="mdiMessageTextOutline"
+                color="primary"
+                :href="`sms:?body=Bitte erstellen Sie für ${userData.email} eine EUDR Sorgfaltspflichterklärung: ${statementTokenUrl}`"
+              ></v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-col>
+      </template>
     </v-row>
     <v-snackbar v-model="displaySubmitError" timeout="6000">{{ submitError }}</v-snackbar>
   </v-container>
 </template>
+
+<style scoped>
+.fill-width {
+  width: 100%;
+}
+</style>

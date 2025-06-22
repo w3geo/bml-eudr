@@ -1,5 +1,6 @@
 <script setup>
 import { mdiAlertCircleOutline } from '@mdi/js';
+import { saveUserData } from '~/server/utils/utils';
 
 const props = defineProps({
   verbose: Boolean,
@@ -14,7 +15,7 @@ async function validate() {
 }
 
 async function save() {
-  await saveUserData();
+  await saveUserData(userData);
   snackbar.value = true;
 }
 
@@ -23,8 +24,9 @@ defineExpose({
   save,
 });
 
+const { data: userData } = await useFetch('/api/users/me');
+
 const { mdAndUp, xs } = useDisplay();
-const { saveUserData, userData } = await useUser();
 
 const idItems = [
   {
@@ -53,6 +55,7 @@ const idItems = [
           label="Name"
           :readonly="userData.loginProvider !== 'OTP'"
           :disabled="userData.loginProvider !== 'OTP'"
+          :rules="[(v) => !!v || 'Name ist erforderlich']"
         ></v-text-field>
       </v-col>
       <v-col :cols="mdAndUp ? 8 : 12">
@@ -64,6 +67,7 @@ const idItems = [
           label="Adresse"
           :readonly="userData.loginProvider !== 'OTP'"
           :disabled="userData.loginProvider !== 'OTP'"
+          :rules="[(v) => !!v || 'Adresse ist erforderlich']"
         ></v-text-field>
       </v-col>
       <v-col :cols="mdAndUp ? 6 : 12">

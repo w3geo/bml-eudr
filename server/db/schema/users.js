@@ -10,6 +10,7 @@ const users = pgTable('users', {
   identifierValue: varchar({ length: 15 }),
   loginProvider: varchar({ enum: ['AMA', 'IDA', 'OTP'], length: 3 }).notNull(),
   otp: numeric(),
+  statementToken: varchar({ length: 20 }),
 });
 
 /** @typedef {import('drizzle-orm').InferSelectModel<users>} User */

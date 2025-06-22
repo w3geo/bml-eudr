@@ -37,7 +37,7 @@ onMounted(async () => {
   }
   view.fit(extent, { size: map.getSize(), maxZoom: 10, padding: [20, 20, 20, 20] });
   mapContainer.value.classList.add('spinner');
-  const { userData } = await useUser();
+  const { data: userData } = await useFetch('/api/users/me');
   const address = userData.value?.address;
   if (address) {
     const value = address.split(', ').reverse().join(' ');
