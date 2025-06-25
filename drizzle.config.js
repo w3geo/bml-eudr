@@ -26,7 +26,7 @@ if (process.env.DATABASE_URL) {
     },
   };
 } else {
-  const url = nuxtConfig?.runtimeConfig?.pgliteDataDir;
+  const url = /** @type {string} */ (nuxtConfig?.runtimeConfig?.pgliteDataDir);
   if (!url) {
     throw new Error('Missing runtimeConfig.pgliteDataDir in nuxt.config.js');
   }

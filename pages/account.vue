@@ -1,5 +1,6 @@
 <script setup>
 import { DevOnly } from '#components';
+import { mdiEmailFastOutline } from '@mdi/js';
 
 definePageMeta({
   title: 'Mein Konto',
@@ -13,32 +14,36 @@ const { loggedIn, clear } = useUserSession();
 const { theme } = useBrowserTheme();
 const { xs } = useDisplay();
 
+const email = ref();
+const otp = ref();
+const emailSubmitted = ref(false);
+
+async function submitEmail() {
+  await $fetch('/api/auth/email', {
+    method: 'POST',
+    body: { email: email.value },
+  });
+  emailSubmitted.value = true;
+}
+
+async function submitOtp() {
+  window.location.href = `/api/auth/email?code=${otp.value}&email=${email.value}`;
+}
+
 /** @type {import('vue').Ref<import('~/components/UserData.vue').default|null>} */
 const userData = ref(null);
 
 const loginRetry = useCookie('login-retry');
-const loginRetryAlert = computed({
-  get: () => loginRetry.value === 'true',
-  set: (value) => (loginRetry.value = value ? 'true' : null),
-});
 const loginError = useCookie('login-error');
-const loginErrorAlert = computed({
-  get: () => loginError.value === 'true',
-  set: (value) => (loginError.value = value ? 'true' : null),
-});
 </script>
 
 <template>
   <v-container>
     <v-row>
-      <v-col v-if="loginRetryAlert" cols="12">
-        <v-alert v-model="loginRetryAlert" closable
-          >Anmeldung fehlgeschlagen, bitte versuchen Sie es noch einmal.</v-alert
-        >
-      </v-col>
-      <v-col v-if="loginErrorAlert" cols="12">
-        <v-alert v-model="loginErrorAlert" closable>{{ loginErrorAlert }}</v-alert>
-      </v-col>
+      <v-alert v-if="loginRetry" closable
+        >Anmeldung fehlgeschlagen, bitte versuchen Sie es noch einmal.</v-alert
+      >
+      <v-alert v-if="loginError" closable>{{ loginError }}</v-alert>
       <v-col cols="12">
         <v-card v-if="loggedIn">
           <v-card-title>Meine Referenznummern</v-card-title>
@@ -89,6 +94,41 @@ const loginErrorAlert = computed({
           >
         </v-card>
       </v-col>
+      <v-col :cols="xs ? 12 : 6">
+        <v-card v-if="!loggedIn" class="fill-height">
+          <v-card-title v-if="!emailSubmitted" class="text-center">Anmelden mit</v-card-title>
+          <v-card-title v-else class="text-center">Einmalcode eingeben</v-card-title>
+          <v-card-actions class="d-flex justify-center"
+            ><v-form
+              v-if="!emailSubmitted"
+              class="d-flex justify-center align-center fill-width"
+              @submit.prevent="validateEmail(email) === true && submitEmail()"
+              ><v-text-field
+                v-model="email"
+                label="E-Mail"
+                variant="outlined"
+                density="compact"
+                hide-details="auto"
+                validate-on="submit lazy"
+                :rules="[validateEmail(email)]" /><v-btn
+                class="ml-2"
+                density="compact"
+                :icon="mdiEmailFastOutline"
+                color="primary"
+                type="submit"
+            /></v-form>
+            <v-form v-else
+              ><v-otp-input v-model="otp" autofocus length="6" @finish="submitOtp"
+            /></v-form>
+          </v-card-actions>
+          <v-card-text v-if="!emailSubmitted" class="text-center">
+            Wenn jemand anders die Sorgfaltspflichterklärung erstellen soll
+          </v-card-text>
+          <v-card-text v-else class="text-center">
+            Bitte geben Sie den per E-Mail erhaltenen Code ein.
+          </v-card-text>
+        </v-card>
+      </v-col>
       <DevOnly>
         <v-col :cols="xs ? 12 : 6">
           <v-card v-if="!loggedIn" class="fill-height" href="./auth/development">
@@ -99,3 +139,9 @@ const loginErrorAlert = computed({
     </v-row>
   </v-container>
 </template>
+
+<style scoped>
+.fill-width {
+  width: 100%;
+}
+</style>

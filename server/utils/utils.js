@@ -2,6 +2,7 @@ import { getRequestURL } from 'h3';
 import { FetchError } from 'ofetch';
 import { snakeCase, upperFirst } from 'scule';
 import { createError } from '#imports';
+import { toRaw } from 'vue';
 
 /**
  *
@@ -110,4 +111,28 @@ export function handleMissingConfiguration(event, provider, missingKeys, onError
 
   if (!onError) throw error;
   return onError(event, error);
+}
+
+/**
+ * @param {import('vue').Ref<import('../db/schema/users').User|undefined|null>} userData
+ * @returns {Promise<void>}
+ */
+export async function saveUserData(userData) {
+  const body = structuredClone(toRaw(userData.value));
+  if (!body) {
+    return;
+  }
+  if (body.loginProvider === 'IDA' || body.loginProvider === 'AMA') {
+    body.name = null;
+    body.address = null;
+  }
+  if (body.loginProvider === 'AMA') {
+    body.identifierType = null;
+    body.identifierValue = null;
+  }
+
+  await $fetch('/api/users/me', {
+    method: 'PUT',
+    body,
+  });
 }
