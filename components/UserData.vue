@@ -1,6 +1,6 @@
 <script setup>
-import { mdiAlertCircleOutline } from '@mdi/js';
-import { saveUserData } from '~/server/utils/utils';
+import { mdiInformationOutline } from '@mdi/js';
+import { saveUserData } from '~/utils/utils';
 
 const props = defineProps({
   verbose: Boolean,
@@ -77,6 +77,8 @@ const idItems = [
           hide-details="auto"
           variant="outlined"
           label="e-mail (optional)"
+          :readonly="userData.loginProvider === 'OTP'"
+          :disabled="userData.loginProvider === 'OTP'"
           :rules="[(v) => !v || /.+@.+\..+/.test(v) || 'E-mail muss gültig sein']"
         ></v-text-field>
       </v-col>
@@ -108,9 +110,8 @@ const idItems = [
         ></v-text-field>
       </v-col>
       <v-col v-if="props.verbose" cols="12" class="text-body-1 mb-6">
-        <v-alert :icon="mdiAlertCircleOutline">
-          Felder, die von Ihrem Login-Provider bereitgestellt werden, können nicht bearbeitet
-          werden.
+        <v-alert :icon="mdiInformationOutline">
+          Einige Felder sind nicht bearbeitbar, da sie automatisch ausgefüllt werden.
         </v-alert>
       </v-col>
     </v-row>

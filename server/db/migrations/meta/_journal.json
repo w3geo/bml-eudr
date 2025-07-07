@@ -50,6 +50,20 @@
       "when": 1750538121379,
       "tag": "0006_users-add-statementtoken",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1751915017615,
+      "tag": "0007_statements-add-ddsid",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1751917458697,
+      "tag": "0008_statements-ddsid-unique-index",
+      "breakpoints": true
     }
   ]
 }

@@ -59,11 +59,13 @@ const loginError = useCookie('login-error');
             <UserData ref="userData" verbose />
           </v-card-text>
           <v-card-actions>
-            <v-btn @click="async () => (await userData?.validate()) && userData?.save()"
+            <v-btn
+              color="primary"
+              @click="async () => (await userData?.validate()) && userData?.save()"
               >Speichern</v-btn
             >
             <v-spacer />
-            <v-btn @click="clear">Logout</v-btn>
+            <v-btn color="secondary" @click="clear">Logout</v-btn>
           </v-card-actions>
         </v-card>
         <v-card v-else>

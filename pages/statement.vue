@@ -1,5 +1,6 @@
 <script setup>
 import {
+  mdiAccountEdit,
   mdiCheck,
   mdiCheckDecagram,
   mdiClose,
@@ -22,16 +23,42 @@ definePageMeta({
   sort: 20,
 });
 
+const { query } = useRoute();
 const { mdAndUp, xs } = useDisplay();
-const { data: userData } = await useFetch('/api/users/me');
+/** @type {import('vue').Ref<import('~/components/UserData.vue').default|null>} */
+const userDataComplete = ref(null);
+
+/** @type {import('vue').Ref<import('~/server/db/schema/users.js').User|null>|null} */
+let onBehalfOfUser = null;
+if (typeof query.onBehalfOf === 'string' && typeof query.token === 'string') {
+  const onBehalfQueryParams = new URLSearchParams();
+  onBehalfQueryParams.set('onBehalfOf', query.onBehalfOf);
+  onBehalfQueryParams.set('token', query.token);
+  const { data } = await useFetch(`/api/users/onBehalfOf?${onBehalfQueryParams.toString()}`);
+  onBehalfOfUser = data;
+}
+const { data: user, refresh: refetchUserData } = await useFetch('/api/users/me');
+const incomplete = computed(() => {
+  if (user.value?.loginProvider === 'OTP') {
+    return !(
+      user.value?.name &&
+      user.value?.address &&
+      user.value?.identifierType &&
+      user.value?.identifierValue
+    );
+  } else if (user.value?.loginProvider === 'IDA') {
+    return !(user.value?.identifierType && user.value?.identifierValue);
+  }
+  return false;
+});
 
 const statementTokenUrl =
-  userData.value?.loginProvider === 'OTP'
-    ? `${useRequestURL().origin}/statement?onBehalfOf=${userData.value?.email}&token=${userData.value?.statementToken}`
+  user.value?.loginProvider === 'OTP'
+    ? `${useRequestURL().origin}/statement?onBehalfOf=${user.value?.email}&token=${user.value?.statementToken}`
     : undefined;
 
 /** @type {import('vue').Ref<import('~/components/UserData.vue').default|null>} */
-const userDataForm = ref(null);
+const userDataSubmit = ref(null);
 
 /** @type {import('vue').Ref<boolean>} */
 const geolocationVisible = ref(false);
@@ -135,15 +162,27 @@ function abandonChanges(commodity) {
   confirm.value = false;
 }
 
-async function submit() {
-  if (!(await userDataForm.value?.validate())) {
+async function completeUserData() {
+  if (!(await userDataComplete.value?.validate())) {
     return;
   }
-  await userDataForm.value?.save();
+  await userDataComplete.value?.save();
+  await refetchUserData();
+}
+
+async function submit() {
+  if (!onBehalfOfUser?.value) {
+    if (!(await userDataSubmit.value?.validate())) {
+      return;
+    }
+    await userDataSubmit.value?.save();
+  }
   try {
     await $fetch('/api/statements', {
       method: 'POST',
       body: JSON.stringify({
+        onBehalfOf: onBehalfOfUser?.value ? onBehalfOfUser.value.id : undefined,
+        token: onBehalfOfUser?.value ? onBehalfOfUser.value.statementToken : undefined,
         commodities: items.value,
         geolocationVisible: geolocationVisible.value,
       }),
@@ -184,17 +223,38 @@ async function submit() {
         <v-btn :icon="mdiCheck" @click="savePlaces(editCommodity)"></v-btn>
       </v-toolbar>
       <places-form :commodity="editCommodity" @submit="savePlaces(editCommodity)" />
-      <places-map :commodity="editCommodity" />
+      <places-map
+        :commodity="editCommodity"
+        :address="(onBehalfOfUser ? onBehalfOfUser.address : user?.address) || undefined"
+      />
     </v-card>
   </v-dialog>
 
   <v-container>
     <v-row>
       <v-col cols="12">
-        <v-card>
+        <v-card v-if="incomplete">
           <v-card-title>Sorgfaltspflichterklärung</v-card-title>
-          <v-card-text v-if="canSend"
-            ><UserData ref="userDataForm" />
+          <v-card-text class="text-body-1 mb-6">
+            <v-alert color="primary" :icon="mdiAccountEdit">
+              Vervollständigen Sie bitte Ihr Profil, um fortzufahren:
+            </v-alert>
+          </v-card-text>
+          <v-card-text>
+            <UserData ref="userDataComplete" verbose />
+          </v-card-text>
+          <v-card-actions>
+            <v-btn color="primary" @click="completeUserData">Speichern</v-btn>
+          </v-card-actions>
+        </v-card>
+        <v-card v-if="!incomplete">
+          <v-card-title
+            >Sorgfaltspflichterklärung{{
+              onBehalfOfUser ? ' für ' + onBehalfOfUser.name : ''
+            }}</v-card-title
+          >
+          <v-card-text v-if="canSend">
+            <UserData v-if="!onBehalfOfUser" ref="userDataSubmit" />
             <v-row>
               <v-col
                 v-for="item in commoditiesInStatement"
@@ -204,40 +264,42 @@ async function submit() {
                 <CommodityCard :item="item" @open-editor="openEditor" />
               </v-col>
             </v-row>
-            <v-checkbox
-              v-model="geolocationVisible"
-              class="mt-4 checkbox-align-start"
-              hide-details
-              density="compact"
-            >
-              <template #label>
-                <div class="ml-1 text-body-2">
-                  Erzeugungsorte in anderen Sorgfaltspflichterklärungen anzeigen, wenn sie sich auf
-                  diese beziehen
-                </div>
-              </template>
-            </v-checkbox>
-            <p class="mt-4">
-              Durch Übermittlung dieser Sorgfaltserklärung bestätigt der Marktteilnehmer, dass er
-              die Sorgfaltspflicht gemäß der Verordnung (EU) 2023/1115 erfüllt hat, und dass kein
-              oder lediglich ein vernachlässigbares Risiko dahin gehend festgestellt wurde, dass die
-              relevanten Erzeugnisse gegen Artikel 3 Buchstaben a oder b dieser Verordnung
-              verstoßen.
-            </p>
+            <template v-if="!onBehalfOfUser">
+              <v-checkbox
+                v-model="geolocationVisible"
+                class="mt-4 checkbox-align-start"
+                hide-details
+                density="compact"
+              >
+                <template #label>
+                  <div class="ml-1 text-body-2">
+                    Erzeugungsorte in anderen Sorgfaltspflichterklärungen anzeigen, wenn sie sich
+                    auf diese beziehen
+                  </div>
+                </template>
+              </v-checkbox>
+              <p class="mt-4">
+                Durch Übermittlung dieser Sorgfaltserklärung bestätigt der Marktteilnehmer, dass er
+                die Sorgfaltspflicht gemäß der Verordnung (EU) 2023/1115 erfüllt hat, und dass kein
+                oder lediglich ein vernachlässigbares Risiko dahin gehend festgestellt wurde, dass
+                die relevanten Erzeugnisse gegen Artikel 3 Buchstaben a oder b dieser Verordnung
+                verstoßen.
+              </p>
+            </template>
           </v-card-text>
           <v-card-actions v-if="canSend">
-            <v-btn :prepend-icon="mdiCheckDecagram" color="primary" @click="submit"
-              >Übermitteln</v-btn
-            >
+            <v-btn :prepend-icon="mdiCheckDecagram" color="primary" @click="submit">{{
+              onBehalfOfUser ? 'Speichern' : 'Übermitteln'
+            }}</v-btn>
           </v-card-actions>
         </v-card>
       </v-col>
-      <template v-if="userData?.loginProvider !== 'OTP'">
+      <template v-if="!incomplete && user?.loginProvider !== 'OTP'">
         <v-col v-for="item in commoditiesToAdd" :key="item.key" :cols="mdAndUp ? 4 : xs ? 12 : 6">
           <CommodityCard :item="item" @open-editor="openEditor" />
         </v-col>
       </template>
-      <template v-else>
+      <template v-if="!incomplete && user?.loginProvider === 'OTP'">
         <v-col cols="12">
           <v-card>
             <v-card-title>Jemand anders beauftragen</v-card-title>
@@ -253,13 +315,13 @@ async function submit() {
                 text="E-Mail"
                 :prepend-icon="mdiEmailFastOutline"
                 color="primary"
-                :href="`mailto:?subject=EUDR Sorgfaltspflichterklärung für ${userData.email}&body=Bitte erstellen Sie eine EUDR Sorgfaltspflichterklärung für ${userData.email}: ${statementTokenUrl}`"
+                :href="`mailto:?subject=EUDR Sorgfaltspflichterklärung für ${user.name}&body=${encodeURIComponent(`Bitte erstellen Sie eine EUDR Sorgfaltspflichterklärung für ${user.name}: ${statementTokenUrl}`)}`"
               ></v-btn>
               <v-btn
                 text="SMS"
                 :prepend-icon="mdiMessageTextOutline"
                 color="primary"
-                :href="`sms:?body=Bitte erstellen Sie für ${userData.email} eine EUDR Sorgfaltspflichterklärung: ${statementTokenUrl}`"
+                :href="`sms:?body=${encodeURIComponent(`Bitte erstellen Sie für ${user.name} eine EUDR Sorgfaltspflichterklärung: ${statementTokenUrl}`)}`"
               ></v-btn>
             </v-card-actions>
           </v-card>

@@ -1,5 +1,6 @@
 <script setup>
 import { PlaceSearch, usePlaceSearch } from '@w3geo/vue-place-search';
+import { getCenter } from 'ol/extent';
 import Map from 'ol/Map';
 import 'ol/ol.css';
 import { fromLonLat } from 'ol/proj';
@@ -8,6 +9,10 @@ const props = defineProps({
   commodity: {
     type: /** @type {import('vue').PropType<import('~/utils/constants.js').Commodity>} */ (String),
     required: true,
+  },
+  address: {
+    type: String,
+    default: undefined,
   },
 });
 
@@ -37,30 +42,30 @@ onMounted(async () => {
   }
   view.fit(extent, { size: map.getSize(), maxZoom: 10, padding: [20, 20, 20, 20] });
   mapContainer.value.classList.add('spinner');
-  const { data: userData } = await useFetch('/api/users/me');
-  const address = userData.value?.address;
-  if (address) {
-    const value = address.split(', ').reverse().join(' ');
-    const animation = { center: fromLonLat([16.3738, 48.2082]), zoom: 13, duration: 500 };
-    try {
-      const locationData = $fetch(
-        `https://kataster.bev.gv.at/api/search/?layers=pg-adr-gn-rn-gst-kg-bl&term=${encodeURIComponent(value)}`,
-      );
-      const { features } =
-        /** @type {{data: import('geojson').FeatureCollection<import('geojson').Point>}} */ (
+  const address = props.address;
+  const value = address?.split(', ').reverse().join(' ');
+  const animation = { center: getCenter(extent), zoom: 13, duration: 500 };
+  try {
+    const locationData = value
+      ? $fetch(
+          `https://kataster.bev.gv.at/api/search/?layers=pg-adr-gn-rn-gst-kg-bl&term=${encodeURIComponent(value)}`,
+        )
+      : null;
+    const { features } = locationData
+      ? /** @type {{data: import('geojson').FeatureCollection<import('geojson').Point>}} */ (
           await locationData
-        ).data;
-      if (features.length && features[0].geometry.type === 'Point') {
-        const [feature] = features;
-        animation.center = fromLonLat(feature.geometry.coordinates);
-        animation.zoom = 16;
-      }
-    } finally {
-      view.animate(animation);
-      map.once('rendercomplete', () => {
-        mapContainer.value.classList.remove('spinner');
-      });
+        ).data
+      : { features: null };
+    if (features?.length && features[0].geometry.type === 'Point') {
+      const [feature] = features;
+      animation.center = fromLonLat(feature.geometry.coordinates);
+      animation.zoom = 16;
     }
+  } finally {
+    view.animate(animation);
+    map.once('rendercomplete', () => {
+      mapContainer.value.classList.remove('spinner');
+    });
   }
 });
 </script>

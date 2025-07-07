@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, isNull, or } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNull, not, or } from 'drizzle-orm';
 import statements from '../db/schema/statements';
 
 export default defineEventHandler(async (event) => {
@@ -8,10 +8,11 @@ export default defineEventHandler(async (event) => {
   }
   const db = useDb();
   const ddsToUpdate = await db
-    .select({ id: statements.id })
+    .select({ ddsId: statements.ddsId })
     .from(statements)
     .where(
       and(
+        not(isNull(statements.ddsId)),
         eq(statements.userId, userId),
         or(isNull(statements.status), inArray(statements.status, ['SUBMITTED', 'AVAILABLE'])),
       ),
@@ -19,10 +20,12 @@ export default defineEventHandler(async (event) => {
 
   let tracesOk = true;
   try {
-    const updatedDds = await retrieveDDS(ddsToUpdate.map((s) => s.id));
+    const updatedDds = await retrieveDDS(ddsToUpdate.map((s) => /** @type {string} */ (s.ddsId)));
     if (updatedDds) {
       await Promise.all(
-        updatedDds.map((s) => db.update(statements).set(s).where(eq(statements.id, s.identifier))),
+        updatedDds.map((s) =>
+          db.update(statements).set(s).where(eq(statements.ddsId, s.identifier)),
+        ),
       );
     }
   } catch (error) {
