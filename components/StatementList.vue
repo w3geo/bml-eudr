@@ -2,12 +2,15 @@
 import { mdiCardBulletedOutline } from '@mdi/js';
 
 const { mdAndUp } = useDisplay();
-const { data } = await useFetch('/api/statements');
+const statementCount = ref(0);
+
+const { data: statements } = await useFetch('/api/statements');
+statementCount.value = statements.value?.length || 0;
 </script>
 
 <template>
-  <v-row>
-    <v-col v-for="item in data" :key="item.id" :cols="mdAndUp ? 6 : 12">
+  <v-row v-if="statementCount > 0">
+    <v-col v-for="item in statements" :key="item.id" :cols="mdAndUp ? 6 : 12">
       <v-card color="teal-darken-4">
         <v-card-title>{{ item.referenceNumber || 'Wird erstellt' }}</v-card-title>
         <v-card-text>
@@ -56,5 +59,11 @@ const { data } = await useFetch('/api/statements');
         </v-card-text>
       </v-card>
     </v-col>
+  </v-row>
+  <v-row v-else>
+    <v-col
+      >Noch keine vorhanden. Erstellen Sie eine
+      <NuxtLink to="/statement">Sorgfaltspflichterklärung</NuxtLink>.</v-col
+    >
   </v-row>
 </template>

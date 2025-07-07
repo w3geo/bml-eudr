@@ -26,3 +26,18 @@ export function getCommoditySummary(commodity) {
     );
   return `${places} Ort${places === 1 ? '' : 'e'}, ${hsHeadings.join(', ')}`;
 }
+
+/**
+ * @param {import('vue').Ref<import('../server/db/schema/users').User|undefined|null>} userData
+ * @returns {Promise<void>}
+ */
+export async function saveUserData(userData) {
+  const body = userData.value;
+  if (!body) {
+    return;
+  }
+  await $fetch('/api/users/me', {
+    method: 'PUT',
+    body,
+  });
+}
