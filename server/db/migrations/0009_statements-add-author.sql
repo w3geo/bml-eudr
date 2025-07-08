@@ -1,0 +1,2 @@
+ALTER TABLE "statements" ADD COLUMN "author" varchar(127);--> statement-breakpoint
+ALTER TABLE "statements" ADD CONSTRAINT "statements_author_users_id_fk" FOREIGN KEY ("author") REFERENCES "public"."users"("id") ON DELETE no action ON UPDATE no action;

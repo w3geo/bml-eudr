@@ -22,11 +22,21 @@ export default defineEventHandler(async (event) => {
     }
     await db.insert(statements).values({
       userId: onBehalfOfUser.id,
+      author: userId,
       statement,
       date: new Date(),
     });
     await db.update(users).set({ statementToken: null }).where(eq(users.id, onBehalfOfUser.id));
-    return sendNoContent(event, 201);
+    const { sendMail } = useNodeMailer();
+    const url = new URL(getRequestURL(event));
+    url.pathname = '/account';
+    return sendMail({
+      subject: 'EUDR Sorgfaltspflichterklärung überprüfen',
+      text:
+        'Ihre EUDR Sorgfaltspflichterklärung wurde erstellt. Bitte folgen Sie dem Link, um sie zu überprüfen und zu übermitteln: ' +
+        url.toString(),
+      to: onBehalfOfUser.email,
+    });
   }
 
   const [user] = await db.select().from(users).where(eq(users.id, userId));

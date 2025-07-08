@@ -60,7 +60,7 @@ export default defineEventHandler(async (event) => {
 
   if (!user) {
     setCookie(event, 'login-retry', 'true', {
-      expires: new Date(Date.now() + 30000),
+      expires: new Date(Date.now() + 10000),
       secure: true,
     });
     return sendRedirect(event, '/account');
