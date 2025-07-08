@@ -14,6 +14,7 @@ const statements = pgTable(
     userId: varchar({ length: 127 })
       .notNull()
       .references(() => users.id),
+    author: varchar({ length: 127 }).references(() => users.id),
     ddsId: uuid().unique(),
     statement:
       /** @type {import('drizzle-orm').NotNull<import('drizzle-orm').$Type<import('drizzle-orm/pg-core').PgJsonBuilderInitial<"">, StatementPayload>>} */ (

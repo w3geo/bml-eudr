@@ -7,7 +7,7 @@ export default defineEventHandler(async (event) => {
     console.log('AMA login request body:', body);
     if (!body.cid || body.cid !== getCookie(event, 'eama-cid')) {
       setCookie(event, 'login-retry', 'true', {
-        expires: new Date(Date.now() + 30000),
+        expires: new Date(Date.now() + 10000),
         secure: true,
       });
       return sendRedirect(event, '/account');
@@ -93,7 +93,7 @@ export default defineEventHandler(async (event) => {
   } catch (error) {
     console.error('AMA login error:', error);
     setCookie(event, 'login-retry', 'true', {
-      expires: new Date(Date.now() + 30000),
+      expires: new Date(Date.now() + 10000),
       secure: true,
     });
     throw createError({

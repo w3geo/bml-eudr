@@ -12,7 +12,9 @@ statementCount.value = statements.value?.length || 0;
   <v-row v-if="statementCount > 0">
     <v-col v-for="item in statements" :key="item.id" :cols="mdAndUp ? 6 : 12">
       <v-card color="teal-darken-4">
-        <v-card-title>{{ item.referenceNumber || 'Wird erstellt' }}</v-card-title>
+        <v-card-title>{{
+          item.referenceNumber || (item.ddsId ? 'Wird erstellt' : 'Entwurf')
+        }}</v-card-title>
         <v-card-text>
           <v-table density="compact">
             <tbody>

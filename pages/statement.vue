@@ -66,6 +66,9 @@ const geolocationVisible = ref(false);
 /** @type {import('vue').Ref<null|import('~/utils/constants').Commodity>} */
 const editCommodity = ref(null);
 
+/** @type {import('vue').Ref<boolean>} */
+const savedOnBehalfOf = ref(false);
+
 /** @type {import('vue').Ref<string|null>} */
 const submitError = ref(null);
 const displaySubmitError = computed({
@@ -187,7 +190,17 @@ async function submit() {
         geolocationVisible: geolocationVisible.value,
       }),
     });
-    useRouter().push('/account');
+    if (onBehalfOfUser?.value) {
+      savedOnBehalfOf.value = true;
+      const unwatch = watch(savedOnBehalfOf, (value) => {
+        if (value === false) {
+          unwatch();
+          useRouter().push('/');
+        }
+      });
+    } else {
+      useRouter().push('/account');
+    }
   } catch (error) {
     if (error instanceof FetchError) {
       submitError.value = error.data.message;
@@ -227,6 +240,18 @@ async function submit() {
         :commodity="editCommodity"
         :address="(onBehalfOfUser ? onBehalfOfUser.address : user?.address) || undefined"
       />
+    </v-card>
+  </v-dialog>
+
+  <v-dialog v-model="savedOnBehalfOf" max-width="400">
+    <v-card>
+      <v-card-text
+        >Die Sorgfaltserklärung wurde gespeichert, {{ onBehalfOfUser?.name }} wurde benachrichtigt.
+        Sie können nun wieder Sorgfaltspflichterklärungen für sich selbst erstellen.</v-card-text
+      >
+      <v-card-actions>
+        <v-btn @click="savedOnBehalfOf = false">Verstanden</v-btn>
+      </v-card-actions>
     </v-card>
   </v-dialog>
 

@@ -48,7 +48,7 @@ export default defineOAuthIdAustriaEventHandler({
   },
   async onError(event, error) {
     setCookie(event, 'login-error', error.message, {
-      expires: new Date(Date.now() + 30000),
+      expires: new Date(Date.now() + 10000),
       secure: true,
     });
     return sendRedirect(event, '/account');
