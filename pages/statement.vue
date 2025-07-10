@@ -6,6 +6,7 @@ import {
   mdiClose,
   mdiEmailFastOutline,
   mdiMessageTextOutline,
+  mdiQrcode,
 } from '@mdi/js';
 import { FetchError } from 'ofetch';
 
@@ -246,8 +247,8 @@ async function submit() {
   <v-dialog v-model="savedOnBehalfOf" max-width="400">
     <v-card>
       <v-card-text
-        >Die Sorgfaltserklärung wurde gespeichert, {{ onBehalfOfUser?.name }} wurde benachrichtigt.
-        Sie können nun wieder Sorgfaltspflichterklärungen für sich selbst erstellen.</v-card-text
+        >Die Sorgfaltserklärung für {{ onBehalfOfUser?.name }} wurde übermittelt. Sie können nun
+        wieder Sorgfaltspflichterklärungen für sich selbst erstellen.</v-card-text
       >
       <v-card-actions>
         <v-btn @click="savedOnBehalfOf = false">Verstanden</v-btn>
@@ -289,33 +290,31 @@ async function submit() {
                 <CommodityCard :item="item" @open-editor="openEditor" />
               </v-col>
             </v-row>
-            <template v-if="!onBehalfOfUser">
-              <v-checkbox
-                v-model="geolocationVisible"
-                class="mt-4 checkbox-align-start"
-                hide-details
-                density="compact"
-              >
-                <template #label>
-                  <div class="ml-1 text-body-2">
-                    Erzeugungsorte in anderen Sorgfaltspflichterklärungen anzeigen, wenn sie sich
-                    auf diese beziehen
-                  </div>
-                </template>
-              </v-checkbox>
-              <p class="mt-4">
-                Durch Übermittlung dieser Sorgfaltserklärung bestätigt der Marktteilnehmer, dass er
-                die Sorgfaltspflicht gemäß der Verordnung (EU) 2023/1115 erfüllt hat, und dass kein
-                oder lediglich ein vernachlässigbares Risiko dahin gehend festgestellt wurde, dass
-                die relevanten Erzeugnisse gegen Artikel 3 Buchstaben a oder b dieser Verordnung
-                verstoßen.
-              </p>
-            </template>
+            <v-checkbox
+              v-model="geolocationVisible"
+              class="mt-4 checkbox-align-start"
+              hide-details
+              density="compact"
+            >
+              <template #label>
+                <div class="ml-1 text-body-2">
+                  Erzeugungsorte in anderen Sorgfaltspflichterklärungen anzeigen, wenn sie sich auf
+                  diese beziehen
+                </div>
+              </template>
+            </v-checkbox>
+            <p class="mt-4">
+              Durch Übermittlung dieser Sorgfaltserklärung bestätigt der Marktteilnehmer, dass er
+              die Sorgfaltspflicht gemäß der Verordnung (EU) 2023/1115 erfüllt hat, und dass kein
+              oder lediglich ein vernachlässigbares Risiko dahin gehend festgestellt wurde, dass die
+              relevanten Erzeugnisse gegen Artikel 3 Buchstaben a oder b dieser Verordnung
+              verstoßen.
+            </p>
           </v-card-text>
           <v-card-actions v-if="canSend">
-            <v-btn :prepend-icon="mdiCheckDecagram" color="primary" @click="submit">{{
-              onBehalfOfUser ? 'Speichern' : 'Übermitteln'
-            }}</v-btn>
+            <v-btn :prepend-icon="mdiCheckDecagram" color="primary" @click="submit"
+              >Übermitteln</v-btn
+            >
           </v-card-actions>
         </v-card>
       </v-col>
@@ -332,7 +331,11 @@ async function submit() {
               Sie können jetzt einen Link zur Erstellung einer Sorgfaltspflichterklärung
               verschicken.
               <b>Bitte beachten Sie:</b> Nur Personen, die über ein eAMA oder ID Austria Login
-              verfügen, können Sorgfaltspflichterklärungen erstellen.
+              verfügen, können Sorgfaltspflichterklärungen erstellen.<br /><br />
+              Mit der Weitergabe des Links per E-Mail, SMS oder QR-Code erklärt sich der
+              Marktteilnehmer damit einverstanden, dass die Sorgfaltspflichterklärung zwar von einer
+              anderen Person erstellt wird, die Verantwortung für die Richtigkeit der Angaben aber
+              weiterhin beim Marktteilnehmer liegt.
             </v-card-text>
             <v-card-actions>
               <v-btn
@@ -345,6 +348,12 @@ async function submit() {
               <v-btn
                 text="SMS"
                 :prepend-icon="mdiMessageTextOutline"
+                color="primary"
+                :href="`sms:?body=${encodeURIComponent(`Bitte erstellen Sie für ${user.name} eine EUDR Sorgfaltspflichterklärung: ${statementTokenUrl}`)}`"
+              ></v-btn>
+              <v-btn
+                text="QR-Code"
+                :prepend-icon="mdiQrcode"
                 color="primary"
                 :href="`sms:?body=${encodeURIComponent(`Bitte erstellen Sie für ${user.name} eine EUDR Sorgfaltspflichterklärung: ${statementTokenUrl}`)}`"
               ></v-btn>

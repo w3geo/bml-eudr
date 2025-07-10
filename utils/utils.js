@@ -28,6 +28,22 @@ export function getCommoditySummary(commodity) {
 }
 
 /**
+ * @param {Object<string, import('~/pages/statement.vue').CommodityData>} commodities
+ * @returns {string}
+ */
+export function getCommoditiesSummary(commodities) {
+  return commodities
+    ? `\nRohstoffe/Erzeugnisse:\n${Object.entries(commodities)
+        .filter(([, value]) => value.geojson.features.length)
+        .map(
+          ([key, value]) =>
+            `${getCommoditySummary({ key: /** @type {import('~/utils/constants').Commodity} */ (key), ...value })}`,
+        )
+        .join('\n')}`
+    : '';
+}
+
+/**
  * @param {import('vue').Ref<import('../server/db/schema/users').User|undefined|null>} userData
  * @returns {Promise<void>}
  */

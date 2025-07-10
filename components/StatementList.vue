@@ -1,10 +1,11 @@
 <script setup>
-import { mdiCardBulletedOutline } from '@mdi/js';
+import { mdiCardBulletedOutline, mdiEmailFastOutline, mdiMessageTextOutline } from '@mdi/js';
 
 const { mdAndUp } = useDisplay();
 const statementCount = ref(0);
 
 const { data: statements } = await useFetch('/api/statements');
+const { data: userData } = await useFetch('/api/users/me');
 statementCount.value = statements.value?.length || 0;
 </script>
 
@@ -59,6 +60,28 @@ statementCount.value = statements.value?.length || 0;
             </tbody>
           </v-table>
         </v-card-text>
+        <v-card-actions>
+          <v-btn
+            v-if="item.referenceNumber"
+            :prepend-icon="mdiEmailFastOutline"
+            :href="`mailto:?subject=EUDR Referenznummer von ${userData?.name}&body=${encodeURIComponent(
+              `Referenznummer: ${item.referenceNumber}\nVerifikationsnummer: ${item.verificationNumber}\n${getCommoditiesSummary(
+                item.statement.commodities,
+              )}`,
+            )}`"
+            >E-Mail</v-btn
+          >
+          <v-btn
+            v-if="item.referenceNumber"
+            :prepend-icon="mdiMessageTextOutline"
+            :href="`sms:?body=${encodeURIComponent(
+              `EUDR Referenznummer von ${userData?.name}\n\nReferenznummer: ${item.referenceNumber}\nVerifikationsnummer: ${item.verificationNumber}\n${getCommoditiesSummary(
+                item.statement.commodities,
+              )}`,
+            )}`"
+            >SMS</v-btn
+          >
+        </v-card-actions>
       </v-card>
     </v-col>
   </v-row>
