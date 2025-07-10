@@ -3,7 +3,7 @@ import { and, eq } from 'drizzle-orm';
 import statements from '../db/schema/statements';
 
 export default defineEventHandler(async (event) => {
-  const userId = (await requireUserSession(event)).user.login;
+  let userId = (await requireUserSession(event)).user.login;
   if (!userId) {
     throw createError({ status: 401, statusMessage: 'Unauthorized' });
   }
@@ -27,16 +27,7 @@ export default defineEventHandler(async (event) => {
       date: new Date(),
     });
     await db.update(users).set({ statementToken: null }).where(eq(users.id, onBehalfOfUser.id));
-    const { sendMail } = useNodeMailer();
-    const url = new URL(getRequestURL(event));
-    url.pathname = '/account';
-    return sendMail({
-      subject: 'EUDR Sorgfaltspflichterklärung überprüfen',
-      text:
-        'Ihre EUDR Sorgfaltspflichterklärung wurde erstellt. Bitte folgen Sie dem Link, um sie zu überprüfen und zu übermitteln: ' +
-        url.toString(),
-      to: onBehalfOfUser.email,
-    });
+    userId = onBehalfOfUser.id; // Use the onBehalfOf user for the DDS submission
   }
 
   const [user] = await db.select().from(users).where(eq(users.id, userId));
