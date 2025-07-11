@@ -93,7 +93,7 @@ export function useStatement(commodity) {
 
     function createSnapshot() {
       snapshot = {
-        quantity: quantity.value,
+        quantity: structuredClone(toRaw(quantity.value)),
         geojson: structuredClone(geojson.value),
       };
       modifiedSinceSnapshot.value = false;

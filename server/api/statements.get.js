@@ -32,10 +32,22 @@ export default defineEventHandler(async (event) => {
     tracesOk = false;
     console.error(error);
   }
-  const dds = await db
-    .select()
-    .from(statements)
-    .where(eq(statements.userId, userId))
-    .orderBy(desc(statements.date));
+  const dds = (
+    await db
+      .select()
+      .from(statements)
+      .where(eq(statements.userId, userId))
+      .orderBy(desc(statements.date))
+  )
+    // convert legacy statements to current ones, with commodity arrays
+    //TODO remove this when no legacy statements are left in the database
+    .map((dds) => {
+      if (dds.statement.commodities && !Array.isArray(dds.statement.commodities)) {
+        dds.statement.commodities = Object.entries(dds.statement.commodities).map(
+          ([key, value]) => ({ key, ...value }),
+        );
+      }
+      return dds;
+    });
   return tracesOk ? dds : dds.map((s) => ({ ...s, status: 'UNKNOWN' }));
 });

@@ -3,7 +3,7 @@ import users from './users';
 
 /**
  * @typedef {Object} StatementPayload
- * @property {Object<string, import('~/pages/statement.vue').CommodityData>} commodities
+ * @property {Array<import('~/server/utils/soap-traces').CommodityDataWithKey>} commodities
  * @property {boolean} geolocationVisible
  */
 

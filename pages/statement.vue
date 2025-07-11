@@ -12,8 +12,8 @@ import { FetchError } from 'ofetch';
 
 /**
  * @typedef {Object} CommodityData
- * @property {import('~/composables/useStatement').Quantity} quantity
- * @property {import('geojson').FeatureCollection} geojson
+ * @property {import('~/composables/useStatement').Quantity|import('vue').Ref<import('~/composables/useStatement').Quantity>} quantity
+ * @property {import('geojson').FeatureCollection|import('vue').Ref<import('geojson').FeatureCollection>} geojson
  */
 
 /** @typedef {CommodityData & {key: import('~/utils/constants.js').Commodity}} CommodityDataWithKey */
@@ -90,50 +90,26 @@ const map = computed({
   },
 });
 
-/** @type {import('vue').Ref<Record<import('~/utils/constants.js').Commodity, CommodityData>>} */
-const items = ref(
-  COMMODITY_KEYS.reduce((items, key) => {
-    const { quantity, geojson } = useStatement(key);
-    items[key] = {
-      quantity: quantity.value,
-      geojson: structuredClone(geojson.value),
-    };
-    return items;
-  }, /** @type {Record<import('~/utils/constants.js').Commodity, CommodityData>} */ ({})),
-);
-
 /** @type {import('vue').Ref<boolean>} */
 const confirm = ref(false);
 
 /** @type {import('vue').ComputedRef<Array<CommodityDataWithKey>>} */
 const commoditiesInStatement = computed(() =>
-  COMMODITY_KEYS.map((key) => ({ key, ...items.value[key] })).filter(
-    (commodity) => commodity.geojson.features.length,
+  COMMODITY_KEYS.map((key) => ({ key, ...useStatement(key) })).filter(
+    (commodity) => commodity.geojson.value.features.length,
   ),
 );
 
 /** @type {import('vue').ComputedRef<Array<CommodityDataWithKey>>} */
 const commoditiesToAdd = computed(() =>
-  COMMODITY_KEYS.map((key) => ({ key, ...items.value[key] })).filter(
-    (commodity) => !commodity.geojson.features.length,
+  COMMODITY_KEYS.map((key) => ({ key, ...useStatement(key) })).filter(
+    (commodity) => !commodity.geojson.value.features.length,
   ),
 );
 
 const canSend = computed(() =>
-  Object.values(items.value).some((item) => item.geojson.features.length),
+  COMMODITY_KEYS.some((key) => useStatement(key).geojson.value.features.length),
 );
-
-/**
- * @param {import('~/utils/constants.js').Commodity} commodity
- */
-function savePlaces(commodity) {
-  map.value = false;
-  const { quantity, geojson } = useStatement(commodity);
-  items.value[commodity] = {
-    quantity: quantity.value,
-    geojson: structuredClone(geojson.value),
-  };
-}
 
 /**
  * @param {import('~/utils/constants.js').Commodity} commodity
@@ -187,7 +163,11 @@ async function submit() {
       body: JSON.stringify({
         onBehalfOf: onBehalfOfUser?.value ? onBehalfOfUser.value.id : undefined,
         token: onBehalfOfUser?.value ? onBehalfOfUser.value.statementToken : undefined,
-        commodities: items.value,
+        commodities: COMMODITY_KEYS.map((key) => ({
+          key,
+          quantity: useStatement(key).quantity.value,
+          geojson: useStatement(key).geojson.value,
+        })).filter((commodity) => commodity.geojson.features.length),
         geolocationVisible: geolocationVisible.value,
       }),
     });
@@ -234,9 +214,9 @@ async function submit() {
 
         <v-app-bar-title>{{ COMMODITIES[editCommodity].title }}</v-app-bar-title>
 
-        <v-btn :icon="mdiCheck" @click="savePlaces(editCommodity)"></v-btn>
+        <v-btn :icon="mdiCheck" @click="map = false"></v-btn>
       </v-toolbar>
-      <places-form :commodity="editCommodity" @submit="savePlaces(editCommodity)" />
+      <places-form :commodity="editCommodity" @submit="map = false" />
       <places-map
         :commodity="editCommodity"
         :address="(onBehalfOfUser ? onBehalfOfUser.address : user?.address) || undefined"
