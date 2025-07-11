@@ -37,23 +37,19 @@ statementCount.value = statements.value?.length || 0;
           Rohstoffe/Erzeugnisse
           <v-table density="compact">
             <tbody>
-              <template v-for="(value, key) in item.statement.commodities" :key="key">
+              <template v-for="value in item.statement.commodities" :key="value.key">
                 <tr v-if="value.geojson.features.length">
                   <td>
                     <v-icon
                       :icon="
-                        COMMODITIES[/** @type {import('~/utils/constants').Commodity} */ (key)]
-                          ?.icon || mdiCardBulletedOutline
+                        COMMODITIES[
+                          /** @type {import('~/utils/constants').Commodity} */ (value.key)
+                        ]?.icon || mdiCardBulletedOutline
                       "
                     />
                   </td>
                   <td>
-                    {{
-                      getCommoditySummary({
-                        key: /** @type {import('~/utils/constants').Commodity} */ (key),
-                        ...value,
-                      })
-                    }}
+                    {{ getCommoditySummary(value) }}
                   </td>
                 </tr>
               </template>

@@ -45,7 +45,7 @@ watch(area, (value) => {
         <v-col :cols="mdAndUp ? 2 : xs ? 4 : 3">
           <v-sheet
             >{{ geojson.features.length }} Ort{{ geojson.features.length === 1 ? '' : 'e' }}<br />{{
-              area
+              area.toLocaleString('de-AT')
             }}
             ha</v-sheet
           >

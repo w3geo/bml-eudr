@@ -12,33 +12,30 @@ export function toPrecision(number, precision) {
  * @returns {string}
  */
 export function getCommoditySummary(commodity) {
-  if (!commodity || !commodity.geojson.features.length) {
+  if (!commodity || !unref(commodity.geojson).features.length) {
     return '';
   }
   /** @type {import('~/utils/constants').Commodity} */
   const commodityKey = commodity.key;
-  const places = commodity.geojson.features.length;
+  const places = unref(commodity.geojson).features.length;
   const hsHeadings = COMMODITIES[commodityKey].hsHeadings
-    .filter((key) => commodity.quantity[key])
+    .filter((hsHeading) => unref(commodity.quantity)[hsHeading])
     .map(
-      (key) =>
-        `${commodity.quantity[key]?.toLocaleString('de-AT')} ${COMMODITIES[commodityKey].units} ${HS_HEADING[key] || key}`,
+      (hsHeading) =>
+        `${unref(commodity.quantity)[hsHeading]?.toLocaleString('de-AT')} ${COMMODITIES[commodityKey].units} ${HS_HEADING[hsHeading] || hsHeading}`,
     );
   return `${places} Ort${places === 1 ? '' : 'e'}, ${hsHeadings.join(', ')}`;
 }
 
 /**
- * @param {Object<string, import('~/pages/statement.vue').CommodityData>} commodities
+ * @param {Array<import('~/pages/statement.vue').CommodityDataWithKey>} commodities
  * @returns {string}
  */
 export function getCommoditiesSummary(commodities) {
   return commodities
-    ? `\nRohstoffe/Erzeugnisse:\n${Object.entries(commodities)
-        .filter(([, value]) => value.geojson.features.length)
-        .map(
-          ([key, value]) =>
-            `${getCommoditySummary({ key: /** @type {import('~/utils/constants').Commodity} */ (key), ...value })}`,
-        )
+    ? `\nRohstoffe/Erzeugnisse:\n${commodities
+        .filter((commodity) => unref(commodity.geojson).features.length)
+        .map((commodity) => `${getCommoditySummary(commodity)}`)
         .join('\n')}`
     : '';
 }

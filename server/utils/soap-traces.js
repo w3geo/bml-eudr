@@ -11,6 +11,15 @@ import { DOMParser } from '@xmldom/xmldom';
  * @property {Date} date
  */
 
+/**
+ * @typedef {Object} CommodityData
+ * @property {import('~/composables/useStatement').Quantity} quantity
+ * @property {import('geojson').FeatureCollection} geojson
+ */
+
+/**
+ * @typedef {{key: import('~/utils/constants.js').Commodity} & CommodityData} CommodityDataWithKey
+ */
 const errorNS = 'http://ec.europa.eu/sanco/tracesnt/error/v01';
 const submissionNS = 'http://ec.europa.eu/tracesnt/certificate/eudr/submission/v1';
 const retrievalNS = 'http://ec.europa.eu/tracesnt/certificate/eudr/retrieval/v1';
@@ -81,15 +90,18 @@ function generatePasswordDigest(nonce, created, password = '') {
 }
 
 /**
- * @param {Object<string, import('~/pages/statement.vue').CommodityData>} commodities
+ * @param {Array<CommodityDataWithKey>} commodities
  */
 function getCommoditiesXML(commodities) {
   const commodityXMLs = [];
-  for (const key in commodities) {
-    const commodity = commodities[key];
+  for (const commodity of commodities) {
+    const key = commodity.key;
     const hsCodes = /** @type {Array<import('~/utils/constants').HSCode>} */ (
       Object.keys(commodity.quantity)
     );
+    if (commodity.geojson.features.length === 0) {
+      continue;
+    }
     for (const hsCode of hsCodes) {
       const geoJSONBase64 = btoa(JSON.stringify(commodity.geojson));
 
@@ -153,7 +165,7 @@ function getCommoditiesXML(commodities) {
 }
 
 /**
- * @param {Object<string, import('~/pages/statement.vue').CommodityData>} commodities
+ * @param {Array<CommodityDataWithKey>} commodities
  * @param {boolean} geolocationVisible
  * @param {import('~/server/db/schema/users').User} user
  * @returns {string}
@@ -258,17 +270,18 @@ function getRetrieveXML(identifiers) {
 }
 
 /**
- * @param {Object<string, import('~/pages/statement.vue').CommodityData>} commodities
+ * @param {Array<CommodityDataWithKey>} commodities
  * @param {boolean} geolocationVisible
  * @param {import('~/server/db/schema/users').User} user
  * @returns {Promise<{ identifier: string | undefined, error: string | undefined }>}
  */
 export async function submitDDS(commodities, geolocationVisible, user) {
+  const body = getSubmitXML(commodities, geolocationVisible, user);
   const submitResponse = await fetch(
     'https://acceptance.eudr.webcloud.ec.europa.eu/tracesnt/ws/EUDRSubmissionServiceV1',
     {
       method: 'POST',
-      body: getSubmitXML(commodities, geolocationVisible, user),
+      body,
       headers: {
         'Content-Type': 'text/xml; charset=utf-8',
         'SOAPAction': 'http://ec.europa.eu/tracesnt/certificate/eudr/submission/submitDds',
