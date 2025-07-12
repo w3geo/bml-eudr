@@ -331,12 +331,11 @@ async function submit() {
                 color="primary"
                 :href="`sms:?body=${encodeURIComponent(`Bitte erstellen Sie für ${user.name} eine EUDR Sorgfaltspflichterklärung: ${statementTokenUrl}`)}`"
               ></v-btn>
-              <v-btn
-                text="QR-Code"
+              <qr-code-button
                 :prepend-icon="mdiQrcode"
                 color="primary"
-                :href="`sms:?body=${encodeURIComponent(`Bitte erstellen Sie für ${user.name} eine EUDR Sorgfaltspflichterklärung: ${statementTokenUrl}`)}`"
-              ></v-btn>
+                :payload="statementTokenUrl"
+              ></qr-code-button>
             </v-card-actions>
           </v-card>
         </v-col>
