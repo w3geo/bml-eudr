@@ -11,7 +11,7 @@ useSeoMeta({
   title: 'Mein Konto',
 });
 const { loggedIn, clear } = useUserSession();
-const { theme } = useBrowserTheme();
+const theme = useColorMode();
 const { xs } = useDisplay();
 
 const email = ref();
@@ -78,7 +78,7 @@ const loginError = useCookie('login-error');
         <v-card v-if="!loggedIn" class="fill-height" href="./auth/ama">
           <v-card-title class="text-center">Anmelden mit</v-card-title>
           <v-card-actions class="d-flex justify-center"
-            ><v-img height="50" :src="`./logo_eama_${theme}.png`"
+            ><v-img height="50" :src="`./logo_eama_${theme.value}.png`"
           /></v-card-actions>
           <v-card-text class="text-center"
             >Minimaler Aufwand bei der Sorgfaltspflichterklärung</v-card-text
@@ -89,7 +89,7 @@ const loginError = useCookie('login-error');
         <v-card v-if="!loggedIn" class="fill-height" href="./auth/idaustria">
           <v-card-title class="text-center">Anmelden mit</v-card-title>
           <v-card-actions class="d-flex justify-center"
-            ><v-img height="50" :src="`./id-austria-logo-${theme}.png`"
+            ><v-img height="50" :src="`./id-austria-logo-${theme.value}.png`"
           /></v-card-actions>
           <v-card-text class="text-center">
             Für alle, die über kein eAMA Login verfügen</v-card-text

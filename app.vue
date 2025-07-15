@@ -7,7 +7,7 @@ useHead({
       ? `${titleChunk} | EUDR Entwaldungsverordnung Tool`
       : 'EUDR Entwaldungsverordnung Tool',
 });
-const { theme } = useBrowserTheme();
+const theme = useColorMode();
 const { mdAndUp } = useDisplay();
 const drawer = ref(false);
 const router = useRouter();
@@ -18,10 +18,10 @@ const items = routes
 </script>
 
 <template>
-  <v-app :theme="theme">
+  <v-app :theme="theme.value">
     <v-app-bar elevation="0" scroll-behavior="hide" scroll-threshold="50">
       <NuxtLink to="https://bmluk.gv.at/" target="_blank">
-        <v-img width="199" height="63" :src="`/BMLUK_Logo_${theme}.svg`" />
+        <v-img width="199" height="63" :src="`/BMLUK_Logo_${theme.value}.svg`" />
       </NuxtLink>
       <template #extension>
         <v-toolbar density="compact" color="green-darken-4">
