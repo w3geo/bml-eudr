@@ -9,6 +9,7 @@ import {
   mdiQrcode,
 } from '@mdi/js';
 import { FetchError } from 'ofetch';
+import useOnBehalfOf from '~/composables/onBehalfOf';
 
 /**
  * @typedef {Object} CommodityData
@@ -29,14 +30,10 @@ const { mdAndUp, xs } = useDisplay();
 /** @type {import('vue').Ref<import('~/components/UserData.vue').default|null>} */
 const userDataComplete = ref(null);
 
-/** @type {import('vue').Ref<import('~/server/db/schema/users.js').User|null>|null} */
-let onBehalfOfUser = null;
+const { onBehalfOf, token, user: onBehalfOfUser, reset: resetOnBehalfOf } = useOnBehalfOf();
 if (typeof query.onBehalfOf === 'string' && typeof query.token === 'string') {
-  const onBehalfQueryParams = new URLSearchParams();
-  onBehalfQueryParams.set('onBehalfOf', query.onBehalfOf);
-  onBehalfQueryParams.set('token', query.token);
-  const { data } = await useFetch(`/api/users/onBehalfOf?${onBehalfQueryParams.toString()}`);
-  onBehalfOfUser = data;
+  onBehalfOf.value = query.onBehalfOf;
+  token.value = query.token;
 }
 const { data: user, refresh: refetchUserData } = await useFetch('/api/users/me');
 const incomplete = computed(() => {
@@ -176,6 +173,7 @@ async function submit() {
       const unwatch = watch(savedOnBehalfOf, (value) => {
         if (value === false) {
           unwatch();
+          resetOnBehalfOf();
           useRouter().push('/');
         }
       });
