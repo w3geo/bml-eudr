@@ -9,7 +9,7 @@ import {
   mdiQrcode,
 } from '@mdi/js';
 import { FetchError } from 'ofetch';
-import useOnBehalfOf from '~/composables/onBehalfOf';
+import useOnBehalfOf from '~/composables/useOnBehalfOf';
 
 /**
  * @typedef {Object} CommodityData
@@ -30,11 +30,11 @@ const { mdAndUp, xs } = useDisplay();
 /** @type {import('vue').Ref<import('~/components/UserData.vue').default|null>} */
 const userDataComplete = ref(null);
 
-const { onBehalfOf, token, user: onBehalfOfUser, reset: resetOnBehalfOf } = useOnBehalfOf();
-if (typeof query.onBehalfOf === 'string' && typeof query.token === 'string') {
-  onBehalfOf.value = query.onBehalfOf;
-  token.value = query.token;
-}
+const { user: onBehalfOfUser, reset: resetOnBehalfOf } = useOnBehalfOf(
+  query.onBehalfOf,
+  query.token,
+);
+
 const { data: user, refresh: refetchUserData } = await useFetch('/api/users/me');
 const incomplete = computed(() => {
   if (user.value?.loginProvider === 'OTP') {
@@ -168,6 +168,9 @@ async function submit() {
         geolocationVisible: geolocationVisible.value,
       }),
     });
+    for (const key of COMMODITY_KEYS) {
+      useStatement(key).clear();
+    }
     if (onBehalfOfUser?.value) {
       savedOnBehalfOf.value = true;
       const unwatch = watch(savedOnBehalfOf, (value) => {
@@ -185,10 +188,6 @@ async function submit() {
       submitError.value = error.data.message;
     } else if (error instanceof Error) {
       submitError.value = error.message;
-    }
-  } finally {
-    for (const key of COMMODITY_KEYS) {
-      useStatement(key).clear();
     }
   }
 }

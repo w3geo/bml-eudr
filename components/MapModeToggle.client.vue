@@ -1,15 +1,20 @@
 <script setup>
 import { mdiVectorSquareEdit, mdiVectorSquarePlus, mdiVectorSquareRemove } from '@mdi/js';
 import Modify from 'ol/interaction/Modify';
+import VectorLayer from 'ol/layer/Vector';
 import Map from 'ol/Map.js';
 
 const props = defineProps({
-  commodity: {
-    type: /** @type {import('vue').PropType<import('~/utils/constants.js').Commodity>} */ (String),
-    required: true,
-  },
   map: {
     type: Map,
+    required: true,
+  },
+  geolocationLayer: {
+    type: VectorLayer,
+    required: true,
+  },
+  getFeatureAtPixel: {
+    type: /** @type {PropType<import('~/utils/layers.client.js').GetFeatureAtPixel>} */ (Function),
     required: true,
   },
 });
@@ -19,9 +24,12 @@ const showTooltipEdit = ref(false);
 const showTooltipRemove = ref(false);
 const mapMode = ref(0);
 
-const { geolocationLayer, geolocationSource } = useStatement(props.commodity);
+const geolocationLayer = props.geolocationLayer;
+const geolocationSource = /** @type {import('ol/source/Vector.js').default} */ (
+  geolocationLayer.getSource()
+);
 
-const { getFeatureAtPixel } = usePlaces(props.commodity);
+const getFeatureAtPixel = props.getFeatureAtPixel;
 
 /**
  * @param {import('ol/MapBrowserEvent.js').default<*>} event
