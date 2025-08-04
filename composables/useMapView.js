@@ -1,16 +1,7 @@
-import View from 'ol/View';
-
-/** @type {Object<string, View>} */
-const views = {};
-
 /**
- * @param {string} login
- * @returns {{ view: View }}
+ * @returns {{ view: Ref<import('ol/View').ViewOptions> }}
  */
-export default function useMapView(login) {
-  if (!views[login]) {
-    views[login] = new View();
-  }
-  const view = views[login];
+export default function useMapView() {
+  const view = useState('mapView', () => ({}));
   return { view };
 }

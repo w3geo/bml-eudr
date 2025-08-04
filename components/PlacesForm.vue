@@ -9,7 +9,9 @@ const props = defineProps({
 });
 
 const { mdAndUp, xs } = useDisplay();
-const { area, geojson, quantity } = useStatement(props.commodity);
+const { geojson, quantity } = useStatement(props.commodity);
+
+const area = computed(() => calculateAreaFromGeoJSON(geojson.value));
 
 const commodityData = COMMODITIES[props.commodity];
 const factor = commodityData.factor;

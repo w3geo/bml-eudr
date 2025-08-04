@@ -1,5 +1,6 @@
 <script setup>
 import { PlaceSearch, usePlaceSearch } from '@w3geo/vue-place-search';
+import { View } from 'ol';
 import { getCenter } from 'ol/extent';
 import Map from 'ol/Map';
 import 'ol/ol.css';
@@ -16,8 +17,10 @@ const props = defineProps({
   },
 });
 
-const { geolocationLayer } = useStatement(props.commodity);
-const { layerGroup } = usePlaces(props.commodity);
+const { geojson } = useStatement(props.commodity);
+
+const geolocationLayer = createGeolocationLayer(geojson);
+const commodityLayerset = createCommodityLayerset(props.commodity);
 
 const mapContainer = ref();
 
@@ -26,8 +29,8 @@ const login = user.value?.login;
 
 const map = new Map({
   target: mapContainer.value,
-  layers: [layerGroup, geolocationLayer],
-  view: login ? useMapView(login).view : undefined,
+  layers: [commodityLayerset.layerGroup, geolocationLayer],
+  view: new View(login ? { ...useMapView().view.value } : undefined),
 });
 
 usePlaceSearch(map);
@@ -40,6 +43,13 @@ onMounted(async () => {
   if (view.isDef()) {
     return;
   }
+  view.on('change', () => {
+    useMapView().view.value = {
+      center: view.getCenter(),
+      zoom: view.getZoom(),
+      rotation: view.getRotation(),
+    };
+  });
   view.fit(extent, { size: map.getSize(), maxZoom: 10, padding: [20, 20, 20, 20] });
   mapContainer.value.classList.add('spinner');
   const address = props.address;
@@ -74,7 +84,11 @@ onMounted(async () => {
   <v-layout class="d-flex fill-height">
     <v-app-bar color="settings.$toolbar-color" density="compact" flat class="pr-1">
       <div>
-        <map-mode-toggle :map="map" :commodity="props.commodity" />
+        <map-mode-toggle
+          :map="map"
+          :get-feature-at-pixel="commodityLayerset.getFeatureAtPixel"
+          :geolocation-layer="geolocationLayer"
+        />
       </div>
       <v-spacer />
       <div>

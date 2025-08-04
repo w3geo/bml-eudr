@@ -54,3 +54,16 @@ export async function saveUserData(userData) {
     body,
   });
 }
+
+/**
+ * @param {import('geojson').FeatureCollection} geojson
+ * @returns {number}
+ */
+export function calculateAreaFromGeoJSON(geojson) {
+  return toPrecision(
+    geojson.features.reduce((acc, feature) => {
+      return acc + feature.properties?.Area || 0;
+    }, 0),
+    4,
+  );
+}

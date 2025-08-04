@@ -1,19 +1,12 @@
-import VectorSource from 'ol/source/Vector.js';
-import { getArea } from 'ol/sphere';
-import GeoJSON from 'ol/format/GeoJSON';
-import VectorLayer from 'ol/layer/Vector';
-
 /**
- * @typedef Use
- * @property {import('vue').ComputedRef<number>} area
- * @property {import('vue').Ref<Quantity>} quantity
- * @property {import('vue').Ref<import('ol/format/GeoJSON').GeoJSONFeatureCollection>} geojson
- * @property {VectorLayer} geolocationLayer
- * @property {VectorSource} geolocationSource
+ * @typedef UseStatement
+ * @property {Ref<Quantity>} quantity
+ * @property {Ref<import('geojson').FeatureCollection>} geojson
+ * @property {Ref<{quantity: Quantity, geojson: import('geojson').FeatureCollection}|null>} snapshot
+ * @property {Ref<boolean>} modifiedSinceSnapshot
  * @property {() => void} createSnapshot
  * @property {() => void} restoreSnapshot
  * @property {() => void} clear
- * @property {import('vue').Ref<boolean>} modifiedSinceSnapshot
  */
 
 /**
@@ -21,115 +14,71 @@ import VectorLayer from 'ol/layer/Vector';
  */
 
 /**
- * @param {import('ol/source/Vector.js').VectorSourceEvent} e
+ * @param {Ref<{quantity: Quantity, geojson: import('geojson').FeatureCollection}|null>} snapshot
+ * @param {Ref<Quantity>} quantity
+ * @param {Ref<import('geojson').FeatureCollection>} geojson
+ * @param {Ref<boolean>} modifiedSinceSnapshot
  */
-function calculateArea(e) {
-  const feature = e.feature;
-  if (!feature) {
-    return;
-  }
-  const geometry = feature.getGeometry();
-  if (!geometry || !geometry.getType().endsWith('Polygon')) {
-    return;
-  }
-  const area = e.type === 'addfeature' ? feature.get('sl_flaeche_brutto_ha') : undefined;
-  feature.set(
-    'Area',
-    area === undefined ? getArea(geometry, { projection: 'EPSG:3857' }) / 10000 : area,
-    e.type === 'addfeature',
-  );
+function createSnapshot(snapshot, quantity, geojson, modifiedSinceSnapshot) {
+  snapshot.value = {
+    quantity: structuredClone(toRaw(quantity.value)),
+    geojson: structuredClone(geojson.value),
+  };
+  modifiedSinceSnapshot.value = false;
 }
 
-/** @type {GeoJSON<import('ol/Feature.js').default<import('ol/geom/Polygon.js').default>>} */
-const geojsonFormat = new GeoJSON({ featureProjection: 'EPSG:3857' });
+/**
+ * @param {Ref<{quantity: Quantity, geojson: import('geojson').FeatureCollection}|null>} snapshot
+ * @param {Ref<Quantity>} quantity
+ * @param {Ref<import('geojson').FeatureCollection>} geojson
+ * @param {Ref<boolean>} modifiedSinceSnapshot
+ */
+function restoreSnapshot(snapshot, quantity, geojson, modifiedSinceSnapshot) {
+  if (snapshot.value) {
+    quantity.value = snapshot.value.quantity;
+    geojson.value = snapshot.value.geojson;
+  }
+  snapshot.value = null;
+  modifiedSinceSnapshot.value = false;
+}
 
-/** @type {Object<string, Use>} */
-const use = {};
+/**
+ * @param {Ref<Quantity>} quantity
+ * @param {Ref<import('geojson').FeatureCollection>} geojson
+ */
+function clear(quantity, geojson) {
+  quantity.value = {};
+  geojson.value = structuredClone(EMPTY_GEOJSON);
+}
 
 /**
  * @param {import('~/utils/constants').Commodity} commodity
- * @returns {Use}
+ * @returns {UseStatement}
  */
 export function useStatement(commodity) {
-  if (!use[commodity]) {
-    /** @type {VectorSource<import('ol/Feature.js').default<import('ol/geom/Polygon.js').default|import('ol/geom/MultiPolygon.js').default>>} */
-    const geolocationSource = new VectorSource();
+  /** @type {import('vue').Ref<import('ol/format/GeoJSON').GeoJSONFeatureCollection>} */
+  const geojson = useState(`geojson-${commodity}`, () =>
+    shallowRef(structuredClone(EMPTY_GEOJSON)),
+  );
 
-    /** @type {import('vue').Ref<import('ol/format/GeoJSON').GeoJSONFeatureCollection>} */
-    const geojson = shallowRef(structuredClone(EMPTY_GEOJSON));
+  /** @type {import('vue').Ref<Quantity>} */
+  const quantity = useState(`quantity-${commodity}`, () => /** @type {Quantity} */ ({}));
 
-    function updateGeolocation() {
-      const features = geolocationSource.getFeatures();
-      geojson.value = geojsonFormat.writeFeaturesObject(features);
-    }
+  const modifiedSinceSnapshot = useState(`modifiedSinceSnapshot-${commodity}`, () => false);
+  watch([quantity, geojson], () => {
+    modifiedSinceSnapshot.value = true;
+  });
 
-    geolocationSource.on('addfeature', calculateArea);
-    geolocationSource.on('changefeature', calculateArea);
-    geolocationSource.on('change', updateGeolocation);
+  /** @type {Ref<{quantity: Quantity, geojson: import('geojson').FeatureCollection}|null>} */
+  let snapshot = useState(`snapshot-${commodity}`, () => null);
 
-    const geolocationLayer = new VectorLayer({
-      source: geolocationSource,
-    });
-
-    const area = computed(() => {
-      return toPrecision(
-        geojson.value.features.reduce((acc, feature) => {
-          return acc + feature.properties?.Area || 0;
-        }, 0),
-        4,
-      );
-    });
-
-    /** @type {import('vue').Ref<Quantity>} */
-    const quantity = ref({});
-
-    const modifiedSinceSnapshot = ref(false);
-    watch([quantity, geojson], () => {
-      modifiedSinceSnapshot.value = true;
-    });
-
-    /** @type {{quantity: Quantity, geojson: import('geojson').FeatureCollection}|null} */
-    let snapshot = null;
-
-    function createSnapshot() {
-      snapshot = {
-        quantity: structuredClone(toRaw(quantity.value)),
-        geojson: structuredClone(geojson.value),
-      };
-      modifiedSinceSnapshot.value = false;
-    }
-
-    function restoreSnapshot() {
-      if (snapshot) {
-        quantity.value = snapshot.quantity;
-        geojson.value = snapshot.geojson;
-        geolocationSource.clear();
-        geolocationSource.addFeatures(
-          geojsonFormat.readFeatures(geojson.value, { featureProjection: 'EPSG:3857' }),
-        );
-      }
-      snapshot = null;
-      modifiedSinceSnapshot.value = false;
-    }
-
-    function clear() {
-      quantity.value = {};
-      geojson.value = structuredClone(EMPTY_GEOJSON);
-      geolocationSource.clear();
-    }
-
-    use[commodity] = {
-      geojson,
-      area,
-      quantity,
-      geolocationLayer,
-      geolocationSource,
-      createSnapshot,
-      restoreSnapshot,
-      modifiedSinceSnapshot,
-      clear,
-    };
-  }
-
-  return use[commodity];
+  return {
+    geojson,
+    quantity,
+    snapshot,
+    modifiedSinceSnapshot,
+    createSnapshot: () => createSnapshot(snapshot, quantity, geojson, modifiedSinceSnapshot),
+    restoreSnapshot: () => restoreSnapshot(snapshot, quantity, geojson, modifiedSinceSnapshot),
+    clear: () => clear(quantity, geojson),
+  };
 }
