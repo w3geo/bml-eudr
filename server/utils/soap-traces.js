@@ -95,6 +95,9 @@ function generatePasswordDigest(nonce, created, password = '') {
 function getCommoditiesXML(commodities) {
   const commodityXMLs = [];
   for (const commodity of commodities) {
+    if (commodity.geojson.features.length === 0) {
+      continue;
+    }
     const key = commodity.key;
     const hsCodes = /** @type {Array<import('~/utils/constants').HSCode>} */ (
       Object.keys(commodity.quantity)
@@ -103,6 +106,10 @@ function getCommoditiesXML(commodities) {
       continue;
     }
     for (const hsCode of hsCodes) {
+      const quantity = /** @type {number} */ (commodity.quantity[hsCode]);
+      if (!quantity) {
+        continue;
+      }
       const geoJSONBase64 = btoa(JSON.stringify(commodity.geojson));
 
       const quantityUnits =
@@ -122,10 +129,12 @@ function getCommoditiesXML(commodities) {
           : '';
       /** @type {string} */
       let quantityInfo;
-      const quantity = /** @type {number} */ (commodity.quantity[hsCode]);
       switch (quantityUnits) {
         case 'm³':
-          quantityInfo = `<v11:volume>${quantity}</v11:volume>`;
+          quantityInfo = `
+          <v11:supplementaryUnit>${quantity}</v11:supplementaryUnit>
+          <v11:supplementaryUnitQualifier>MTQ</v11:supplementaryUnitQualifier>
+        `;
           break;
         case 't':
           quantityInfo = `<v11:netWeight>${quantity * 1000}</v11:netWeight>`;
@@ -290,10 +299,9 @@ export async function submitDDS(commodities, geolocationVisible, user) {
   );
   const submitResponseXML = await submitResponse.text();
   const xml = new DOMParser().parseFromString(submitResponseXML, 'text/xml');
-  const error =
-    xml.getElementsByTagName('faultstring').item(0)?.textContent ||
-    xml.getElementsByTagNameNS(errorNS, 'Message').item(0)?.textContent ||
-    undefined;
+  const faultString = xml.getElementsByTagName('faultstring').item(0)?.textContent;
+  const message = xml.getElementsByTagNameNS(errorNS, 'Message').item(0)?.textContent;
+  const error = `${faultString ? faultString + ': ' : ''}${message || ''}`.trim();
   if (submitResponse.status >= 500) {
     return {
       identifier: undefined,
