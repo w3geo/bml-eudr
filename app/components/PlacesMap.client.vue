@@ -66,7 +66,7 @@ onMounted(async () => {
           await locationData
         ).data
       : { features: null };
-    if (features?.length && features[0].geometry.type === 'Point') {
+    if (features?.[0] && features[0].geometry.type === 'Point') {
       const [feature] = features;
       animation.center = fromLonLat(feature.geometry.coordinates);
       animation.zoom = 16;

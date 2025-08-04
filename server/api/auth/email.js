@@ -1,6 +1,6 @@
 import { and, eq } from 'drizzle-orm';
 import { generate } from 'otp-generator';
-import users from '~/server/db/schema/users';
+import users from '~~/server/db/schema/users';
 
 /**
  * @typedef {Object} UserPayload

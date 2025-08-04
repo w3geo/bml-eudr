@@ -41,7 +41,7 @@ export function getCommoditiesSummary(commodities) {
 }
 
 /**
- * @param {import('vue').Ref<import('../server/db/schema/users').User|undefined|null>} userData
+ * @param {import('vue').Ref<import('~~/server/db/schema/users').User|undefined|null>} userData
  * @returns {Promise<void>}
  */
 export async function saveUserData(userData) {

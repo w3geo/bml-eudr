@@ -31,6 +31,9 @@ export default defineEventHandler(async (event) => {
   }
 
   const [user] = await db.select().from(users).where(eq(users.id, userId));
+  if (!user) {
+    throw createError({ status: 404, statusMessage: 'User not found' });
+  }
 
   const commodities = statement.commodities;
 

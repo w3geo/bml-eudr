@@ -1,4 +1,4 @@
-import users from '~/server/db/schema/users';
+import users from '~~/server/db/schema/users';
 
 export default defineOAuthIdAustriaEventHandler({
   async onSuccess(event, { user }) {

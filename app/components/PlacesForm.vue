@@ -23,7 +23,7 @@ for (const hsCode of commodityData.hsHeadings) {
 }
 
 watch(area, (value) => {
-  if (factor) {
+  if (factor && commodityData.hsHeadings[0]) {
     quantity.value[commodityData.hsHeadings[0]] = toPrecision(value * factor, 0);
   }
 });

@@ -91,6 +91,10 @@ export async function getCompleteFeature(feature, getId, source, zoom) {
     features.map((feature) => toGeometry(feature).getCoordinates())
   );
 
+  if (!polygonCoordinates[0]) {
+    throw new Error('No coordinates found for feature');
+  }
+
   const multiPolygonCoordinates = union(polygonCoordinates[0], ...polygonCoordinates.slice(1));
   const completeFeature = new Feature({
     ...feature.getProperties(),
@@ -134,6 +138,9 @@ export function createGetFeatureAtPixel(layerGroup, glLayer, getId, zoom) {
       return await getCompleteFeature(renderFeature, getId, source, zoom);
     } else {
       const center = map.getCoordinateFromPixel(pixel);
+      if (center[0] === undefined || center[1] === undefined) {
+        throw new Error('Invalid coordinate for pixel');
+      }
       const resolution = getPointResolution(
         'EPSG:3857',
         map.getView().getResolution() || 1,
