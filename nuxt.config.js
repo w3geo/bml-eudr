@@ -15,7 +15,7 @@ export default defineNuxtConfig({
     'nuxt-auth-utils',
     'vuetify-nuxt-module',
     'nuxt-nodemailer',
-    '@nuxtjs/color-mode',
+    '@eschricht/nuxt-color-mode',
   ],
   runtimeConfig: {
     // See server/utils/database.js and server/plugins/storage.js

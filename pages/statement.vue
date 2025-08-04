@@ -316,7 +316,6 @@ async function submit() {
             </v-card-text>
             <v-card-actions>
               <v-btn
-                v-card-actions
                 text="E-Mail"
                 :prepend-icon="mdiEmailFastOutline"
                 color="primary"
