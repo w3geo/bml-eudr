@@ -7,7 +7,7 @@ import { DOMParser } from '@xmldom/xmldom';
  * @property {string} identifier
  * @property {string} [referenceNumber]
  * @property {string} [verificationNumber]
- * @property {import('../db/schema/statements').TracesStatus} status
+ * @property {import('~~/server/db/schema/statements').TracesStatus} status
  * @property {Date} date
  */
 
@@ -176,7 +176,7 @@ function getCommoditiesXML(commodities) {
 /**
  * @param {Array<CommodityDataWithKey>} commodities
  * @param {boolean} geolocationVisible
- * @param {import('~/server/db/schema/users').User} user
+ * @param {import('~~/server/db/schema/users').User} user
  * @returns {string}
  */
 function getSubmitXML(commodities, geolocationVisible, user) {
@@ -281,10 +281,13 @@ function getRetrieveXML(identifiers) {
 /**
  * @param {Array<CommodityDataWithKey>} commodities
  * @param {boolean} geolocationVisible
- * @param {import('~/server/db/schema/users').User} user
+ * @param {import('~~/server/db/schema/users').User} user
  * @returns {Promise<{ identifier: string | undefined, error: string | undefined }>}
  */
 export async function submitDDS(commodities, geolocationVisible, user) {
+  if (!user) {
+    throw new Error('User is required for DDS submission');
+  }
   const body = getSubmitXML(commodities, geolocationVisible, user);
   const submitResponse = await fetch(
     'https://acceptance.eudr.webcloud.ec.europa.eu/tracesnt/ws/EUDRSubmissionServiceV1',

@@ -3,7 +3,7 @@ import users from './users';
 
 /**
  * @typedef {Object} StatementPayload
- * @property {Array<import('~/server/utils/soap-traces').CommodityDataWithKey>} commodities
+ * @property {Array<import('~~/server/utils/soap-traces').CommodityDataWithKey>} commodities
  * @property {boolean} geolocationVisible
  */
 

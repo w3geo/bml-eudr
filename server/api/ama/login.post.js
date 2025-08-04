@@ -1,5 +1,5 @@
 import { request } from 'https';
-import users from '~/server/db/schema/users';
+import users from '~~/server/db/schema/users';
 
 export default defineEventHandler(async (event) => {
   try {

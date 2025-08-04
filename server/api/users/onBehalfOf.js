@@ -1,5 +1,5 @@
 import { and, eq } from 'drizzle-orm';
-import users from '~/server/db/schema/users';
+import users from '~~/server/db/schema/users';
 
 export default defineEventHandler(async (event) => {
   if (event.method !== 'GET') {
