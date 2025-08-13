@@ -4,7 +4,6 @@ import users from '~~/server/db/schema/users';
 export default defineEventHandler(async (event) => {
   try {
     const body = await readBody(event);
-    console.log('AMA login request body:', body);
     if (!body.cid || body.cid !== getCookie(event, 'eama-cid')) {
       setCookie(event, 'login-retry', 'true', {
         expires: new Date(Date.now() + 10000),
@@ -41,7 +40,6 @@ export default defineEventHandler(async (event) => {
         });
         res.on('end', () => {
           const json = JSON.parse(Buffer.concat(chunks).toString());
-          console.log('AMA login payload response:', json);
           resolve(json);
           // {
           //   partnerseitenDaten: {
