@@ -1,13 +1,33 @@
-import apply, { addMapboxLayer, getMapboxLayer, removeMapboxLayer } from 'ol-mapbox-style';
+import apply, {
+  addMapboxLayer,
+  getMapboxLayer,
+  removeMapboxLayer,
+  updateMapboxLayer,
+} from 'ol-mapbox-style';
 import GeoJSON from 'ol/format/GeoJSON';
 import LayerGroup from 'ol/layer/Group';
+import TileLayer from 'ol/layer/Tile';
 import VectorLayer from 'ol/layer/Vector';
+import ImageTileSource from 'ol/source/ImageTile';
 import VectorSource from 'ol/source/Vector.js';
 import { getArea } from 'ol/sphere';
 import { fetch as pmtilesFetch } from 'pmtiles-protocol';
 
 /** @type {GeoJSON<import('ol/Feature.js').default<import('ol/geom/Polygon.js').default>>} */
 const geojsonFormat = new GeoJSON({ featureProjection: 'EPSG:3857' });
+
+export function createBackgroundKatasterLayer() {
+  const basemapOrtho = new TileLayer({
+    source: new ImageTileSource({
+      attributions: 'Grundkarte: <a href="https://basemap.at/">basemap.at</a>',
+      url: 'https://mapsneu.wien.gv.at/basemap/bmaporthofoto30cm/normal/google3857/{z}/{y}/{x}.jpeg',
+      maxZoom: 19,
+    }),
+  });
+  const backgroundKataster = new LayerGroup({ minZoom: 18 - 1e-9, layers: [basemapOrtho] });
+  apply(backgroundKataster, 'https://kataster.bev.gv.at/styles/kataster/style_vermv.json');
+  return backgroundKataster;
+}
 
 /**
  * @param {import('~/utils/constants').Commodity} commodity
@@ -18,6 +38,11 @@ function createAgraratlasLayer(commodity) {
   apply(agraratlas, 'https://agraratlas.inspire.gv.at/map/style-pmtiles.json', {
     transformRequest: (url) => pmtilesFetch?.(url),
   }).then(() => {
+    const basemap = getMapboxLayer(agraratlas, 'basemap.at');
+    updateMapboxLayer(agraratlas, {
+      ...basemap,
+      maxzoom: 17,
+    });
     const schlaege = getMapboxLayer(agraratlas, 'invekos_schlaege_polygon-fill');
     addMapboxLayer(
       agraratlas,
@@ -89,6 +114,7 @@ function createKatasterLayer() {
             id: 'basemap.at',
             type: 'raster',
             source: 'geolandbasemap',
+            maxzoom: 17,
           },
           {
             ...wald,
