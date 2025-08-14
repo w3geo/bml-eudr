@@ -31,7 +31,7 @@
     "nuxt-auth-utils": "^0.5.22",
     "nuxt-nodemailer": "^1.1.2",
     "ol": "^10.6.1",
-    "ol-mapbox-style": "^13.0.1",
+    "ol-mapbox-style": "^13.1.0",
     "otp-generator": "^4.0.1",
     "pg": "^8.16.3",
     "pmtiles-protocol": "^1.0.5",

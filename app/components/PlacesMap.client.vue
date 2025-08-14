@@ -19,8 +19,9 @@ const props = defineProps({
 
 const { geojson } = useStatement(props.commodity);
 
-const geolocationLayer = createGeolocationLayer(geojson);
+const backgroundKatasterLayer = createBackgroundKatasterLayer();
 const commodityLayerset = createCommodityLayerset(props.commodity);
+const geolocationLayer = createGeolocationLayer(geojson);
 
 const mapContainer = ref();
 
@@ -29,7 +30,7 @@ const login = user.value?.login;
 
 const map = new Map({
   target: mapContainer.value,
-  layers: [commodityLayerset.layerGroup, geolocationLayer],
+  layers: [backgroundKatasterLayer, commodityLayerset.layerGroup, geolocationLayer],
   view: new View(login ? { ...useMapView().view.value } : undefined),
 });
 
