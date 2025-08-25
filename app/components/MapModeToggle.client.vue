@@ -120,6 +120,7 @@ watch(
     >
       <template #activator="{ props: on }">
         <v-btn :icon="mdiVectorSquareRemove" v-bind="on" />
-      </template> </v-tooltip
-  ></v-btn-toggle>
+      </template>
+    </v-tooltip>
+  </v-btn-toggle>
 </template>

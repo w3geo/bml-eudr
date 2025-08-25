@@ -13,9 +13,9 @@ statementCount.value = statements.value?.length || 0;
   <v-row v-if="statementCount > 0">
     <v-col v-for="item in statements" :key="item.id" :cols="mdAndUp ? 6 : 12">
       <v-card color="teal-darken-4">
-        <v-card-title>{{
-          item.referenceNumber || (item.ddsId ? 'Wird erstellt' : 'Entwurf')
-        }}</v-card-title>
+        <v-card-title>
+          {{ item.referenceNumber || (item.ddsId ? 'Wird erstellt' : 'Entwurf') }}
+        </v-card-title>
         <v-card-text>
           <v-table density="compact">
             <tbody>
@@ -38,7 +38,7 @@ statementCount.value = statements.value?.length || 0;
           <v-table density="compact">
             <tbody>
               <template v-for="value in item.statement.commodities" :key="value.key">
-                <tr v-if="value.geojson.features.length">
+                <tr>
                   <td>
                     <v-icon
                       :icon="
@@ -65,8 +65,9 @@ statementCount.value = statements.value?.length || 0;
                 item.statement.commodities,
               )}`,
             )}`"
-            >E-Mail</v-btn
           >
+            E-Mail
+          </v-btn>
           <v-btn
             v-if="item.referenceNumber"
             :prepend-icon="mdiMessageTextOutline"
@@ -75,16 +76,17 @@ statementCount.value = statements.value?.length || 0;
                 item.statement.commodities,
               )}`,
             )}`"
-            >SMS</v-btn
           >
+            SMS
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-col>
   </v-row>
   <v-row v-else>
-    <v-col
-      >Noch keine vorhanden. Erstellen Sie eine
-      <NuxtLink to="/statement">Sorgfaltspflichterklärung</NuxtLink>.</v-col
-    >
+    <v-col>
+      Noch keine vorhanden. Erstellen Sie eine
+      <NuxtLink to="/statement"> Sorgfaltspflichterklärung </NuxtLink>.
+    </v-col>
   </v-row>
 </template>

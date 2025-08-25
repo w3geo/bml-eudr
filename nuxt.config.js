@@ -32,6 +32,15 @@ export default defineNuxtConfig({
     preference: 'system',
     fallback: 'dark',
   },
+  ignore: ['tasks/**/*'],
+  nitro: {
+    experimental: {
+      tasks: true,
+    },
+    scheduledTasks: {
+      '*/5 * * * *': ['ama-cattle'],
+    },
+  },
   nodemailer: {
     from: '',
     host: '',

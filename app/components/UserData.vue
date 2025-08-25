@@ -115,8 +115,8 @@ const idItems = [
         </v-alert>
       </v-col>
     </v-row>
-    <v-snackbar v-if="props.verbose" v-model="snackbar" timeout="2000"
-      >Benutzerdaten wurden gespeichert.</v-snackbar
-    >
+    <v-snackbar v-if="props.verbose" v-model="snackbar" timeout="2000">
+      Benutzerdaten wurden gespeichert.
+    </v-snackbar>
   </v-form>
 </template>
