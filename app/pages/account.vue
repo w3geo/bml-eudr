@@ -19,7 +19,7 @@ const otp = ref();
 const emailSubmitted = ref(false);
 
 async function submitEmail() {
-  await $fetch('/api/auth/email', {
+  await useFetch('/api/auth/email', {
     method: 'POST',
     body: { email: email.value },
   });
@@ -40,10 +40,12 @@ const loginError = useCookie('login-error');
 <template>
   <v-container>
     <v-row>
-      <v-alert v-if="loginRetry" closable
-        >Anmeldung fehlgeschlagen, bitte versuchen Sie es noch einmal.</v-alert
-      >
-      <v-alert v-if="loginError" closable>{{ loginError }}</v-alert>
+      <v-alert v-if="loginRetry" closable>
+        Anmeldung fehlgeschlagen, bitte versuchen Sie es noch einmal.
+      </v-alert>
+      <v-alert v-if="loginError" closable>
+        {{ loginError }}
+      </v-alert>
       <v-col cols="12">
         <v-card v-if="loggedIn">
           <v-card-title>Meine Referenznummern</v-card-title>
@@ -62,10 +64,11 @@ const loginError = useCookie('login-error');
             <v-btn
               color="primary"
               @click="async () => (await userData?.validate()) && userData?.save()"
-              >Speichern</v-btn
             >
+              Speichern
+            </v-btn>
             <v-spacer />
-            <v-btn color="secondary" @click="clear">Logout</v-btn>
+            <v-btn color="secondary" @click="clear"> Logout </v-btn>
           </v-card-actions>
         </v-card>
         <v-card v-else>
@@ -76,52 +79,55 @@ const loginError = useCookie('login-error');
     <v-row>
       <v-col :cols="xs ? 12 : 6">
         <v-card v-if="!loggedIn" class="fill-height" href="./auth/ama">
-          <v-card-title class="text-center">Anmelden mit</v-card-title>
-          <v-card-actions class="d-flex justify-center"
-            ><v-img height="50" :src="`./logo_eama_${theme.value}.png`"
-          /></v-card-actions>
-          <v-card-text class="text-center"
-            >Minimaler Aufwand bei der Sorgfaltspflichterklärung</v-card-text
-          >
+          <v-card-title class="text-center"> Anmelden mit </v-card-title>
+          <v-card-actions class="d-flex justify-center">
+            <v-img height="50" :src="`./logo_eama_${theme.value}.png`" />
+          </v-card-actions>
+          <v-card-text class="text-center">
+            Minimaler Aufwand bei der Sorgfaltspflichterklärung
+          </v-card-text>
         </v-card>
       </v-col>
       <v-col :cols="xs ? 12 : 6">
         <v-card v-if="!loggedIn" class="fill-height" href="./auth/idaustria">
-          <v-card-title class="text-center">Anmelden mit</v-card-title>
-          <v-card-actions class="d-flex justify-center"
-            ><v-img height="50" :src="`./id-austria-logo-${theme.value}.png`"
-          /></v-card-actions>
+          <v-card-title class="text-center"> Anmelden mit </v-card-title>
+          <v-card-actions class="d-flex justify-center">
+            <v-img height="50" :src="`./id-austria-logo-${theme.value}.png`" />
+          </v-card-actions>
           <v-card-text class="text-center">
-            Für alle, die über kein eAMA Login verfügen</v-card-text
-          >
+            Für alle, die über kein eAMA Login verfügen
+          </v-card-text>
         </v-card>
       </v-col>
       <v-col :cols="xs ? 12 : 6">
         <v-card v-if="!loggedIn" class="fill-height">
-          <v-card-title v-if="!emailSubmitted" class="text-center">Anmelden mit</v-card-title>
-          <v-card-title v-else class="text-center">Einmalcode eingeben</v-card-title>
-          <v-card-actions class="d-flex justify-center"
-            ><v-form
+          <v-card-title v-if="!emailSubmitted" class="text-center"> Anmelden mit </v-card-title>
+          <v-card-title v-else class="text-center"> Einmalcode eingeben </v-card-title>
+          <v-card-actions class="d-flex justify-center">
+            <v-form
               v-if="!emailSubmitted"
               class="d-flex justify-center align-center fill-width"
               @submit.prevent="validateEmail(email) === true && submitEmail()"
-              ><v-text-field
+            >
+              <v-text-field
                 v-model="email"
                 label="E-Mail"
                 variant="outlined"
                 density="compact"
                 hide-details="auto"
                 validate-on="submit lazy"
-                :rules="[validateEmail(email)]" /><v-btn
+                :rules="[validateEmail(email)]"
+              /><v-btn
                 class="ml-2"
                 density="compact"
                 :icon="mdiEmailFastOutline"
                 color="primary"
                 type="submit"
-            /></v-form>
-            <v-form v-else
-              ><v-otp-input v-model="otp" autofocus length="6" @finish="submitOtp"
-            /></v-form>
+              />
+            </v-form>
+            <v-form v-else>
+              <v-otp-input v-model="otp" autofocus length="6" @finish="submitOtp" />
+            </v-form>
           </v-card-actions>
           <v-card-text v-if="!emailSubmitted" class="text-center">
             Wenn jemand anders die Sorgfaltspflichterklärung erstellen soll
@@ -134,7 +140,7 @@ const loginError = useCookie('login-error');
       <DevOnly>
         <v-col :cols="xs ? 12 : 6">
           <v-card v-if="!loggedIn" class="fill-height" href="./auth/development">
-            <v-card-title class="text-center">Entwickler</v-card-title>
+            <v-card-title class="text-center"> Entwickler </v-card-title>
           </v-card>
         </v-col>
       </DevOnly>

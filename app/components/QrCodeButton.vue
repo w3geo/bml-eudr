@@ -28,12 +28,12 @@ watch(showCode, (value) => {
   <v-btn :color="props.color" :prepend-icon="mdiQrcode" @click="showCode = true"> QR-Code </v-btn>
   <v-dialog v-model="showCode" max-width="300px">
     <v-card>
-      <v-card-title class="headline">QR-Code</v-card-title>
+      <v-card-title class="headline"> QR-Code </v-card-title>
       <v-card-text>
         <v-img v-if="codeSVG" :src="codeSVG" />
       </v-card-text>
       <v-card-actions>
-        <v-btn text @click="showCode = false">Schließen</v-btn>
+        <v-btn text @click="showCode = false"> Schließen </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>

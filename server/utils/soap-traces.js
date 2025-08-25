@@ -2,14 +2,25 @@ import { COMMODITIES, HS_HEADING } from '~/utils/constants';
 import { randomBytes, createHash } from 'crypto';
 import { DOMParser } from '@xmldom/xmldom';
 
+/** @typedef {'AVAILABLE' | 'SUBMITTED' | 'REJECTED' | 'CANCELLED' | 'WITHDRAWN' | 'ARCHIVED'} TracesStatus */
+
 /**
  * @typedef {Object} StatementInfo
- * @property {string} identifier
+ * @property {string} ddsId
  * @property {string} [referenceNumber]
  * @property {string} [verificationNumber]
- * @property {import('~~/server/db/schema/statements').TracesStatus} status
+ * @property {TracesStatus} status
  * @property {Date} date
+ * @property {Array<import('~~/server/utils/soap-traces').CommodityDataWithKey>} [commodities]
  */
+
+/**
+ * @typedef {Object} StatementPayload
+ * @property {Array<import('~~/server/utils/soap-traces').CommodityDataWithKey>} commodities
+ * @property {boolean} geolocationVisible
+ */
+
+/** @typedef {StatementInfo & StatementPayload} StatementData */
 
 /**
  * @typedef {Object} CommodityData
@@ -23,6 +34,7 @@ import { DOMParser } from '@xmldom/xmldom';
 const errorNS = 'http://ec.europa.eu/sanco/tracesnt/error/v01';
 const submissionNS = 'http://ec.europa.eu/tracesnt/certificate/eudr/submission/v1';
 const retrievalNS = 'http://ec.europa.eu/tracesnt/certificate/eudr/retrieval/v1';
+const commodityNS = 'http://ec.europa.eu/tracesnt/certificate/eudr/model/v1';
 
 const treeSpeciesNames = [
   ['Picea abies', 'Gemeine Fichte'],
@@ -87,6 +99,32 @@ function generatePasswordDigest(nonce, created, password = '') {
     ...Int8Array.from(Buffer.from(password)),
   ]);
   return createHash('sha1').update(pd).digest('base64');
+}
+
+function getHeader() {
+  const username = process.env.TRACES_USERNAME;
+  const password = process.env.TRACES_AUTHKEY;
+  const nonce = generateNonce();
+  const created = getCreated();
+  const expires = getExpires(created);
+  const passwordDigest = generatePasswordDigest(nonce, created, password);
+  return `
+    <soapenv:Header>
+      <wsse:Security xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"
+        xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" soapenv:mustUnderstand="1">
+        <wsu:Timestamp wsu:Id="TS">
+          <wsu:Created>${created}</wsu:Created>
+          <wsu:Expires>${expires}</wsu:Expires>
+        </wsu:Timestamp>
+        <wsse:UsernameToken wsu:Id="UsernameToken">
+          <wsse:Username>${username}</wsse:Username>
+          <wsse:Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest">${passwordDigest}</wsse:Password>
+          <wsse:Nonce EncodingType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary">${nonce}</wsse:Nonce>
+          <wsu:Created>${created}</wsu:Created>
+        </wsse:UsernameToken>
+      </wsse:Security>
+      <v4:WebServiceClientId>eudr-test</v4:WebServiceClientId>
+    </soapenv:Header>`;
 }
 
 /**
@@ -180,12 +218,6 @@ function getCommoditiesXML(commodities) {
  * @returns {string}
  */
 function getSubmitXML(commodities, geolocationVisible, user) {
-  const username = process.env.TRACES_USERNAME;
-  const password = process.env.TRACES_AUTHKEY;
-  const nonce = generateNonce();
-  const created = getCreated();
-  const expires = getExpires(created);
-  const passwordDigest = generatePasswordDigest(nonce, created, password);
   const commoditiesXML = getCommoditiesXML(commodities);
 
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -193,22 +225,7 @@ function getSubmitXML(commodities, geolocationVisible, user) {
       xmlns:v1="http://ec.europa.eu/tracesnt/certificate/eudr/submission/v1"
       xmlns:v11="http://ec.europa.eu/tracesnt/certificate/eudr/model/v1"
       xmlns:v4="http://ec.europa.eu/sanco/tracesnt/base/v4">
-      <soapenv:Header>
-        <wsse:Security xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"
-          xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" soapenv:mustUnderstand="1">
-          <wsu:Timestamp wsu:Id="TS-541F39C6FDB97C7A1B171509172198888">
-            <wsu:Created>${created}</wsu:Created>
-            <wsu:Expires>${expires}</wsu:Expires>
-          </wsu:Timestamp>
-          <wsse:UsernameToken wsu:Id="UsernameToken-541F39C6FDB97C7A1B171509172198787">
-            <wsse:Username>${username}</wsse:Username>
-            <wsse:Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest">${passwordDigest}</wsse:Password>
-            <wsse:Nonce EncodingType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary">${nonce}</wsse:Nonce>
-            <wsu:Created>${created}</wsu:Created>
-          </wsse:UsernameToken>
-        </wsse:Security>
-        <v4:WebServiceClientId>eudr-test</v4:WebServiceClientId>
-      </soapenv:Header>
+      ${getHeader()}
       <soapenv:Body>
         <v1:SubmitStatementRequest>
           <v1:operatorType>REPRESENTATIVE_OPERATOR</v1:operatorType>
@@ -240,12 +257,6 @@ function getSubmitXML(commodities, geolocationVisible, user) {
  * @returns {string}
  */
 function getRetrieveXML(identifiers) {
-  const username = process.env.TRACES_USERNAME;
-  const password = process.env.TRACES_AUTHKEY;
-  const nonce = generateNonce();
-  const created = getCreated();
-  const expires = getExpires(created);
-  const passwordDigest = generatePasswordDigest(nonce, created, password);
   const identifiersXML = identifiers
     .map((identifier) => `<v1:identifier>${identifier}</v1:identifier>`)
     .join('\n');
@@ -254,22 +265,7 @@ function getRetrieveXML(identifiers) {
     <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
       xmlns:v1="http://ec.europa.eu/tracesnt/certificate/eudr/retrieval/v1"
       xmlns:v4="http://ec.europa.eu/sanco/tracesnt/base/v4">
-      <soapenv:Header>
-        <wsse:Security xmlns:wsse="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd"
-          xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd" soapenv:mustUnderstand="1">
-          <wsu:Timestamp wsu:Id="TS-FC74784C4EFD20748F17171497363004">
-            <wsu:Created>${created}</wsu:Created>
-            <wsu:Expires>${expires}</wsu:Expires>
-          </wsu:Timestamp>
-          <wsse:UsernameToken wsu:Id="UsernameToken-FC74784C4EFD20748F17171497363003">
-            <wsse:Username>${username}</wsse:Username>
-            <wsse:Password Type="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-username-token-profile-1.0#PasswordDigest">${passwordDigest}</wsse:Password>
-            <wsse:Nonce EncodingType="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-soap-message-security-1.0#Base64Binary">${nonce}</wsse:Nonce>
-            <wsu:Created>${created}</wsu:Created>
-          </wsse:UsernameToken>
-        </wsse:Security>
-        <v4:WebServiceClientId>eudr-test</v4:WebServiceClientId>
-      </soapenv:Header>
+      ${getHeader()}
       <soapenv:Body>
         <v1:GetStatementInfoRequest>
           ${identifiersXML}
@@ -282,7 +278,7 @@ function getRetrieveXML(identifiers) {
  * @param {Array<CommodityDataWithKey>} commodities
  * @param {boolean} geolocationVisible
  * @param {import('~~/server/db/schema/users').User} user
- * @returns {Promise<{ identifier: string | undefined, error: string | undefined }>}
+ * @returns {Promise<{ ddsId: string | undefined, error: string | undefined }>}
  */
 export async function submitDDS(commodities, geolocationVisible, user) {
   if (!user) {
@@ -307,23 +303,23 @@ export async function submitDDS(commodities, geolocationVisible, user) {
   const error = `${faultString ? faultString + ': ' : ''}${message || ''}`.trim();
   if (submitResponse.status >= 500) {
     return {
-      identifier: undefined,
+      ddsId: undefined,
       error: error || 'TRACES database currently unavailable, try again later',
     };
   }
 
-  const identifier =
+  const ddsId =
     xml.getElementsByTagNameNS(submissionNS, 'ddsIdentifier').item(0)?.textContent || undefined;
 
-  return { identifier, error };
+  return { ddsId, error };
 }
 
 /**
- * @param {Array<string>} identifiers TRACES identifiers
+ * @param {Array<string>} ddsIds TRACES identifiers
  * @returns {Promise<Array<StatementInfo> | null>} DDS info or null in case of an error
  */
-export async function retrieveDDS(identifiers) {
-  const retrieveXML = getRetrieveXML(identifiers);
+export async function retrieveDDS(ddsIds) {
+  const retrieveXML = getRetrieveXML(ddsIds);
   const retrieveResponse = await fetch(
     'https://acceptance.eudr.webcloud.ec.europa.eu/tracesnt/ws/EUDRRetrievalServiceV1',
     {
@@ -344,14 +340,14 @@ export async function retrieveDDS(identifiers) {
   const statementInfos = [];
   for (let i = 0, ii = statementInfoElements.length; i < ii; i++) {
     const statementInfo = statementInfoElements.item(i);
-    const identifier = statementInfo
+    const ddsId = statementInfo
       ?.getElementsByTagNameNS(retrievalNS, 'identifier')
       .item(0)?.textContent;
     const date = statementInfo?.getElementsByTagNameNS(retrievalNS, 'date').item(0)?.textContent;
     const status = statementInfo
       ?.getElementsByTagNameNS(retrievalNS, 'status')
       .item(0)?.textContent;
-    if (!identifier || !date || !status) {
+    if (!ddsId || !date || !status) {
       continue;
     }
     const referenceNumber =
@@ -361,12 +357,178 @@ export async function retrieveDDS(identifiers) {
       statementInfo.getElementsByTagNameNS(retrievalNS, 'verificationNumber').item(0)
         ?.textContent || undefined;
     statementInfos.push({
-      identifier,
+      ddsId,
       referenceNumber,
       verificationNumber,
-      status: /** @type {import('../db/schema/statements').TracesStatus} */ (status),
+      status: /** @type {TracesStatus} */ (status),
       date: new Date(date),
     });
   }
   return statementInfos;
+}
+
+/**
+ * @param {string} internalReference
+ * @returns {Promise<{statements?: Array<StatementInfo>, error?: string | undefined}>}
+ */
+export async function retrieveDDSByInternalReference(internalReference) {
+  const body = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:v1="http://ec.europa.eu/tracesnt/certificate/eudr/retrieval/v1"
+    xmlns:v4="http://ec.europa.eu/sanco/tracesnt/base/v4">
+        ${getHeader()}
+        <soapenv:Body>
+            <v1:GetDdsInfoByInternalReferenceNumberRequest>${internalReference}</v1:GetDdsInfoByInternalReferenceNumberRequest>
+        </soapenv:Body>
+    </soapenv:Envelope>`;
+
+  try {
+    const submitResponse = await fetch(
+      'https://acceptance.eudr.webcloud.ec.europa.eu/tracesnt/ws/EUDRRetrievalServiceV1',
+      {
+        method: 'POST',
+        body,
+        headers: {
+          'Content-Type': 'text/xml; charset=utf-8',
+          'SOAPAction':
+            'http://ec.europa.eu/tracesnt/certificate/eudr/retrieval/getDdsInfoByInternalReferenceNumber',
+        },
+      },
+    );
+    const submitResponseXML = await submitResponse.text();
+    const xml = new DOMParser().parseFromString(submitResponseXML, 'text/xml');
+    const faultString = xml.getElementsByTagName('faultstring').item(0)?.textContent;
+    const message = xml.getElementsByTagNameNS(errorNS, 'Message').item(0)?.textContent;
+    const error = `${faultString ? faultString + ': ' : ''}${message || ''}`.trim();
+    if (submitResponse.status >= 500) {
+      return {
+        error: error || 'TRACES database currently unavailable, try again later',
+      };
+    }
+
+    const statementElements = xml.getElementsByTagNameNS(retrievalNS, 'statementInfo');
+    const statements = [];
+    for (let i = 0; i < statementElements.length; i++) {
+      const statement = /** @type {import('@xmldom/xmldom').Element} */ (statementElements.item(i));
+      const ddsId = statement
+        .getElementsByTagNameNS(retrievalNS, 'identifier')
+        .item(0)?.textContent;
+      if (!ddsId) {
+        return { error: 'Invalid response from TRACES: no ddsId' };
+      }
+      const date = statement.getElementsByTagNameNS(retrievalNS, 'date').item(0)?.textContent;
+      if (!date) {
+        return { error: 'Invalid response from TRACES: no date' };
+      }
+      statements.push({
+        ddsId,
+        referenceNumber:
+          statement.getElementsByTagNameNS(retrievalNS, 'referenceNumber').item(0)?.textContent ||
+          undefined,
+        verificationNumber:
+          statement.getElementsByTagNameNS(retrievalNS, 'verificationNumber').item(0)
+            ?.textContent || undefined,
+        status:
+          /** @type {TracesStatus} */ (
+            statement.getElementsByTagNameNS(retrievalNS, 'status').item(0)?.textContent
+          ) || 'UNKNOWN',
+        date: new Date(date),
+      });
+    }
+
+    return { statements, error };
+  } catch (error) {
+    return {
+      error: error instanceof Error ? error.message || 'Unknown error' : 'Unknown error',
+    };
+  }
+}
+
+/**
+ * @param {string} referenceNumber
+ * @param {string} verificationNumber
+ * @returns {Promise<{commodities?: Array<CommodityDataWithKey>, error?: string | undefined}>}
+ */
+export async function retrieveDDSData(referenceNumber, verificationNumber) {
+  const body = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+    xmlns:v1="http://ec.europa.eu/tracesnt/certificate/eudr/retrieval/v1"
+    xmlns:v4="http://ec.europa.eu/sanco/tracesnt/base/v4">
+        ${getHeader()}
+        <soapenv:Body>
+            <v1:GetStatementByIdentifiersRequest>
+              <v1:referenceNumber>${referenceNumber}</v1:referenceNumber>
+              <v1:verificationNumber>${verificationNumber}</v1:verificationNumber>
+            </v1:GetStatementByIdentifiersRequest>
+        </soapenv:Body>
+    </soapenv:Envelope>`;
+
+  const submitResponse = await fetch(
+    'https://acceptance.eudr.webcloud.ec.europa.eu/tracesnt/ws/EUDRRetrievalServiceV1',
+    {
+      method: 'POST',
+      body,
+      headers: {
+        'Content-Type': 'text/xml; charset=utf-8',
+        'SOAPAction': 'http://ec.europa.eu/tracesnt/certificate/eudr/retrieval/getDdsInfo',
+      },
+    },
+  );
+  const submitResponseXML = await submitResponse.text();
+  const xml = new DOMParser().parseFromString(submitResponseXML, 'text/xml');
+  const faultString = xml.getElementsByTagName('faultstring').item(0)?.textContent;
+  const message = xml.getElementsByTagNameNS(errorNS, 'Message').item(0)?.textContent;
+  const error = `${faultString ? faultString + ': ' : ''}${message || ''}`.trim();
+  if (submitResponse.status >= 500) {
+    return {
+      error: error || 'TRACES database currently unavailable, try again later',
+    };
+  }
+  const statementElement = xml.getElementsByTagNameNS(retrievalNS, 'statement').item(0);
+  if (!statementElement) {
+    return {
+      error: 'No statement found',
+    };
+  }
+
+  const commoditiesElements = statementElement.getElementsByTagNameNS(retrievalNS, 'commodities');
+  /** @type {Array<CommodityDataWithKey>} */
+  const commodities = [];
+  for (let i = 0; i < commoditiesElements.length; i++) {
+    const commodity = /** @type {import('@xmldom/xmldom').Element} */ (commoditiesElements.item(i));
+    const hsCode = /** @type {import('~/utils/constants').HSCode} */ (
+      commodity.getElementsByTagNameNS(commodityNS, 'hsHeading').item(0)?.textContent
+    );
+    const goodsMeasureElement = commodity
+      .getElementsByTagNameNS(commodityNS, 'goodsMeasure')
+      .item(0);
+    const geojsonText = commodity
+      .getElementsByTagNameNS(commodityNS, 'geometryGeojson')
+      .item(0)?.textContent;
+    const key = /** @type {import('~/utils/constants').Commodity} */ (
+      Object.keys(COMMODITIES).find((key) => {
+        return COMMODITIES[
+          /** @type {import('~/utils/constants').Commodity} */ (key)
+        ].hsHeadings.includes(hsCode);
+      })
+    );
+    const quantity = {
+      [hsCode]: Number(
+        goodsMeasureElement?.getElementsByTagNameNS(commodityNS, 'netWeight').item(0)
+          ?.textContent ||
+          goodsMeasureElement?.getElementsByTagNameNS(commodityNS, 'supplementaryUnit').item(0)
+            ?.textContent,
+      ),
+    };
+    const existing = commodities.find((c) => c.key === key);
+    if (existing) {
+      existing.quantity = { ...existing.quantity, ...quantity };
+    } else {
+      commodities.push({
+        key,
+        quantity,
+        geojson: geojsonText ? JSON.parse(atob(geojsonText)) : null,
+      });
+    }
+  }
+
+  return { commodities, error };
 }

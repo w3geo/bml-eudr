@@ -111,12 +111,13 @@ const idItems = [
       </v-col>
       <v-col v-if="props.verbose" cols="12" class="text-body-1 mb-6">
         <v-alert :icon="mdiInformationOutline">
-          Einige Felder sind nicht bearbeitbar, da sie automatisch ausgefüllt werden.
+          Wir speichern nur Felder, die Sie selbst ausfüllen. Nicht editierbare Felder kommen direkt
+          von Ihrem Login-Provider.
         </v-alert>
       </v-col>
     </v-row>
-    <v-snackbar v-if="props.verbose" v-model="snackbar" timeout="2000"
-      >Benutzerdaten wurden gespeichert.</v-snackbar
-    >
+    <v-snackbar v-if="props.verbose" v-model="snackbar" timeout="2000">
+      Benutzerdaten wurden gespeichert.
+    </v-snackbar>
   </v-form>
 </template>

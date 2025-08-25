@@ -21,14 +21,16 @@ const summary = computed(() => getCommoditySummary(props.item));
     @click="emit('openEditor', props.item.key)"
   >
     <v-card-title>{{ COMMODITIES[item.key].title }}</v-card-title>
-    <v-card-text class="d-flex flex-column align-center justify-center pb-0"
-      ><v-icon :icon="COMMODITIES[item.key].icon" size="50" />
-      <div class="centered">{{ summary }}</div></v-card-text
-    >
-    <v-card-actions
-      ><v-btn v-if="!summary" color="primary" :prepend-icon="mdiPlus">Hinzufügen</v-btn
-      ><v-btn v-else color="primary" :prepend-icon="mdiNoteEdit">Bearbeiten</v-btn></v-card-actions
-    >
+    <v-card-text class="d-flex flex-column align-center justify-center pb-0">
+      <v-icon :icon="COMMODITIES[item.key].icon" size="50" />
+      <div class="centered">
+        {{ summary }}
+      </div>
+    </v-card-text>
+    <v-card-actions>
+      <v-btn v-if="!summary" color="primary" :prepend-icon="mdiPlus"> Hinzufügen </v-btn
+      ><v-btn v-else color="primary" :prepend-icon="mdiNoteEdit"> Bearbeiten </v-btn>
+    </v-card-actions>
   </v-card>
 </template>
 
