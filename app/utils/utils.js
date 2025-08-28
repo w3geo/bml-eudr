@@ -12,19 +12,16 @@ export function toPrecision(number, precision) {
  * @returns {string}
  */
 export function getCommoditySummary(commodity) {
-  if (!commodity || !unref(commodity.geojson).features.length) {
-    return '';
-  }
   /** @type {import('~/utils/constants').Commodity} */
   const commodityKey = commodity.key;
-  const places = unref(commodity.geojson).features.length;
+  const places = unref(commodity.geojson)?.features.length || 0;
   const hsHeadings = COMMODITIES[commodityKey].hsHeadings
     .filter((hsHeading) => unref(commodity.quantity)[hsHeading])
     .map(
       (hsHeading) =>
         `${unref(commodity.quantity)[hsHeading]?.toLocaleString('de-AT')} ${COMMODITIES[commodityKey].units} ${HS_HEADING[hsHeading] || hsHeading}`,
     );
-  return `${places} Ort${places === 1 ? '' : 'e'}, ${hsHeadings.join(', ')}`;
+  return `${places ? `${places} Ort${places === 1 ? '' : 'e'}, ` : ''}${hsHeadings.join(', ')}`;
 }
 
 /**
@@ -34,7 +31,6 @@ export function getCommoditySummary(commodity) {
 export function getCommoditiesSummary(commodities) {
   return commodities
     ? `\nRohstoffe/Erzeugnisse:\n${commodities
-        .filter((commodity) => unref(commodity.geojson).features.length)
         .map((commodity) => `${getCommoditySummary(commodity)}`)
         .join('\n')}`
     : '';

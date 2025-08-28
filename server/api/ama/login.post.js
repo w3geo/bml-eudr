@@ -59,53 +59,7 @@ export default defineEventHandler(async (event) => {
       );
       req.end();
     });
-    const rinderResult = await new Promise((resolve, reject) => {
-      const requestBody = JSON.stringify(
-        {
-          betriebsstatttenNummer: Number(user.betriebsnummern),
-          referenzNummer: '25ATA6LP113877',
-          verifikationsNummer: 'OVFFYQLT',
-          stueckZahl: 15,
-          datumVon: new Date().toISOString(),
-        },
-        null,
-        2,
-      );
-      console.log('AMA Rinder request body:', requestBody);
-      const req = request(
-        {
-          ...options,
-          method: 'PUT',
-          path: '/api/webservices/v1/stage/entwaldungs-vo',
-          headers: {
-            ...options.headers,
-            'x-xsrf-token': 'cmon-ama-you-really-should-not-require-this',
-            'cookie': 'XSRF-TOKEN=cmon-ama-you-really-should-not-require-this',
-          },
-        },
-        (res) => {
-          /** @type {Array<Buffer>} */
-          const chunks = [];
-          res.on('data', function (d) {
-            chunks.push(d);
-          });
-          res.on('end', () => {
-            const responseBody = Buffer.concat(chunks).toString();
-            console.log('AMA Rinder response body:', responseBody);
-            if (res.statusCode !== 200) {
-              console.error(`AMA Rinder request failed: ${requestBody}`);
-              return reject(
-                new Error(`Request failed with status code ${res.statusCode}: ${responseBody}`),
-              );
-            }
-            resolve(responseBody ?? JSON.parse(responseBody));
-          });
-        },
-      );
-      req.write(requestBody);
-      req.end();
-    });
-    console.log('AMA Rinder response', rinderResult);
+
     await useDb()
       .insert(users)
       .values({

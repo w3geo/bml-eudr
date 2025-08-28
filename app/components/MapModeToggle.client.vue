@@ -93,7 +93,7 @@ watch(
       open-on-click
       text="Ort hinzufügen"
       bottom
-      @lick:outside="showTooltipAdd = false"
+      @click:outside="showTooltipAdd = false"
     >
       <template #activator="{ props: on }">
         <v-btn :icon="mdiVectorSquarePlus" v-bind="on" />
@@ -120,6 +120,7 @@ watch(
     >
       <template #activator="{ props: on }">
         <v-btn :icon="mdiVectorSquareRemove" v-bind="on" />
-      </template> </v-tooltip
-  ></v-btn-toggle>
+      </template>
+    </v-tooltip>
+  </v-btn-toggle>
 </template>

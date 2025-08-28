@@ -5,6 +5,7 @@ import {
   mdiCheckDecagram,
   mdiClose,
   mdiEmailFastOutline,
+  mdiHelpCircleOutline,
   mdiMessageTextOutline,
   mdiQrcode,
 } from '@mdi/js';
@@ -27,8 +28,10 @@ definePageMeta({
 
 const { query } = useRoute();
 const { mdAndUp, xs } = useDisplay();
+const { start, finish, clear } = useLoadingIndicator();
 /** @type {import('vue').Ref<import('~/components/UserData.vue').default|null>} */
 const userDataComplete = ref(null);
+const amaOnlyDialog = ref(false);
 
 const { user: onBehalfOfUser, reset: resetOnBehalfOf } = useOnBehalfOf(
   query.onBehalfOf,
@@ -59,7 +62,7 @@ const statementTokenUrl =
 const userDataSubmit = ref(null);
 
 /** @type {import('vue').Ref<boolean>} */
-const geolocationVisible = ref(false);
+const geolocationVisible = ref(true);
 
 /** @type {import('vue').Ref<null|import('~/utils/constants').Commodity>} */
 const editCommodity = ref(null);
@@ -112,6 +115,10 @@ const canSend = computed(() =>
  * @param {import('~/utils/constants.js').Commodity} commodity
  */
 function openEditor(commodity) {
+  if (commodity === 'rind' && user.value?.loginProvider !== 'AMA') {
+    amaOnlyDialog.value = true;
+    return;
+  }
   editCommodity.value = commodity;
   const { createSnapshot } = useStatement(commodity);
   createSnapshot();
@@ -155,7 +162,8 @@ async function submit() {
     await userDataSubmit.value?.save();
   }
   try {
-    await $fetch('/api/statements', {
+    start();
+    await useFetch('/api/statements', {
       method: 'POST',
       body: JSON.stringify({
         onBehalfOf: onBehalfOfUser?.value ? onBehalfOfUser.value.id : undefined,
@@ -168,6 +176,7 @@ async function submit() {
         geolocationVisible: geolocationVisible.value,
       }),
     });
+    await new Promise((r) => setTimeout(r, 1000));
     for (const key of COMMODITY_KEYS) {
       useStatement(key).clear();
     }
@@ -189,6 +198,9 @@ async function submit() {
     } else if (error instanceof Error) {
       submitError.value = error.message;
     }
+  } finally {
+    finish();
+    clear();
   }
 }
 </script>
@@ -198,8 +210,8 @@ async function submit() {
     <v-card v-if="editCommodity">
       <v-card-text>Änderungen werden nicht gespeichert. Möchten Sie fortfahren?</v-card-text>
       <v-card-actions>
-        <v-btn @click="confirm = false">Nein</v-btn>
-        <v-btn @click="abandonChanges(editCommodity)">Ja</v-btn>
+        <v-btn @click="confirm = false"> Nein </v-btn>
+        <v-btn @click="abandonChanges(editCommodity)"> Ja </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -223,12 +235,25 @@ async function submit() {
 
   <v-dialog v-model="savedOnBehalfOf" max-width="400">
     <v-card>
-      <v-card-text
-        >Die Sorgfaltserklärung für {{ onBehalfOfUser?.name }} wurde übermittelt. Sie können nun
-        wieder Sorgfaltspflichterklärungen für sich selbst erstellen.</v-card-text
-      >
+      <v-card-text>
+        Die Sorgfaltserklärung für {{ onBehalfOfUser?.name }} wurde übermittelt. Sie können nun
+        wieder Sorgfaltspflichterklärungen für sich selbst erstellen.
+      </v-card-text>
       <v-card-actions>
-        <v-btn @click="savedOnBehalfOf = false">Verstanden</v-btn>
+        <v-btn @click="savedOnBehalfOf = false"> Verstanden </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
+  <v-dialog v-model="amaOnlyDialog" max-width="400">
+    <v-card>
+      <v-card-title class="ml-2 mr-2 mt-2">RinderNET Verknüpfung erforderlich</v-card-title>
+      <v-card-text>
+        Die Erfassung von Rindern ist nur mit einem eAMA Login möglich. Bitte melden Sie sich mit
+        Ihrem eAMA Account an, um Rinder zu erfassen.
+      </v-card-text>
+      <v-card-actions>
+        <v-btn color="primary" @click="amaOnlyDialog = false"> Verstanden </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
@@ -247,15 +272,13 @@ async function submit() {
             <UserData ref="userDataComplete" verbose />
           </v-card-text>
           <v-card-actions>
-            <v-btn color="primary" @click="completeUserData">Speichern</v-btn>
+            <v-btn color="primary" @click="completeUserData"> Speichern </v-btn>
           </v-card-actions>
         </v-card>
         <v-card v-if="!incomplete">
-          <v-card-title
-            >Sorgfaltspflichterklärung{{
-              onBehalfOfUser ? ' für ' + onBehalfOfUser.name : ''
-            }}</v-card-title
-          >
+          <v-card-title>
+            Sorgfaltspflichterklärung{{ onBehalfOfUser ? ' für ' + onBehalfOfUser.name : '' }}
+          </v-card-title>
           <v-card-text v-if="canSend">
             <UserData v-if="!onBehalfOfUser" ref="userDataSubmit" />
             <v-row>
@@ -274,10 +297,18 @@ async function submit() {
               density="compact"
             >
               <template #label>
-                <div class="ml-1 text-body-2">
-                  Erzeugungsorte in anderen Sorgfaltspflichterklärungen anzeigen, wenn sie sich auf
-                  diese beziehen
-                </div>
+                <div class="ml-1 text-body-2">Zugriff auf Erzeugungsorte erlauben</div>
+                <v-tooltip max-width="400" open-on-click>
+                  <template #activator="{ props }">
+                    <v-btn flat :icon="mdiHelpCircleOutline" size="x-small" v-bind="props"></v-btn>
+                  </template>
+                  <div>
+                    Wenn ausgewählt (empfohlen), sind nach dem Abschicken die in der Karte
+                    angegebenen Erzeugungsorte mit Referenz- und Verifikationsnummer abfragbar. Wenn
+                    nicht, bleiben sie verborgen, und können auch nicht in künftige
+                    Sorgfaltserklärungen des Marktteilnehmers selbst übernommen werden.
+                  </div>
+                </v-tooltip>
               </template>
             </v-checkbox>
             <p class="mt-4">
@@ -289,9 +320,9 @@ async function submit() {
             </p>
           </v-card-text>
           <v-card-actions v-if="canSend">
-            <v-btn :prepend-icon="mdiCheckDecagram" color="primary" @click="submit"
-              >Übermitteln</v-btn
-            >
+            <v-btn :prepend-icon="mdiCheckDecagram" color="primary" @click="submit">
+              Übermitteln
+            </v-btn>
           </v-card-actions>
         </v-card>
       </v-col>
@@ -337,7 +368,9 @@ async function submit() {
         </v-col>
       </template>
     </v-row>
-    <v-snackbar v-model="displaySubmitError" timeout="6000">{{ submitError }}</v-snackbar>
+    <v-snackbar v-model="displaySubmitError" timeout="6000">
+      {{ submitError }}
+    </v-snackbar>
   </v-container>
 </template>
 

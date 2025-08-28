@@ -45,12 +45,12 @@ watch(area, (value) => {
           ></v-text-field>
         </v-col>
         <v-col :cols="mdAndUp ? 2 : xs ? 4 : 3">
-          <v-sheet
-            >{{ geojson.features.length }} Ort{{ geojson.features.length === 1 ? '' : 'e' }}<br />{{
+          <v-sheet>
+            {{ geojson.features.length }} Ort{{ geojson.features.length === 1 ? '' : 'e' }}<br />{{
               area.toLocaleString('de-AT')
             }}
-            ha</v-sheet
-          >
+            ha
+          </v-sheet>
         </v-col>
       </v-row>
     </v-form>
