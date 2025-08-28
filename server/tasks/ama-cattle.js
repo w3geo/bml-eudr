@@ -67,7 +67,6 @@ export default defineTask({
               });
               res.on('end', () => {
                 const responseBody = Buffer.concat(chunks).toString();
-                console.log('AMA Rinder response body:', responseBody);
                 if (res.statusCode !== 200) {
                   console.error(`AMA Rinder request failed: ${requestBody}`);
                   return reject(
