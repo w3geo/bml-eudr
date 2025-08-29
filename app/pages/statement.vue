@@ -22,7 +22,7 @@ import useOnBehalfOf from '~/composables/useOnBehalfOf';
 
 definePageMeta({
   middleware: ['authenticated-only'],
-  title: 'Sorgfaltspflichterklärung',
+  title: 'Sorgfaltserklärung',
   sort: 20,
 });
 
@@ -237,7 +237,7 @@ async function submit() {
     <v-card>
       <v-card-text>
         Die Sorgfaltserklärung für {{ onBehalfOfUser?.name }} wurde übermittelt. Sie können nun
-        wieder Sorgfaltspflichterklärungen für sich selbst erstellen.
+        wieder Sorgfaltserklärungen für sich selbst erstellen.
       </v-card-text>
       <v-card-actions>
         <v-btn @click="savedOnBehalfOf = false"> Verstanden </v-btn>
@@ -262,7 +262,7 @@ async function submit() {
     <v-row>
       <v-col cols="12">
         <v-card v-if="incomplete">
-          <v-card-title>Sorgfaltspflichterklärung</v-card-title>
+          <v-card-title>Sorgfaltserklärung</v-card-title>
           <v-card-text class="text-body-1 mb-6">
             <v-alert color="primary" :icon="mdiAccountEdit">
               Vervollständigen Sie bitte Ihr Profil, um fortzufahren:
@@ -277,7 +277,7 @@ async function submit() {
         </v-card>
         <v-card v-if="!incomplete">
           <v-card-title>
-            Sorgfaltspflichterklärung{{ onBehalfOfUser ? ' für ' + onBehalfOfUser.name : '' }}
+            Sorgfaltserklärung{{ onBehalfOfUser ? ' für ' + onBehalfOfUser.name : '' }}
           </v-card-title>
           <v-card-text v-if="canSend">
             <UserData v-if="!onBehalfOfUser" ref="userDataSubmit" />
@@ -336,12 +336,12 @@ async function submit() {
           <v-card>
             <v-card-title>Jemand anders beauftragen</v-card-title>
             <v-card-text>
-              Sie können jetzt einen Link zur Erstellung einer Sorgfaltspflichterklärung
+              Sie können jetzt einen Link zur Erstellung einer Sorgfaltserklärung
               verschicken.
               <b>Bitte beachten Sie:</b> Nur Personen, die über ein eAMA oder ID Austria Login
-              verfügen, können Sorgfaltspflichterklärungen erstellen.<br /><br />
+              verfügen, können Sorgfaltserklärungen erstellen.<br /><br />
               Mit der Weitergabe des Links per E-Mail, SMS oder QR-Code erklärt sich der
-              Marktteilnehmer damit einverstanden, dass die Sorgfaltspflichterklärung zwar von einer
+              Marktteilnehmer damit einverstanden, dass die Sorgfaltserklärung zwar von einer
               anderen Person erstellt wird, die Verantwortung für die Richtigkeit der Angaben aber
               weiterhin beim Marktteilnehmer liegt.
             </v-card-text>
@@ -350,13 +350,13 @@ async function submit() {
                 text="E-Mail"
                 :prepend-icon="mdiEmailFastOutline"
                 color="primary"
-                :href="`mailto:?subject=EUDR Sorgfaltspflichterklärung für ${user.name}&body=${encodeURIComponent(`Bitte erstellen Sie eine EUDR Sorgfaltspflichterklärung für ${user.name}: ${statementTokenUrl}`)}`"
+                :href="`mailto:?subject=EUDR Sorgfaltserklärung für ${user.name}&body=${encodeURIComponent(`Bitte erstellen Sie eine EUDR Sorgfaltserklärung für ${user.name}: ${statementTokenUrl}`)}`"
               ></v-btn>
               <v-btn
                 text="SMS"
                 :prepend-icon="mdiMessageTextOutline"
                 color="primary"
-                :href="`sms:?body=${encodeURIComponent(`Bitte erstellen Sie für ${user.name} eine EUDR Sorgfaltspflichterklärung: ${statementTokenUrl}`)}`"
+                :href="`sms:?body=${encodeURIComponent(`Bitte erstellen Sie für ${user.name} eine EUDR Sorgfaltserklärung: ${statementTokenUrl}`)}`"
               ></v-btn>
               <qr-code-button
                 :prepend-icon="mdiQrcode"

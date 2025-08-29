@@ -7,7 +7,7 @@ definePageMeta({
 });
 useSeoMeta({
   title: 'Startseite',
-  description: 'Sorgfaltspflichterklärung im Rahmen der EU-Entwaldungsverordnung (EUDR)',
+  description: 'Sorgfaltserklärung im Rahmen der EU-Entwaldungsverordnung (EUDR)',
 });
 </script>
 
@@ -18,12 +18,12 @@ useSeoMeta({
         <v-card>
           <v-card-text>
             <p>
-              Herzlich willkommen auf der Seite zur Sorgfaltspflichterklärung im Rahmen der EU-
+              Herzlich willkommen auf der Seite zur Sorgfaltserklärung im Rahmen der EU-
               Entwaldungsverordnung (EUDR)!
             </p>
             <br />
             <p>
-              Auf dieser Homepage haben Sie die Möglichkeit, Ihre Sorgfaltspflichterklärung schnell
+              Auf dieser Homepage haben Sie die Möglichkeit, Ihre Sorgfaltserklärung schnell
               und einfach abzugeben. Zudem bieten wir Ihnen umfassende Informationen rund um die
               Entwaldungsverordnung, um Sie bestmöglich über Ihre Pflichten und den Schutz unserer
               Wälder zu informieren.
@@ -53,9 +53,9 @@ useSeoMeta({
       </v-col>
       <v-col>
         <v-card>
-          <v-card-title>Sorgfaltspflichterklärung</v-card-title>
+          <v-card-title>Sorgfaltserklärung</v-card-title>
           <v-card-text>
-            Erstellung der Sorgfaltspflichterklärung und Referenznzmmernverwaltung direkt hier in
+            Erstellung der Sorgfaltserklärung und Referenznzmmernverwaltung direkt hier in
             der Applikation. Erfordert Anmeldung über eAMA Login oder ID Austria. Mit eAMA Login
             können Sie direkt die Ihrem Betrieb zugeordneten Flächen auswählen.
           </v-card-text>
