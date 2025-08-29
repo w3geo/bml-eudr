@@ -39,7 +39,7 @@ export default defineTask({
         await new Promise((resolve, reject) => {
           const requestBody = JSON.stringify(
             {
-              betriebsstatttenNummer: entry.userId,
+              betriebsstaettenNummer: entry.userId,
               referenzNummer: dds.referenceNumber,
               verifikationsNummer: dds.verificationNumber,
               stueckZahl: entry.count,
