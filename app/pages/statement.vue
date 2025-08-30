@@ -303,10 +303,10 @@ async function submit() {
                     <v-btn flat :icon="mdiHelpCircleOutline" size="x-small" v-bind="props"></v-btn>
                   </template>
                   <div>
-                    Wenn ausgewählt (empfohlen), sind nach dem Abschicken die in der Karte
-                    angegebenen Erzeugungsorte mit Referenz- und Verifikationsnummer abfragbar. Wenn
-                    nicht, bleiben sie verborgen, und können auch nicht in künftige
-                    Sorgfaltserklärungen des Marktteilnehmers selbst übernommen werden.
+                    Anzeige der von Ihnen angegebenen Produktionsorte in den Sorgfaltserklärungen,
+                    die sich auf Ihre Produkte beziehen (z.B. In der Sorgfaltserklärung der Mühle
+                    werden alle Referenznummern samt Produktionsort angezeigt, die für die
+                    Herstellung des Sojaöls angegeben wurden).
                   </div>
                 </v-tooltip>
               </template>
