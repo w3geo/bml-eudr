@@ -144,8 +144,8 @@ async function toggleFullStatement(ddsId) {
           <v-btn
             v-if="item.referenceNumber"
             :prepend-icon="mdiEmailFastOutline"
-            :href="`mailto:?subject=EUDR Referenznummer von ${userData?.name}&body=${encodeURIComponent(
-              `Referenznummer: ${item.referenceNumber}\nVerifikationsnummer: ${item.verificationNumber}\n${getCommoditiesSummary(
+            :href="`mailto:?subject=EUDR Sorgfaltserklärung von ${userData?.name}&body=${encodeURIComponent(
+              `Ersteller: ${userData?.name}\nReferenznummer: ${item.referenceNumber}\nVerifikationsnummer: ${item.verificationNumber}\nErklärungsdatum: ${new Date(item.date).toLocaleString('sv-SE')}\n${getCommoditiesSummary(
                 item.commodities,
               )}`,
             )}`"
@@ -156,7 +156,7 @@ async function toggleFullStatement(ddsId) {
             v-if="item.referenceNumber"
             :prepend-icon="mdiMessageTextOutline"
             :href="`sms:?body=${encodeURIComponent(
-              `EUDR Referenznummer von ${userData?.name}\n\nReferenznummer: ${item.referenceNumber}\nVerifikationsnummer: ${item.verificationNumber}\n${getCommoditiesSummary(
+              `EUDR Sorgfaltserklärung\n\nErsteller: ${userData?.name}\nReferenznummer: ${item.referenceNumber}\nVerifikationsnummer: ${item.verificationNumber}\nErklärungsdatum: ${new Date(item.date).toLocaleString('sv-SE')}\n${getCommoditiesSummary(
                 item.commodities,
               )}`,
             )}`"

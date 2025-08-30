@@ -21,7 +21,7 @@ export function getCommoditySummary(commodity) {
       (hsHeading) =>
         `${unref(commodity.quantity)[hsHeading]?.toLocaleString('de-AT')} ${COMMODITIES[commodityKey].units} ${HS_HEADING[hsHeading] || hsHeading}`,
     );
-  return `${places ? `${places} Ort${places === 1 ? '' : 'e'}, ` : ''}${hsHeadings.join(', ')}`;
+  return `${hsHeadings.join(', ')}, ${places ? `${places} Ort${places === 1 ? '' : 'e'}` : 'Ort nicht geteilt'}`;
 }
 
 /**
