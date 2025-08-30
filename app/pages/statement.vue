@@ -336,8 +336,7 @@ async function submit() {
           <v-card>
             <v-card-title>Jemand anders beauftragen</v-card-title>
             <v-card-text>
-              Sie können jetzt einen Link zur Erstellung einer Sorgfaltserklärung
-              verschicken.
+              Sie können jetzt einen Link zur Erstellung einer Sorgfaltserklärung verschicken.
               <b>Bitte beachten Sie:</b> Nur Personen, die über ein eAMA oder ID Austria Login
               verfügen, können Sorgfaltserklärungen erstellen.<br /><br />
               Mit der Weitergabe des Links per E-Mail, SMS oder QR-Code erklärt sich der
