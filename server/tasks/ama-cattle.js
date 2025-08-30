@@ -13,7 +13,7 @@ export default defineTask({
     const options = {
       method: 'PUT',
       hostname: 'restds.services.ama.at',
-      path: '/api/webservices/v1/stage/entwaldungs-vo',
+      path: process.env.AMA_CATTLE_PATH,
       port: 443,
       cert: process.env.AMA_CERT,
       key: process.env.AMA_KEY,
@@ -39,7 +39,7 @@ export default defineTask({
         await new Promise((resolve, reject) => {
           const requestBody = JSON.stringify(
             {
-              betriebsstatttenNummer: entry.userId,
+              betriebsstaettenNummer: entry.userId,
               referenzNummer: dds.referenceNumber,
               verifikationsNummer: dds.verificationNumber,
               stueckZahl: entry.count,
@@ -67,7 +67,6 @@ export default defineTask({
               });
               res.on('end', () => {
                 const responseBody = Buffer.concat(chunks).toString();
-                console.log('AMA Rinder response body:', responseBody);
                 if (res.statusCode !== 200) {
                   console.error(`AMA Rinder request failed: ${requestBody}`);
                   return reject(
