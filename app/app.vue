@@ -2,10 +2,7 @@
 import { mdiAccountCircle } from '@mdi/js';
 
 useHead({
-  titleTemplate: (titleChunk) =>
-    titleChunk
-      ? `${titleChunk} | EUDR Entwaldungsverordnung Tool`
-      : 'EUDR Entwaldungsverordnung Tool',
+  titleTemplate: (titleChunk) => (titleChunk ? `${titleChunk} | EUDR Meldung` : 'EUDR Meldung'),
 });
 const theme = useColorMode();
 const { mdAndUp } = useDisplay();
@@ -31,7 +28,7 @@ const items = routes
           </template>
           <v-app-bar-title>
             <NuxtLink class="text-decoration-none text-grey-lighten-2" to="/">
-              EUDR Entwaldungsverordnung Tool
+              EUDR Meldung
             </NuxtLink>
           </v-app-bar-title>
           <v-btn variant="plain" to="/account" :icon="mdiAccountCircle" />

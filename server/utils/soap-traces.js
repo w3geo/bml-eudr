@@ -1,6 +1,7 @@
 import { COMMODITIES, HS_HEADING } from '~/utils/constants';
 import { randomBytes, createHash } from 'crypto';
 import { DOMParser } from '@xmldom/xmldom';
+import { Agent } from 'undici';
 
 /** @typedef {'AVAILABLE' | 'SUBMITTED' | 'REJECTED' | 'CANCELLED' | 'WITHDRAWN' | 'ARCHIVED'} TracesStatus */
 
@@ -288,6 +289,13 @@ export async function submitDDS(commodities, geolocationVisible, user) {
   const submitResponse = await fetch(
     'https://acceptance.eudr.webcloud.ec.europa.eu/tracesnt/ws/EUDRSubmissionServiceV1',
     {
+      // Work around self-signed certificate on acceptance server
+      //@ts-ignore
+      dispatcher: new Agent({
+        connect: {
+          rejectUnauthorized: process.env.FETCH_TRACES_REJECT_UNAUTHORIZED !== 'false',
+        },
+      }),
       method: 'POST',
       body,
       headers: {
@@ -323,6 +331,13 @@ export async function retrieveDDS(ddsIds) {
   const retrieveResponse = await fetch(
     'https://acceptance.eudr.webcloud.ec.europa.eu/tracesnt/ws/EUDRRetrievalServiceV1',
     {
+      // Work around self-signed certificate on acceptance server
+      //@ts-ignore
+      dispatcher: new Agent({
+        connect: {
+          rejectUnauthorized: process.env.FETCH_TRACES_REJECT_UNAUTHORIZED !== 'false',
+        },
+      }),
       method: 'POST',
       body: retrieveXML,
       headers: {
@@ -385,6 +400,13 @@ export async function retrieveDDSByInternalReference(internalReference) {
     const submitResponse = await fetch(
       'https://acceptance.eudr.webcloud.ec.europa.eu/tracesnt/ws/EUDRRetrievalServiceV1',
       {
+        // Work around self-signed certificate on acceptance server
+        //@ts-ignore
+        dispatcher: new Agent({
+          connect: {
+            rejectUnauthorized: process.env.FETCH_TRACES_REJECT_UNAUTHORIZED !== 'false',
+          },
+        }),
         method: 'POST',
         body,
         headers: {
@@ -464,6 +486,13 @@ export async function retrieveDDSData(referenceNumber, verificationNumber) {
   const submitResponse = await fetch(
     'https://acceptance.eudr.webcloud.ec.europa.eu/tracesnt/ws/EUDRRetrievalServiceV1',
     {
+      // Work around self-signed certificate on acceptance server
+      //@ts-ignore
+      dispatcher: new Agent({
+        connect: {
+          rejectUnauthorized: process.env.FETCH_TRACES_REJECT_UNAUTHORIZED !== 'false',
+        },
+      }),
       method: 'POST',
       body,
       headers: {

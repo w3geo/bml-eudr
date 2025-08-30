@@ -173,7 +173,7 @@ async function toggleFullStatement(ddsId) {
     </v-col>
     <v-col v-else>
       Noch keine vorhanden. Erstellen Sie eine
-      <NuxtLink to="/statement"> Sorgfaltspflichterklärung </NuxtLink>.
+      <NuxtLink to="/statement"> Sorgfaltserklärung </NuxtLink>.
     </v-col>
   </v-row>
 </template>

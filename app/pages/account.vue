@@ -84,7 +84,7 @@ const loginError = useCookie('login-error');
             <v-img height="50" :src="`./logo_eama_${theme.value}.png`" />
           </v-card-actions>
           <v-card-text class="text-center">
-            Minimaler Aufwand bei der Sorgfaltspflichterklärung
+            Minimaler Aufwand bei der Sorgfaltserklärung
           </v-card-text>
         </v-card>
       </v-col>
@@ -130,7 +130,7 @@ const loginError = useCookie('login-error');
             </v-form>
           </v-card-actions>
           <v-card-text v-if="!emailSubmitted" class="text-center">
-            Wenn jemand anders die Sorgfaltspflichterklärung erstellen soll
+            Wenn jemand anders die Sorgfaltserklärung erstellen soll
           </v-card-text>
           <v-card-text v-else class="text-center">
             Bitte geben Sie den per E-Mail erhaltenen Code ein.
