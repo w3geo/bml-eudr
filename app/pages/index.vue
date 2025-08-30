@@ -7,7 +7,7 @@ definePageMeta({
 });
 useSeoMeta({
   title: 'Startseite',
-  description: 'Sorgfaltspflichterklärung im Rahmen der EU-Entwaldungsverordnung (EUDR)',
+  description: 'Sorgfaltserklärung im Rahmen der EU-Entwaldungsverordnung (EUDR)',
 });
 </script>
 
@@ -18,15 +18,8 @@ useSeoMeta({
         <v-card>
           <v-card-text>
             <p>
-              Herzlich willkommen auf der Seite zur Sorgfaltspflichterklärung im Rahmen der EU-
-              Entwaldungsverordnung (EUDR)!
-            </p>
-            <br />
-            <p>
-              Auf dieser Homepage haben Sie die Möglichkeit, Ihre Sorgfaltspflichterklärung schnell
-              und einfach abzugeben. Zudem bieten wir Ihnen umfassende Informationen rund um die
-              Entwaldungsverordnung, um Sie bestmöglich über Ihre Pflichten und den Schutz unserer
-              Wälder zu informieren.
+              Herzlich willkommen auf der Seite zur Erstellung Ihrer Sorgfaltserklärung im Rahmen
+              der EU- Entwaldungsverordnung (EUDR) link zur EUDR VO 2023/1115!
             </p>
             <br />
             <p>
@@ -38,6 +31,15 @@ useSeoMeta({
             <p>
               Wir unterstützen Sie auf dem Weg zu nachhaltigem und verantwortungsvollem Handeln!
             </p>
+          </v-card-text>
+          <v-card-text class="d-flex flex-column align-center">
+            <v-img
+              alt="Ablauf Sorgfaltserklärung"
+              class="border-rounded"
+              rounded
+              width="800"
+              src="/EU_Entwaldungsverordnung_Grafik_Einmeldung.png"
+            />
           </v-card-text>
           <v-card-actions class="justify-center">
             <v-btn
@@ -53,11 +55,11 @@ useSeoMeta({
       </v-col>
       <v-col>
         <v-card>
-          <v-card-title>Sorgfaltspflichterklärung</v-card-title>
+          <v-card-title>Sorgfaltserklärung</v-card-title>
           <v-card-text>
-            Erstellung der Sorgfaltspflichterklärung und Referenznzmmernverwaltung direkt hier in
-            der Applikation. Erfordert Anmeldung über eAMA Login oder ID Austria. Mit eAMA Login
-            können Sie direkt die Ihrem Betrieb zugeordneten Flächen auswählen.
+            Erstellung der Sorgfaltserklärung und Referenznzmmernverwaltung direkt hier in der
+            Applikation. Erfordert Anmeldung über eAMA Login oder ID Austria. Mit eAMA Login können
+            Sie direkt die Ihrem Betrieb zugeordneten Flächen auswählen.
           </v-card-text>
           <v-card-actions class="justify-center">
             <v-btn to="/statement" :prepend-icon="mdiFileSign" color="primary"> Auswählen </v-btn>
@@ -81,3 +83,10 @@ useSeoMeta({
     </v-row>
   </v-container>
 </template>
+
+<style scoped>
+.border-rounded {
+  border: 10px solid white;
+  border-radius: 6px;
+}
+</style>

@@ -45,9 +45,9 @@ export default defineEventHandler(async (event) => {
       });
 
     return sendMail({
-      subject: code + ' - Einmalcode EUDR Entwaldungsverordnung Tool',
+      subject: code + ' - Einmalcode EUDR Meldung',
       text:
-        'Um Ihr Login beim EUDR Entwaldungsverordnung Tool abzuschließen, geben Sie bitte diesen Einmalcode ein: ' +
+        'Um Ihr Login bei EUDR Meldung abzuschließen, geben Sie bitte diesen Einmalcode ein: ' +
         code,
       to: data.email,
     });
