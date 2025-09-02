@@ -2,6 +2,7 @@
 import { PlaceSearch, usePlaceSearch } from '@w3geo/vue-place-search';
 import { View } from 'ol';
 import { getCenter } from 'ol/extent';
+import VectorLayer from 'ol/layer/Vector.js';
 import Map from 'ol/Map';
 import 'ol/ol.css';
 import { fromLonLat } from 'ol/proj';
@@ -17,11 +18,14 @@ const props = defineProps({
   },
 });
 
-const { geojson } = useStatement(props.commodity);
-
 const backgroundKatasterLayer = createBackgroundKatasterLayer();
-const commodityLayerset = createCommodityLayerset(props.commodity);
-const geolocationLayer = createGeolocationLayer(geojson);
+
+/** @type {Ref<import('ol/layer/Vector.js').default>} */
+const geolocationLayer = shallowRef(new VectorLayer());
+/** @type {Ref<import('ol/layer/Group.js').default|null>} */
+const commodityLayer = shallowRef(null);
+/** @type {Ref<import('~/utils/layers-sources.client.js').GetFeatureAtPixel|(() => void)>} */
+const getFeatureAtPixel = shallowRef(() => {});
 
 const mapContainer = ref();
 
@@ -30,9 +34,28 @@ const login = user.value?.login;
 
 const map = new Map({
   target: mapContainer.value,
-  layers: [backgroundKatasterLayer, commodityLayerset.layerGroup, geolocationLayer],
+  layers: [backgroundKatasterLayer],
   view: new View(login ? { ...useMapView().view.value } : undefined),
 });
+
+watch(
+  () => props.commodity,
+  (newValue) => {
+    if (commodityLayer.value && geolocationLayer.value) {
+      map.removeLayer(commodityLayer.value);
+      map.removeLayer(geolocationLayer.value);
+      geolocationLayer.value.getSource()?.dispose();
+    }
+    const commodityLayerset = createCommodityLayerset(newValue);
+    const { geojson } = useStatement(newValue);
+    geolocationLayer.value = new VectorLayer({ source: createGeolocationSource(geojson) });
+    commodityLayer.value = commodityLayerset.layerGroup;
+    getFeatureAtPixel.value = commodityLayerset.getFeatureAtPixel;
+    map.addLayer(commodityLayer.value);
+    map.addLayer(geolocationLayer.value);
+  },
+  { immediate: true },
+);
 
 usePlaceSearch(map);
 
@@ -85,10 +108,11 @@ onMounted(async () => {
   <v-layout class="d-flex fill-height">
     <v-app-bar color="settings.$toolbar-color" density="compact" flat class="pr-1">
       <div>
-        <map-mode-toggle
+        <map-tools
           :map="map"
-          :get-feature-at-pixel="commodityLayerset.getFeatureAtPixel"
-          :geolocation-layer="geolocationLayer"
+          :get-feature-at-pixel="getFeatureAtPixel"
+          :geolocation-source="geolocationLayer.getSource() || undefined"
+          :commodity="props.commodity"
         />
       </div>
       <v-spacer />

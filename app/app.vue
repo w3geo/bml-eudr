@@ -40,14 +40,8 @@ const items = routes
         {{ item.title }}
       </v-list-item>
     </v-navigation-drawer>
-    <v-main class="scroll-workaround">
+    <v-main>
       <NuxtPage />
     </v-main>
   </v-app>
 </template>
-
-<style scoped>
-.scroll-workaround {
-  margin-bottom: 64px;
-}
-</style>
