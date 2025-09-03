@@ -7,7 +7,6 @@ import apply, {
 import GeoJSON from 'ol/format/GeoJSON';
 import LayerGroup from 'ol/layer/Group';
 import TileLayer from 'ol/layer/Tile';
-import VectorLayer from 'ol/layer/Vector';
 import ImageTileSource from 'ol/source/ImageTile';
 import VectorSource from 'ol/source/Vector.js';
 import { getArea } from 'ol/sphere';
@@ -170,23 +169,27 @@ export function createCommodityLayerset(commodity) {
 
 /**
  * @param {Ref<import('geojson').FeatureCollection>} geojson
- * @returns {VectorLayer}
+ * @returns {VectorSource}
  */
-export function createGeolocationLayer(geojson) {
+export function createGeolocationSource(geojson) {
   let updatingGeolocation = false;
-
-  watch(geojson, () => {
-    if (updatingGeolocation) {
-      return;
-    }
-    geolocationSource.clear();
-    geolocationSource.addFeatures(
-      geojsonFormat.readFeatures(geojson.value, { featureProjection: 'EPSG:3857' }),
-    );
-  });
 
   /** @type {VectorSource<import('ol/Feature.js').default<import('ol/geom/Polygon.js').default|import('ol/geom/MultiPolygon.js').default>>} */
   const geolocationSource = new VectorSource();
+
+  watch(
+    geojson,
+    () => {
+      if (updatingGeolocation) {
+        return;
+      }
+      geolocationSource.clear();
+      geolocationSource.addFeatures(
+        geojsonFormat.readFeatures(geojson.value, { featureProjection: 'EPSG:3857' }),
+      );
+    },
+    { immediate: true },
+  );
 
   /**
    * @param {import('ol/source/Vector.js').VectorSourceEvent} e
@@ -221,8 +224,5 @@ export function createGeolocationLayer(geojson) {
   geolocationSource.on('changefeature', calculateArea);
   geolocationSource.on('change', updateGeolocation);
 
-  const geolocationLayer = new VectorLayer({
-    source: geolocationSource,
-  });
-  return geolocationLayer;
+  return geolocationSource;
 }
