@@ -1,7 +1,7 @@
 <script setup>
 import {
   mdiEarthArrowDown,
-  //mdiEarthArrowUp,
+  mdiEarthArrowUp,
   mdiVectorSquareEdit,
   mdiVectorSquarePlus,
   mdiVectorSquareRemove,
@@ -33,6 +33,10 @@ const props = defineProps({
 });
 
 const mapMode = ref(0);
+const fileUpload = ref(false);
+const file = ref(null);
+/** @type {Ref<import('vuetify/components').VForm|undefined>} */
+const fileForm = ref();
 
 /**
  * @param {import('ol/MapBrowserEvent.js').default<*>} event
@@ -113,9 +117,95 @@ function saveGeoJSON() {
   link.click();
   link.remove();
 }
+
+/**
+ * @param {Promise<any>} event Submit event
+ */
+async function loadGeoJSON(event) {
+  const result = await event;
+  if (!result.valid) {
+    return;
+  }
+  const fileReader = new FileReader();
+  fileReader.onload = (event) => {
+    const geojson = event.target?.result;
+    try {
+      const features = new GeoJSON().readFeatures(geojson, {
+        featureProjection: props.map.getView().getProjection(),
+      });
+      props.geolocationSource.addFeatures(features);
+      props.map.getView().fit(props.geolocationSource.getExtent(), {
+        size: props.map.getSize(),
+        maxZoom: 15,
+        padding: [20, 20, 20, 20],
+        duration: 500,
+      });
+      file.value = null;
+      fileUpload.value = false;
+    } catch (error) {
+      console.error('Error loading GeoJSON:', error);
+      file.value = null;
+      fileUpload.value = false;
+    }
+  };
+  if (!file.value) {
+    fileUpload.value = false;
+    return;
+  }
+  fileReader.readAsText(file.value);
+}
+
+/**
+ * @param {File} file
+ * @returns {Promise<string|boolean>}
+ */
+function checkFile(file) {
+  return new Promise((resolve) => {
+    if (!file) {
+      return resolve('Datei ist erforderlich');
+    }
+    const fileReader = new FileReader();
+    fileReader.onload = (event) => {
+      const result = event.target?.result;
+      if (!result || typeof result !== 'string') {
+        return resolve('Ungültige Datei');
+      }
+      try {
+        JSON.parse(result);
+        return resolve(true);
+      } catch {
+        return resolve('Ungültige GeoJSON Datei');
+      }
+    };
+    fileReader.readAsText(file);
+  });
+}
 </script>
 
 <template>
+  <v-dialog v-model="fileUpload" max-width="400">
+    <v-form ref="fileForm" @submit.prevent="loadGeoJSON" @reset="file = null">
+      <v-card>
+        <v-card-title>GeoJSON laden</v-card-title>
+        <v-card-text>
+          <v-file-input
+            v-model="file"
+            :show-size="true"
+            accept=".json,.geojson,application/json,application/geo.json"
+            :multiple="false"
+            density="compact"
+            variant="outlined"
+            label="GeoJSON Datei (WGS84)"
+            :rules="[checkFile]"
+          />
+        </v-card-text>
+        <v-card-actions>
+          <v-btn type="submit">Laden</v-btn>
+          <v-btn type="reset" @click="fileUpload = false">Abbrechen</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-form>
+  </v-dialog>
   <v-btn-toggle v-model="mapMode">
     <v-tooltip open-on-click>
       <template #activator="{ props: on }">
@@ -136,12 +226,12 @@ function saveGeoJSON() {
       Ort entfernen
     </v-tooltip>
   </v-btn-toggle>
-  <!--v-tooltip open-on-click>
+  <v-tooltip open-on-click>
     <template #activator="{ props: on }">
-      <v-btn :icon="mdiEarthArrowUp" v-bind="on" />
+      <v-btn :icon="mdiEarthArrowUp" v-bind="on" @click="fileUpload = true" />
     </template>
     GeoJSON laden
-  </v-tooltip-->
+  </v-tooltip>
   <v-tooltip open-on-click>
     <template #activator="{ props: on }">
       <v-btn :icon="mdiEarthArrowDown" v-bind="on" @click="saveGeoJSON" />
