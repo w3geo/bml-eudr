@@ -18,16 +18,19 @@ const { data: userData } = await useFetch('/api/users/me');
 statementCount.value = statements.value?.length || 0;
 
 const autoRefreshStatements = statements.value?.filter((s) => !s.referenceNumber);
-if (autoRefreshStatements && autoRefreshStatements.length > 0) {
-  const interval = setInterval(async () => {
-    for (const s of autoRefreshStatements) {
-      await toggleFullStatement(s.ddsId);
-    }
-    if (statements.value?.every((s) => s.referenceNumber)) {
-      clearInterval(interval);
-    }
-  }, 30000);
-}
+
+onNuxtReady(() => {
+  if (autoRefreshStatements && autoRefreshStatements.length > 0) {
+    const interval = setInterval(async () => {
+      for (const s of autoRefreshStatements) {
+        await toggleFullStatement(s.ddsId);
+      }
+      if (statements.value?.every((s) => s.referenceNumber)) {
+        clearInterval(interval);
+      }
+    }, 30000);
+  }
+});
 
 /**
  * @param {string} ddsId
