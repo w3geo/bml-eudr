@@ -32,7 +32,6 @@ export default defineNuxtConfig({
     preference: 'system',
     fallback: 'dark',
   },
-  ignore: ['tasks/**/*'],
   nitro: {
     experimental: {
       tasks: true,
