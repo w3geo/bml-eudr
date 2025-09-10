@@ -26,7 +26,7 @@
     "db0": "^0.3.2",
     "drizzle-orm": "^0.44.4",
     "nodemailer": "^6.10.1",
-    "nuxt": "^4.0.2",
+    "nuxt": "^4.1.1",
     "nuxt-auth-utils": "^0.5.22",
     "nuxt-nodemailer": "^1.1.2",
     "ol": "^10.6.1",
