@@ -21,19 +21,15 @@ export default defineOAuthIdAustriaEventHandler({
       .insert(users)
       .values({
         id: user.login,
-        name,
-        address,
-        email: null,
         emailVerified: false,
-        identifierType: null,
-        identifierValue: null,
         loginProvider: 'IDA',
       })
+      //TODO remove - this only deletes legacy data
       .onConflictDoUpdate({
         target: users.id,
         set: {
-          name,
-          address,
+          name: null,
+          address: null,
         },
       });
 
@@ -41,6 +37,7 @@ export default defineOAuthIdAustriaEventHandler({
       user: {
         login: user.login,
       },
+      secure: { name, address },
       loggedInAt: Date.now(),
     });
 

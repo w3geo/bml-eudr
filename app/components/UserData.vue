@@ -15,7 +15,7 @@ async function validate() {
 }
 
 async function save() {
-  await saveUserData(userData);
+  await saveUserData(editableUserData);
   snackbar.value = true;
 }
 
@@ -25,6 +25,10 @@ defineExpose({
 });
 
 const { data: userData } = await useFetch('/api/users/me');
+const editableUserData = ref(userData.value);
+const loginProvidedFields = userData.value
+  ? LOGIN_PROVIDED_FIELDS[userData.value.loginProvider]
+  : [];
 
 const { mdAndUp, xs } = useDisplay();
 
@@ -44,47 +48,47 @@ const idItems = [
 ];
 </script>
 <template>
-  <v-form v-if="userData" ref="form" validate-on="submit lazy" @submit.prevent="save">
+  <v-form v-if="editableUserData" ref="form" validate-on="submit lazy" @submit.prevent="save">
     <v-row>
       <v-col :cols="mdAndUp ? 4 : 12">
         <v-text-field
-          v-model="userData.name"
+          v-model="editableUserData.name"
           density="compact"
           hide-details="auto"
           variant="outlined"
           label="Name"
-          :readonly="userData.loginProvider !== 'OTP'"
-          :disabled="userData.loginProvider !== 'OTP'"
+          :readonly="loginProvidedFields.includes('name')"
+          :disabled="loginProvidedFields.includes('name')"
           :rules="[(v) => !!v || 'Name ist erforderlich']"
         ></v-text-field>
       </v-col>
       <v-col :cols="mdAndUp ? 8 : 12">
         <v-text-field
-          v-model="userData.address"
+          v-model="editableUserData.address"
           density="compact"
           hide-details="auto"
           variant="outlined"
           label="Adresse"
-          :readonly="userData.loginProvider !== 'OTP'"
-          :disabled="userData.loginProvider !== 'OTP'"
+          :readonly="loginProvidedFields.includes('address')"
+          :disabled="loginProvidedFields.includes('address')"
           :rules="[(v) => !!v || 'Adresse ist erforderlich']"
         ></v-text-field>
       </v-col>
       <v-col :cols="mdAndUp ? 6 : 12">
         <v-text-field
-          v-model="userData.email"
+          v-model="editableUserData.email"
           density="compact"
           hide-details="auto"
           variant="outlined"
           label="e-mail (optional)"
-          :readonly="userData.loginProvider === 'OTP'"
-          :disabled="userData.loginProvider === 'OTP'"
+          :readonly="loginProvidedFields.includes('email')"
+          :disabled="loginProvidedFields.includes('email')"
           :rules="[(v) => !v || /.+@.+\..+/.test(v) || 'E-mail muss gültig sein']"
         ></v-text-field>
       </v-col>
       <v-col :cols="mdAndUp ? 3 : xs ? 12 : 6">
         <v-select
-          v-model="userData.identifierType"
+          v-model="editableUserData.identifierType"
           density="compact"
           hide-details="auto"
           variant="outlined"
@@ -92,20 +96,20 @@ const idItems = [
           :items="idItems"
           item-value="value"
           item-text="title"
-          :readonly="userData.loginProvider === 'AMA'"
-          :disabled="userData.loginProvider === 'AMA'"
+          :readonly="loginProvidedFields.includes('identifierType')"
+          :disabled="loginProvidedFields.includes('identifierType')"
           :rules="[(v) => !!v || 'Identifikationstyp ist erforderlich']"
         ></v-select>
       </v-col>
       <v-col :cols="mdAndUp ? 3 : xs ? 12 : 6">
         <v-text-field
-          v-model="userData.identifierValue"
+          v-model="editableUserData.identifierValue"
           density="compact"
           hide-details="auto"
           variant="outlined"
           label="Identifikationsnummer"
-          :readonly="userData.loginProvider === 'AMA'"
-          :disabled="userData.loginProvider === 'AMA'"
+          :readonly="loginProvidedFields.includes('identifierValue')"
+          :disabled="loginProvidedFields.includes('identifierValue')"
           :rules="[(v) => !!v || 'Identifikationsnummer ist erforderlich']"
         ></v-text-field>
       </v-col>

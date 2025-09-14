@@ -40,17 +40,12 @@ const { user: onBehalfOfUser, reset: resetOnBehalfOf } = useOnBehalfOf(
 
 const { data: user, refresh: refetchUserData } = await useFetch('/api/users/me');
 const incomplete = computed(() => {
-  if (user.value?.loginProvider === 'OTP') {
-    return !(
-      user.value?.name &&
-      user.value?.address &&
-      user.value?.identifierType &&
-      user.value?.identifierValue
-    );
-  } else if (user.value?.loginProvider === 'IDA') {
-    return !(user.value?.identifierType && user.value?.identifierValue);
-  }
-  return false;
+  return !(
+    user.value?.name &&
+    user.value?.address &&
+    user.value?.identifierType &&
+    user.value?.identifierValue
+  );
 });
 
 const statementTokenUrl =

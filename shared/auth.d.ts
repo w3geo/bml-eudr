@@ -7,9 +7,12 @@ declare module '#auth-utils' {
     loggedInAt: number;
   }
 
-  // interface SecureSessionData {
-  //   // Add your own fields
-  // }
+  interface SecureSessionData {
+    name: string;
+    email: string;
+    address: string;
+    identifierValue: string;
+  }
 }
 
 export {};

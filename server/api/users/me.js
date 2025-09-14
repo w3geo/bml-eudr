@@ -1,4 +1,5 @@
 import { and, eq } from 'drizzle-orm';
+import { LOGIN_PROVIDED_FIELDS } from '~/utils/constants';
 import users from '~~/server/db/schema/users';
 
 export default defineEventHandler(async (event) => {
@@ -30,14 +31,22 @@ export default defineEventHandler(async (event) => {
       if (!onBehalfOfUser) {
         throw createError({ status: 404, statusMessage: 'Not found' });
       }
-      return { ...user, onBehalfOf: onBehalfOfUser };
+      return { ...user, ...session.secure, onBehalfOf: onBehalfOfUser };
     }
-    return user;
+    return { ...user, ...session.secure };
   }
 
   if (event.method === 'PUT' && event.headers.get('content-type') === 'application/json') {
+    /** @type {import('~~/server/db/schema/users.js').User} */
     const properties = await readBody(event);
-    delete properties.id;
-    await db.update(users).set(properties).where(eq(users.id, userId));
+    const loginProvidedFields = LOGIN_PROVIDED_FIELDS[user.loginProvider];
+    for (const property of loginProvidedFields) {
+      // clear properties provided by login
+      delete properties[property];
+    }
+    await db
+      .update(users)
+      .set({ ...user, ...properties })
+      .where(eq(users.id, userId));
   }
 });

@@ -59,6 +59,15 @@ export const EMPTY_GEOJSON = Object.freeze({
 
 export const COMMODITY_KEYS = /** @type {Array<Commodity>} */ (Object.keys(COMMODITIES));
 
+/** @typedef {'OTP' | 'IDA' | 'AMA'} LoginProvider */
+
+/** @type {Record<LoginProvider, Array<keyof import('~~/server/db/schema/users.js').User>>} */
+export const LOGIN_PROVIDED_FIELDS = {
+  OTP: ['email'],
+  IDA: ['name', 'address'],
+  AMA: ['name', 'address', 'identifierType', 'identifierValue'],
+};
+
 const VALID_EMAIL_REGEX =
   /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 

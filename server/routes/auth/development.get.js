@@ -8,25 +8,22 @@ export default defineEventHandler(async (event) => {
       .insert(users)
       .values({
         id: 'Developer',
-        name,
-        address,
-        email: null,
         emailVerified: false,
-        identifierType: null,
-        identifierValue: null,
         loginProvider: 'IDA',
       })
+      //TODO remove - this only deletes legacy data
       .onConflictDoUpdate({
         target: users.id,
         set: {
-          name,
-          address,
+          name: null,
+          address: null,
         },
       });
     await setUserSession(event, {
       user: {
         login: 'Developer',
       },
+      secure: { name, address },
       loggedInAt: Date.now(),
     });
     return sendRedirect(event, '/account');

@@ -64,20 +64,17 @@ export default defineEventHandler(async (event) => {
       .insert(users)
       .values({
         id: user.betriebsnummern,
-        name: user.bewname,
-        address: user.bewadr,
-        email: null,
         emailVerified: false,
         identifierType: 'GLN',
-        identifierValue: user.GLN,
         loginProvider: 'AMA',
       })
+      //TODO remove - this only deletes legacy data
       .onConflictDoUpdate({
         target: users.id,
         set: {
-          name: user.bewname,
-          address: user.bewadr,
-          identifierValue: user.GLN,
+          name: null,
+          address: null,
+          identifierValue: null,
         },
       });
     await setUserSession(event, {
@@ -85,6 +82,11 @@ export default defineEventHandler(async (event) => {
         login: user.betriebsnummern,
       },
       loggedInAt: Date.now(),
+      secure: {
+        name: user.bewname,
+        address: user.bewadr,
+        identifierValue: user.GLN,
+      },
     });
 
     deleteCookie(event, 'login-retry');
