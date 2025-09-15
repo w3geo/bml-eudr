@@ -158,7 +158,7 @@ async function submit() {
   }
   try {
     start();
-    await useFetch('/api/statements', {
+    await $fetch('/api/statements', {
       method: 'POST',
       body: JSON.stringify({
         onBehalfOf: onBehalfOfUser?.value ? onBehalfOfUser.value.id : undefined,
