@@ -19,7 +19,7 @@ const otp = ref();
 const emailSubmitted = ref(false);
 
 async function submitEmail() {
-  await useFetch('/api/auth/email', {
+  await $fetch('/api/auth/email', {
     method: 'POST',
     body: { email: email.value },
   });
