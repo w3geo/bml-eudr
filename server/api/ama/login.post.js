@@ -65,7 +65,6 @@ export default defineEventHandler(async (event) => {
       .values({
         id: user.betriebsnummern,
         emailVerified: false,
-        identifierType: 'GLN',
         loginProvider: 'AMA',
       })
       //TODO remove - this only deletes legacy data
@@ -74,6 +73,7 @@ export default defineEventHandler(async (event) => {
         set: {
           name: null,
           address: null,
+          identifierType: null,
           identifierValue: null,
         },
       });
@@ -85,6 +85,7 @@ export default defineEventHandler(async (event) => {
       secure: {
         name: user.bewname,
         address: user.bewadr,
+        identifierType: 'GLN',
         identifierValue: user.GLN,
       },
     });

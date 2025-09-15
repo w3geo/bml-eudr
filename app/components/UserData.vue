@@ -8,6 +8,8 @@ const props = defineProps({
 
 const snackbar = ref(false);
 const form = ref();
+/** @type {Ref<import('~~/server/db/schema/users').User|undefined>} */
+const editableUserData = ref();
 
 async function validate() {
   const { valid } = await form.value.validate();
@@ -25,7 +27,7 @@ defineExpose({
 });
 
 const { data: userData } = await useFetch('/api/users/me');
-const editableUserData = ref(userData.value);
+editableUserData.value = userData.value;
 const loginProvidedFields = userData.value
   ? LOGIN_PROVIDED_FIELDS[userData.value.loginProvider]
   : [];
