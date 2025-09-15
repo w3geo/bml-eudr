@@ -11,6 +11,7 @@ declare module '#auth-utils' {
     name: string;
     email: string;
     address: string;
+    identifierType: 'GLN' | 'TIN' | 'VAT';
     identifierValue: string;
   }
 }
