@@ -27,7 +27,7 @@ function createSnapshot(snapshot, quantity, geojson, speciesList, modifiedSinceS
   snapshot.value = {
     quantity: structuredClone(toRaw(quantity.value)),
     geojson: structuredClone(geojson.value),
-    speciesList: structuredClone(speciesList.value),
+    speciesList: speciesList.value ? structuredClone(toRaw(speciesList.value)) : null,
   };
   modifiedSinceSnapshot.value = false;
 }
