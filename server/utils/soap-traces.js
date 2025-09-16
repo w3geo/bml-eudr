@@ -19,6 +19,7 @@ import { Agent } from 'undici';
  * @typedef {Object} StatementPayload
  * @property {Array<import('~~/server/utils/soap-traces').CommodityDataWithKey>} commodities
  * @property {boolean} geolocationVisible
+ * @property {Array<[string, string]>} [treeSpeciesNames] Array of [scientificName, commonName] for tree species
  */
 
 /** @typedef {StatementInfo & StatementPayload} StatementData */
@@ -36,29 +37,6 @@ const errorNS = 'http://ec.europa.eu/sanco/tracesnt/error/v01';
 const submissionNS = 'http://ec.europa.eu/tracesnt/certificate/eudr/submission/v1';
 const retrievalNS = 'http://ec.europa.eu/tracesnt/certificate/eudr/retrieval/v1';
 const commodityNS = 'http://ec.europa.eu/tracesnt/certificate/eudr/model/v1';
-
-const treeSpeciesNames = [
-  ['Picea abies', 'Gemeine Fichte'],
-  ['Pinus sylvestris', 'Waldkiefer'],
-  ['Larix decidua', 'Europäische Lärche'],
-  ['Fagus sylvatica', 'Rotbuche'],
-  ['Quercus robur', 'Stieleiche'],
-  ['Quercus petraea', 'Traubeneiche'],
-  ['Acer pseudoplatanus', 'Bergahorn'],
-  ['Fraxinus excelsior', 'Gemeine Esche'],
-  ['Abies alba', 'Weißtanne'],
-  ['Betula pendula', 'Hänge-Birke'],
-  ['Alnus glutinosa', 'Schwarzerle'],
-  ['Carpinus betulus', 'Hainbuche'],
-  ['Populus tremula', 'Zitterpappel'],
-  ['Tilia cordata', 'Winterlinde'],
-  ['Ulmus glabra', 'Bergulme'],
-  ['Pseudotsuga menziesii', 'Douglasie'],
-  ['Castanea sativa', 'Esskastanie'],
-  ['Acer campestre', 'Feldahorn'],
-  ['Prunus avium', 'Vogelkirsche'],
-  ['Salix alba', 'Silber-Weide'],
-];
 
 /** Generate Nonce
  * @returns {string}
@@ -130,8 +108,9 @@ function getHeader() {
 
 /**
  * @param {Array<CommodityDataWithKey>} commodities
+ * @param {Array<[string, string]>} [treeSpeciesNames] Array of [scientificName, commonName] for tree species
  */
-function getCommoditiesXML(commodities) {
+function getCommoditiesXML(commodities, treeSpeciesNames) {
   const commodityXMLs = [];
   for (const commodity of commodities) {
     if (commodity.geojson.features.length === 0) {
@@ -155,7 +134,7 @@ function getCommoditiesXML(commodities) {
         COMMODITIES[/** @type {import('~/utils/constants.js').Commodity} */ (key)].units;
 
       const speciesInfo =
-        key === 'holz'
+        key === 'holz' && treeSpeciesNames
           ? treeSpeciesNames
               .map(
                 ([scientificName, commonName]) => `
@@ -216,10 +195,11 @@ function getCommoditiesXML(commodities) {
  * @param {Array<CommodityDataWithKey>} commodities
  * @param {boolean} geolocationVisible
  * @param {import('~~/server/db/schema/users').User} user
+ * @param {Array<[string, string]>} [treeSpeciesNames]
  * @returns {string}
  */
-function getSubmitXML(commodities, geolocationVisible, user) {
-  const commoditiesXML = getCommoditiesXML(commodities);
+function getSubmitXML(commodities, geolocationVisible, user, treeSpeciesNames) {
+  const commoditiesXML = getCommoditiesXML(commodities, treeSpeciesNames);
 
   return `<?xml version="1.0" encoding="UTF-8"?>
     <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
@@ -279,13 +259,14 @@ function getRetrieveXML(identifiers) {
  * @param {Array<CommodityDataWithKey>} commodities
  * @param {boolean} geolocationVisible
  * @param {import('~~/server/db/schema/users').User} user
+ * @param {Array<[string, string]>} [treeSpeciesNames]
  * @returns {Promise<{ ddsId: string | undefined, error: string | undefined }>}
  */
-export async function submitDDS(commodities, geolocationVisible, user) {
+export async function submitDDS(commodities, geolocationVisible, user, treeSpeciesNames) {
   if (!user) {
     throw new Error('User is required for DDS submission');
   }
-  const body = getSubmitXML(commodities, geolocationVisible, user);
+  const body = getSubmitXML(commodities, geolocationVisible, user, treeSpeciesNames);
   const submitResponse = await fetch(
     'https://acceptance.eudr.webcloud.ec.europa.eu/tracesnt/ws/EUDRSubmissionServiceV1',
     {

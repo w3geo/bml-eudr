@@ -31,7 +31,6 @@ const { mdAndUp, xs } = useDisplay();
 const { start, finish, clear } = useLoadingIndicator();
 /** @type {import('vue').Ref<import('~/components/UserData.vue').default|null>} */
 const userDataComplete = ref(null);
-const amaOnlyDialog = ref(false);
 
 const { user: onBehalfOfUser, reset: resetOnBehalfOf } = useOnBehalfOf(
   query.onBehalfOf,
@@ -65,13 +64,16 @@ const editCommodity = ref(null);
 /** @type {import('vue').Ref<boolean>} */
 const savedOnBehalfOf = ref(false);
 
+/** @type {import('vue').Ref<Array<[string, string]>|undefined>} */
+const treeSpeciesNames = ref();
+
 /** @type {import('vue').Ref<string|null>} */
-const submitError = ref(null);
-const displaySubmitError = computed({
-  get: () => !!submitError.value,
+const errorMessage = ref(null);
+const displayErrorMessage = computed({
+  get: () => !!errorMessage.value,
   set: (value) => {
     if (!value) {
-      submitError.value = null;
+      errorMessage.value = null;
     }
   },
 });
@@ -85,7 +87,7 @@ const map = computed({
   },
 });
 
-/** @type {import('vue').Ref<boolean>} */
+const treeSpecies = ref(false);
 const confirm = ref(false);
 
 /** @type {import('vue').ComputedRef<Array<CommodityDataWithKey>>} */
@@ -111,7 +113,8 @@ const canSend = computed(() =>
  */
 function openEditor(commodity) {
   if (commodity === 'rind' && user.value?.loginProvider !== 'AMA') {
-    amaOnlyDialog.value = true;
+    errorMessage.value =
+      'RinderNET Verknüpfung erforderlich - Die Erfassung von Rindern ist nur mit einem eAMA Login möglich. Bitte melden Sie sich mit Ihrem eAMA Account an, um Rinder zu erfassen.';
     return;
   }
   editCommodity.value = commodity;
@@ -168,6 +171,7 @@ async function submit() {
           quantity: useStatement(key).quantity.value,
           geojson: useStatement(key).geojson.value,
         })).filter((commodity) => commodity.geojson.features.length),
+        treeSpeciesNames: treeSpeciesNames.value,
         geolocationVisible: geolocationVisible.value,
       }),
     });
@@ -189,14 +193,63 @@ async function submit() {
     }
   } catch (error) {
     if (error instanceof FetchError) {
-      submitError.value = error.data.message;
+      errorMessage.value = error.data.message;
     } else if (error instanceof Error) {
-      submitError.value = error.message;
+      errorMessage.value = error.message;
     }
   } finally {
     finish();
     clear();
   }
+}
+
+function validate() {
+  if (!editCommodity.value) {
+    return true;
+  }
+  const errors = [];
+  const { quantity, geojson } = useStatement(editCommodity.value);
+
+  /** @type {keyof import('~/composables/useStatement').Quantity} */
+  let q;
+  let sum = 0;
+  for (q in quantity.value) {
+    sum += quantity.value?.[q] || 0;
+  }
+  if (sum === 0) {
+    errors.push('Zumindest für ein(en) Rohstoff/Erzeugnis muss eine Menge angegeben werden.');
+  }
+  if (geojson.value.features.length === 0 && sum > 0) {
+    errors.push('Es muss mindestens ein Erzeugungsort angegeben werden.');
+  }
+
+  if (errors.length) {
+    errorMessage.value = errors.join(' ');
+    return;
+  }
+  if (editCommodity.value === 'holz') {
+    treeSpecies.value = true;
+    const unwatch = watch(treeSpecies, (value) => {
+      if (!treeSpeciesNames.value?.length) {
+        errorMessage.value = 'Bitte geben Sie mindestens eine Baumart an.';
+        treeSpecies.value = true;
+        return;
+      }
+      if (value === false) {
+        unwatch();
+        map.value = false;
+      }
+    });
+    return;
+  }
+  map.value = false;
+}
+
+/**
+ * @param {Array<[string, string]>} treeSpecies
+ */
+function saveTreeSpecies(treeSpecies) {
+  treeSpeciesNames.value = treeSpecies;
 }
 </script>
 
@@ -211,23 +264,6 @@ async function submit() {
     </v-card>
   </v-dialog>
 
-  <v-dialog v-model="map" fullscreen>
-    <v-card v-if="editCommodity">
-      <v-toolbar>
-        <v-btn :icon="mdiClose" @click="exitPlaces(editCommodity)"></v-btn>
-
-        <v-app-bar-title>{{ COMMODITIES[editCommodity].title }}</v-app-bar-title>
-
-        <v-btn :icon="mdiCheck" @click="map = false"></v-btn>
-      </v-toolbar>
-      <places-form :commodity="editCommodity" @submit="map = false" />
-      <places-map
-        :commodity="editCommodity"
-        :address="(onBehalfOfUser ? onBehalfOfUser.address : user?.address) || undefined"
-      />
-    </v-card>
-  </v-dialog>
-
   <v-dialog v-model="savedOnBehalfOf" max-width="400">
     <v-card>
       <v-card-text>
@@ -235,23 +271,29 @@ async function submit() {
         wieder Sorgfaltserklärungen für sich selbst erstellen.
       </v-card-text>
       <v-card-actions>
-        <v-btn @click="savedOnBehalfOf = false"> Verstanden </v-btn>
+        <v-btn @click="savedOnBehalfOf = false"> Ok </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
 
-  <v-dialog v-model="amaOnlyDialog" max-width="400">
-    <v-card>
-      <v-card-title class="ml-2 mr-2 mt-2">RinderNET Verknüpfung erforderlich</v-card-title>
-      <v-card-text>
-        Die Erfassung von Rindern ist nur mit einem eAMA Login möglich. Bitte melden Sie sich mit
-        Ihrem eAMA Account an, um Rinder zu erfassen.
-      </v-card-text>
-      <v-card-actions>
-        <v-btn color="primary" @click="amaOnlyDialog = false"> Verstanden </v-btn>
-      </v-card-actions>
+  <v-dialog v-model="map" fullscreen>
+    <v-card v-if="editCommodity">
+      <v-toolbar>
+        <v-btn :icon="mdiClose" @click="exitPlaces(editCommodity)"></v-btn>
+
+        <v-app-bar-title>{{ COMMODITIES[editCommodity].title }}</v-app-bar-title>
+
+        <v-btn :icon="mdiCheck" :commodity="editCommodity" @click="validate"></v-btn>
+      </v-toolbar>
+      <places-form :commodity="editCommodity" />
+      <places-map
+        :commodity="editCommodity"
+        :address="(onBehalfOfUser ? onBehalfOfUser.address : user?.address) || undefined"
+      />
     </v-card>
   </v-dialog>
+
+  <tree-species-dialog v-model="treeSpecies" @save="saveTreeSpecies" />
 
   <v-container>
     <v-row>
@@ -362,8 +404,8 @@ async function submit() {
         </v-col>
       </template>
     </v-row>
-    <v-snackbar v-model="displaySubmitError" timeout="6000">
-      {{ submitError }}
+    <v-snackbar v-model="displayErrorMessage" timeout="6000">
+      {{ errorMessage }}
     </v-snackbar>
   </v-container>
 </template>
