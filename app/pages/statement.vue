@@ -64,9 +64,6 @@ const editCommodity = ref(null);
 /** @type {import('vue').Ref<boolean>} */
 const savedOnBehalfOf = ref(false);
 
-/** @type {import('vue').Ref<Array<[string, string]>|undefined>} */
-const treeSpeciesNames = ref();
-
 /** @type {import('vue').Ref<string|null>} */
 const errorMessage = ref(null);
 const displayErrorMessage = computed({
@@ -87,7 +84,7 @@ const map = computed({
   },
 });
 
-const treeSpecies = ref(false);
+const treeSpeciesDialogOpen = ref(false);
 const confirm = ref(false);
 
 /** @type {import('vue').ComputedRef<Array<CommodityDataWithKey>>} */
@@ -170,8 +167,8 @@ async function submit() {
           key,
           quantity: useStatement(key).quantity.value,
           geojson: useStatement(key).geojson.value,
+          speciesList: useStatement(key).speciesList.value,
         })).filter((commodity) => commodity.geojson.features.length),
-        treeSpeciesNames: treeSpeciesNames.value,
         geolocationVisible: geolocationVisible.value,
       }),
     });
@@ -228,28 +225,28 @@ function validate() {
     return;
   }
   if (editCommodity.value === 'holz') {
-    treeSpecies.value = true;
-    const unwatch = watch(treeSpecies, (value) => {
-      if (!treeSpeciesNames.value?.length) {
-        errorMessage.value = 'Bitte geben Sie mindestens eine Baumart an.';
-        treeSpecies.value = true;
-        return;
-      }
-      if (value === false) {
-        unwatch();
-        map.value = false;
-      }
-    });
+    treeSpeciesDialogOpen.value = true;
     return;
   }
   map.value = false;
 }
 
-/**
- * @param {Array<[string, string]>} treeSpecies
- */
-function saveTreeSpecies(treeSpecies) {
-  treeSpeciesNames.value = treeSpecies;
+function saveSpecies() {
+  if (!editCommodity.value) {
+    return;
+  }
+  const { speciesList } = useStatement(editCommodity.value);
+  if (!speciesList.value?.length) {
+    errorMessage.value = 'Bitte geben Sie mindestens eine Baumart an.';
+    return;
+  }
+  treeSpeciesDialogOpen.value = false;
+  map.value = false;
+}
+
+function cancelSpecies() {
+  treeSpeciesDialogOpen.value = false;
+  map.value = true;
 }
 </script>
 
@@ -293,7 +290,11 @@ function saveTreeSpecies(treeSpecies) {
     </v-card>
   </v-dialog>
 
-  <tree-species-dialog v-model="treeSpecies" @save="saveTreeSpecies" />
+  <tree-species-dialog
+    v-model="treeSpeciesDialogOpen"
+    @save="saveSpecies"
+    @cancel="cancelSpecies"
+  />
 
   <v-container>
     <v-row>

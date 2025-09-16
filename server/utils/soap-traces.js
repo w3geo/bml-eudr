@@ -19,7 +19,6 @@ import { Agent } from 'undici';
  * @typedef {Object} StatementPayload
  * @property {Array<import('~~/server/utils/soap-traces').CommodityDataWithKey>} commodities
  * @property {boolean} geolocationVisible
- * @property {Array<[string, string]>} [treeSpeciesNames] Array of [scientificName, commonName] for tree species
  */
 
 /** @typedef {StatementInfo & StatementPayload} StatementData */
@@ -28,6 +27,7 @@ import { Agent } from 'undici';
  * @typedef {Object} CommodityData
  * @property {import('~/composables/useStatement').Quantity} quantity
  * @property {import('geojson').FeatureCollection} geojson
+ * @property {Array<[string, string]>} [speciesList]
  */
 
 /**
@@ -108,9 +108,8 @@ function getHeader() {
 
 /**
  * @param {Array<CommodityDataWithKey>} commodities
- * @param {Array<[string, string]>} [treeSpeciesNames] Array of [scientificName, commonName] for tree species
  */
-function getCommoditiesXML(commodities, treeSpeciesNames) {
+function getCommoditiesXML(commodities) {
   const commodityXMLs = [];
   for (const commodity of commodities) {
     if (commodity.geojson.features.length === 0) {
@@ -123,6 +122,7 @@ function getCommoditiesXML(commodities, treeSpeciesNames) {
     if (commodity.geojson.features.length === 0) {
       continue;
     }
+    const speciesList = commodity.speciesList;
     for (const hsCode of hsCodes) {
       const quantity = /** @type {number} */ (commodity.quantity[hsCode]);
       if (!quantity) {
@@ -133,18 +133,17 @@ function getCommoditiesXML(commodities, treeSpeciesNames) {
       const quantityUnits =
         COMMODITIES[/** @type {import('~/utils/constants.js').Commodity} */ (key)].units;
 
-      const speciesInfo =
-        key === 'holz' && treeSpeciesNames
-          ? treeSpeciesNames
-              .map(
-                ([scientificName, commonName]) => `
+      const speciesInfo = speciesList
+        ? speciesList
+            .map(
+              ([scientificName, commonName]) => `
                 <v11:speciesInfo>
                   <v11:scientificName>${scientificName}</v11:scientificName>
                   <v11:commonName>${commonName}</v11:commonName>
                 </v11:speciesInfo>`,
-              )
-              .join('\n')
-          : '';
+            )
+            .join('\n')
+        : '';
       /** @type {string} */
       let quantityInfo;
       switch (quantityUnits) {
@@ -195,11 +194,10 @@ function getCommoditiesXML(commodities, treeSpeciesNames) {
  * @param {Array<CommodityDataWithKey>} commodities
  * @param {boolean} geolocationVisible
  * @param {import('~~/server/db/schema/users').User} user
- * @param {Array<[string, string]>} [treeSpeciesNames]
  * @returns {string}
  */
-function getSubmitXML(commodities, geolocationVisible, user, treeSpeciesNames) {
-  const commoditiesXML = getCommoditiesXML(commodities, treeSpeciesNames);
+function getSubmitXML(commodities, geolocationVisible, user) {
+  const commoditiesXML = getCommoditiesXML(commodities);
 
   return `<?xml version="1.0" encoding="UTF-8"?>
     <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
@@ -259,14 +257,13 @@ function getRetrieveXML(identifiers) {
  * @param {Array<CommodityDataWithKey>} commodities
  * @param {boolean} geolocationVisible
  * @param {import('~~/server/db/schema/users').User} user
- * @param {Array<[string, string]>} [treeSpeciesNames]
  * @returns {Promise<{ ddsId: string | undefined, error: string | undefined }>}
  */
-export async function submitDDS(commodities, geolocationVisible, user, treeSpeciesNames) {
+export async function submitDDS(commodities, geolocationVisible, user) {
   if (!user) {
     throw new Error('User is required for DDS submission');
   }
-  const body = getSubmitXML(commodities, geolocationVisible, user, treeSpeciesNames);
+  const body = getSubmitXML(commodities, geolocationVisible, user);
   const submitResponse = await fetch(
     'https://acceptance.eudr.webcloud.ec.europa.eu/tracesnt/ws/EUDRSubmissionServiceV1',
     {
