@@ -26,7 +26,7 @@ watch(showCode, (value) => {
 
 <template>
   <v-btn :color="props.color" :prepend-icon="mdiQrcode" @click="showCode = true"> QR-Code </v-btn>
-  <v-dialog v-model="showCode" max-width="300px">
+  <v-dialog v-model="showCode" max-width="300">
     <v-card>
       <v-card-title class="headline"> QR-Code </v-card-title>
       <v-card-text>

@@ -1,6 +1,4 @@
 <script setup>
-const emit = defineEmits(['submit']);
-
 const props = defineProps({
   commodity: {
     type: /** @type {import('vue').PropType<import('~/utils/constants.js').Commodity>} */ (String),
@@ -31,7 +29,7 @@ watch(area, (value) => {
 
 <template>
   <v-container fluid>
-    <v-form @submit.prevent="emit('submit')">
+    <v-form>
       <v-row align="center">
         <v-col v-for="hs in commodityData.hsHeadings" :key="hs" :cols="mdAndUp ? 2 : xs ? 4 : 3">
           <v-text-field

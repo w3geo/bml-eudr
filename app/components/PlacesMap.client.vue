@@ -1,4 +1,5 @@
 <script setup>
+import { mdiCrosshairsGps, mdiMagnify } from '@mdi/js';
 import { PlaceSearch, usePlaceSearch } from '@w3geo/vue-place-search';
 import { View } from 'ol';
 import { getCenter } from 'ol/extent';
@@ -6,6 +7,8 @@ import VectorLayer from 'ol/layer/Vector.js';
 import Map from 'ol/Map';
 import 'ol/ol.css';
 import { fromLonLat } from 'ol/proj';
+
+const { xs } = useDisplay();
 
 const props = defineProps({
   commodity: {
@@ -26,6 +29,7 @@ const geolocationLayer = shallowRef(new VectorLayer());
 const commodityLayer = shallowRef(null);
 /** @type {Ref<import('~/utils/layers-sources.client.js').GetFeatureAtPixel|(() => void)>} */
 const getFeatureAtPixel = shallowRef(() => {});
+const showPlaceSearchMenu = ref(false);
 
 const mapContainer = ref();
 
@@ -102,23 +106,66 @@ onMounted(async () => {
     });
   }
 });
+
+function locateMe() {
+  mapContainer.value.classList.add('spinner');
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const center = fromLonLat([position.coords.longitude, position.coords.latitude]);
+      map.getView().animate({ center, zoom: 18, duration: 500 });
+      mapContainer.value.classList.remove('spinner');
+    },
+    () => {
+      // Error (e.g., permission denied)
+      mapContainer.value.classList.remove('spinner');
+    },
+    { enableHighAccuracy: true },
+  );
+}
 </script>
 
 <template>
   <v-layout class="d-flex fill-height">
     <v-app-bar color="settings.$toolbar-color" density="compact" flat class="pr-1">
-      <div>
-        <map-tools
-          :map="map"
-          :get-feature-at-pixel="getFeatureAtPixel"
-          :geolocation-source="geolocationLayer.getSource() || undefined"
-          :commodity="props.commodity"
-        />
-      </div>
+      <map-tools
+        :map="map"
+        :get-feature-at-pixel="getFeatureAtPixel"
+        :geolocation-source="geolocationLayer.getSource() || undefined"
+        :commodity="props.commodity"
+      />
       <v-spacer />
-      <div>
-        <place-search />
-      </div>
+      <v-tooltip open-on-click>
+        <template #activator="{ props: on }">
+          <v-btn flat :icon="mdiCrosshairsGps" v-bind="on" @click="locateMe" />
+        </template>
+        Auf meinen Standort zentrieren
+      </v-tooltip>
+      <place-search v-if="!xs" />
+      <v-menu
+        v-else
+        v-model="showPlaceSearchMenu"
+        :close-on-content-click="false"
+        :offset="[-48, -48]"
+      >
+        <template #activator="{ props: menu }">
+          <v-tooltip v-bind="menu">
+            <template #activator="{ props: on }">
+              <v-btn
+                flat
+                :icon="mdiMagnify"
+                v-bind="on"
+                @click="showPlaceSearchMenu = !showPlaceSearchMenu"
+              />
+            </template>
+            Ortssuche
+          </v-tooltip>
+        </template>
+        <v-list class="pa-0">
+          <v-list-item class="pa-0">
+            <place-search />
+          </v-list-item>
+        </v-list>
+      </v-menu>
     </v-app-bar>
     <v-main>
       <div ref="mapContainer" class="map" />

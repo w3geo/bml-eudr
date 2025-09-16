@@ -40,7 +40,6 @@ export const COMMODITIES = {
     title: 'Holz',
     icon: mdiForestOutline,
     units: 'm³',
-    factor: 7.2,
     hsHeadings: ['4403', '4401'],
   },
 };
