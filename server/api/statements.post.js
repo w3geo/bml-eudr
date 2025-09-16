@@ -39,12 +39,7 @@ export default defineEventHandler(async (event) => {
     0,
   );
 
-  const { ddsId, error } = await submitDDS(
-    commodities,
-    statement.geolocationVisible,
-    user,
-    statement.treeSpeciesNames,
-  );
+  const { ddsId, error } = await submitDDS(commodities, statement.geolocationVisible, user);
   if (error) {
     throw createError({ status: 500, statusMessage: 'Internal Server Error', message: error });
   }

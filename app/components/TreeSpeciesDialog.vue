@@ -89,9 +89,19 @@ const treeSpeciesList = [
 ];
 
 const opened = defineModel({ type: Boolean, required: true });
-const emit = defineEmits(['save']);
+const emit = defineEmits(['save', 'cancel']);
 
-const selectedTreeSpecies = ref([]);
+const selectedSpecies = ref([]);
+const { speciesList } = useStatement('holz');
+
+function save() {
+  speciesList.value = selectedSpecies.value;
+  emit('save');
+}
+
+function cancel() {
+  emit('cancel');
+}
 </script>
 
 <template>
@@ -100,8 +110,9 @@ const selectedTreeSpecies = ref([]);
       <v-card-title>Holz von welchen Baumarten?</v-card-title>
       <v-card-text>
         <v-combobox
-          v-model="selectedTreeSpecies"
+          v-model="selectedSpecies"
           autofocus
+          autocomplete="off"
           variant="outlined"
           density="compact"
           :items="treeSpeciesList"
@@ -115,17 +126,9 @@ const selectedTreeSpecies = ref([]);
         ></v-combobox>
       </v-card-text>
       <v-card-actions>
-        <v-btn color="secondary" text @click="opened = false"> Abbrechen </v-btn>
+        <v-btn color="secondary" text @click="cancel"> Abbrechen </v-btn>
         <v-spacer />
-        <v-btn
-          color="primary"
-          @click="
-            emit('save', selectedTreeSpecies);
-            opened = false;
-          "
-        >
-          Speichern
-        </v-btn>
+        <v-btn color="primary" @click="save"> Speichern </v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
