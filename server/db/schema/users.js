@@ -8,7 +8,7 @@ const users = pgTable('users', {
   emailVerified: boolean().default(false).notNull(),
   identifierType: varchar({ enum: ['GLN', 'TIN', 'VAT'], length: 3 }),
   identifierValue: varchar({ length: 15 }),
-  loginProvider: varchar({ enum: ['AMA', 'IDA', 'OTP'], length: 3 }).notNull(),
+  loginProvider: varchar({ enum: ['AMA', 'IDA', 'USP', 'OTP'], length: 3 }).notNull(),
   otp: numeric(),
   statementToken: varchar({ length: 20 }),
 });
