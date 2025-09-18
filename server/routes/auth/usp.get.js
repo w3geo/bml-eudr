@@ -22,7 +22,7 @@ export default defineOAuthUSPEventHandler({
       .values({
         id: user.login,
         emailVerified: false,
-        loginProvider: 'IDA',
+        loginProvider: 'USP',
       })
       //TODO remove - this only deletes legacy data
       .onConflictDoUpdate({
