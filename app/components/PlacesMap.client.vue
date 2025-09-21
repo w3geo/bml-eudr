@@ -127,8 +127,8 @@ function locateMe() {
 </script>
 
 <template>
-  <v-layout class="d-flex fill-height">
-    <v-app-bar color="settings.$toolbar-color" density="compact" flat class="pr-1">
+  <v-layout>
+    <v-app-bar density="compact" flat class="pr-1">
       <map-tools
         :map="map"
         :get-feature-at-pixel="getFeatureAtPixel"
@@ -170,16 +170,12 @@ function locateMe() {
       </v-menu>
     </v-app-bar>
     <v-main>
-      <div ref="mapContainer" class="map" />
+      <div ref="mapContainer" class="fill-height" />
     </v-main>
   </v-layout>
 </template>
 
 <style scoped>
-.map {
-  height: 100%;
-  width: 100%;
-}
 @keyframes spinner {
   to {
     transform: rotate(360deg);
