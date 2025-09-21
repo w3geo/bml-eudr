@@ -45,7 +45,7 @@ async function toggleFullStatement(ddsId) {
     return;
   }
 
-  if (statement.commodities) {
+  if (statement.referenceNumber && statement.commodities) {
     delete statement.commodities;
     statements.value = [...statements.value];
     return;
@@ -129,7 +129,7 @@ async function toggleFullStatement(ddsId) {
                       <v-icon
                         :icon="
                           COMMODITIES[
-                            /** @type {import('~/utils/constants').Commodity} */ (value.key)
+                            /** @type {import('~~/shared/utils/constants').Commodity} */ (value.key)
                           ]?.icon || mdiCardBulletedOutline
                         "
                       />

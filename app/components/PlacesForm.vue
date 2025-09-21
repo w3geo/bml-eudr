@@ -1,7 +1,9 @@
 <script setup>
 const props = defineProps({
   commodity: {
-    type: /** @type {import('vue').PropType<import('~/utils/constants.js').Commodity>} */ (String),
+    type: /** @type {import('vue').PropType<import('~~/shared/utils/constants.js').Commodity>} */ (
+      String
+    ),
     required: true,
   },
 });

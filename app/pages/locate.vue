@@ -4,14 +4,14 @@ definePageMeta({
   sort: 40,
 });
 
-/** @type {Array<{ title: string; value: import('~/utils/constants').Commodity }>} */
+/** @type {Array<{ title: string; value: import('~~/shared/utils/constants').Commodity }>} */
 const commodities = COMMODITY_KEYS.reduce((acc, value) => {
   const title = COMMODITIES[value].title;
   acc.push({ title, value });
   return acc;
-}, /** @type {Array<{ title: string; value: import('~/utils/constants').Commodity }>} */ ([]));
+}, /** @type {Array<{ title: string; value: import('~~/shared/utils/constants').Commodity }>} */ ([]));
 
-/** @type {Ref<import('~/utils/constants').Commodity|undefined>} */
+/** @type {Ref<import('~~/shared/utils/constants').Commodity|undefined>} */
 const commodity = ref(commodities[0]?.value);
 </script>
 

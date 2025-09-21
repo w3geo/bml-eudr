@@ -12,14 +12,6 @@ import {
 import { FetchError } from 'ofetch';
 import useOnBehalfOf from '~/composables/useOnBehalfOf';
 
-/**
- * @typedef {Object} CommodityData
- * @property {import('~/composables/useStatement').Quantity|import('vue').Ref<import('~/composables/useStatement').Quantity>} quantity
- * @property {import('geojson').FeatureCollection|import('vue').Ref<import('geojson').FeatureCollection>} geojson
- */
-
-/** @typedef {CommodityData & {key: import('~/utils/constants.js').Commodity}} CommodityDataWithKey */
-
 definePageMeta({
   middleware: ['authenticated-only'],
   title: 'Sorgfaltserklärung',
@@ -58,7 +50,7 @@ const userDataSubmit = ref(null);
 /** @type {import('vue').Ref<boolean>} */
 const geolocationVisible = ref(true);
 
-/** @type {import('vue').Ref<null|import('~/utils/constants').Commodity>} */
+/** @type {import('vue').Ref<null|import('~~/shared/utils/constants').Commodity>} */
 const editCommodity = ref(null);
 
 /** @type {import('vue').Ref<boolean>} */
@@ -87,14 +79,14 @@ const map = computed({
 const treeSpeciesDialogOpen = ref(false);
 const confirm = ref(false);
 
-/** @type {import('vue').ComputedRef<Array<CommodityDataWithKey>>} */
+/** @type {ComputedRef<Array<import('~~/server/utils/soap-traces.js').CommodityDataWithKey>>} */
 const commoditiesInStatement = computed(() =>
   COMMODITY_KEYS.map((key) => ({ key, ...useStatement(key) })).filter(
     (commodity) => commodity.geojson.value.features.length,
   ),
 );
 
-/** @type {import('vue').ComputedRef<Array<CommodityDataWithKey>>} */
+/** @type {ComputedRef<Array<import('~~/server/utils/soap-traces.js').CommodityDataWithKey>>} */
 const commoditiesToAdd = computed(() =>
   COMMODITY_KEYS.map((key) => ({ key, ...useStatement(key) })).filter(
     (commodity) => !commodity.geojson.value.features.length,
@@ -106,7 +98,7 @@ const canSend = computed(() =>
 );
 
 /**
- * @param {import('~/utils/constants.js').Commodity} commodity
+ * @param {import('~~/shared/utils/constants.js').Commodity} commodity
  */
 function openEditor(commodity) {
   if (commodity === 'rind' && user.value?.loginProvider !== 'AMA') {
@@ -120,7 +112,7 @@ function openEditor(commodity) {
 }
 
 /**
- * @param {import('~/utils/constants.js').Commodity} commodity
+ * @param {import('~~/shared/utils/constants.js').Commodity} commodity
  */
 function exitPlaces(commodity) {
   const { modifiedSinceSnapshot } = useStatement(commodity);
@@ -132,7 +124,7 @@ function exitPlaces(commodity) {
 }
 
 /**
- * @param {import('~/utils/constants.js').Commodity} commodity
+ * @param {import('~~/shared/utils/constants.js').Commodity} commodity
  */
 function abandonChanges(commodity) {
   const { restoreSnapshot } = useStatement(commodity);

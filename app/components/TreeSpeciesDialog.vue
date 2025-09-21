@@ -123,6 +123,7 @@ function cancel() {
           chips
           closable-chips
           auto-select-first
+          :menu-props="{ location: 'top', offset: 10 }"
         ></v-combobox>
       </v-card-text>
       <v-card-actions>

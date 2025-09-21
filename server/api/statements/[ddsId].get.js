@@ -9,16 +9,17 @@ export default defineEventHandler(async (event) => {
   }
 
   const ddsInfos = await retrieveDDS([ddsId]);
-  if (!ddsInfos) {
+  const ddsInfo = ddsInfos?.[0];
+  if (!ddsInfo) {
     throw createError({
       status: 404,
       statusMessage: 'Not found',
     });
   }
 
-  const ddsInfo = ddsInfos[0];
-
-  if (!ddsInfo?.referenceNumber || !ddsInfo?.verificationNumber) {
+  if (!ddsInfo.referenceNumber || !ddsInfo.verificationNumber) {
+    const session = await requireUserSession(event);
+    ddsInfo.commodities = session.commodities?.[ddsInfo.ddsId];
     return ddsInfo;
   }
 

@@ -2,13 +2,15 @@ import users from '../db/schema/users';
 import { and, eq } from 'drizzle-orm';
 import statements from '../db/schema/statements';
 import amaCattle from '../db/schema/ama_cattle';
+import { unref } from 'vue';
 
 export default defineEventHandler(async (event) => {
-  let userId = (await requireUserSession(event)).user.login;
+  const session = await requireUserSession(event);
+  let userId = session.user.login;
   if (!userId) {
     throw createError({ status: 401, statusMessage: 'Unauthorized' });
   }
-  /** @type {import('../utils/soap-traces').StatementData & { onBehalfOf?: string, token?: string }} */
+  /** @type {import('~~/server/utils/soap-traces').StatementData & { onBehalfOf?: string, token?: string }} */
   const { onBehalfOf, token, ...statement } = await readBody(event);
 
   const db = useDb();
@@ -34,10 +36,10 @@ export default defineEventHandler(async (event) => {
   }
 
   const commodities = statement.commodities;
-  const cattleCount = commodities.reduce(
-    (sum, c) => (c.quantity['010221'] || 0) + (c.quantity['010229'] || 0) + sum,
-    0,
-  );
+  const cattleCount = commodities.reduce((sum, c) => {
+    const quantity = unref(c.quantity);
+    return (quantity['010221'] || 0) + (quantity['010229'] || 0) + sum;
+  }, 0);
 
   const { ddsId, error } = await submitDDS(commodities, statement.geolocationVisible, user);
   if (error) {
@@ -70,6 +72,26 @@ export default defineEventHandler(async (event) => {
     );
   }
   await Promise.all(promises);
+  if (!onBehalfOfUser) {
+    await setUserSession(event, {
+      ...session,
+      commodities: {
+        ...session.commodities,
+        [ddsId]: commodities.map((c) => ({
+          key: c.key,
+          quantity: c.quantity,
+          geojson: {
+            type: 'FeatureCollection',
+            features: unref(c.geojson).features.map((f) => ({
+              type: 'Feature',
+              properties: { Area: f.properties?.Area },
+              geometry: null,
+            })),
+          },
+        })),
+      },
+    });
+  }
 
   return sendNoContent(event, 201);
 });

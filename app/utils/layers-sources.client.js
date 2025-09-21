@@ -29,7 +29,7 @@ export function createBackgroundKatasterLayer() {
 }
 
 /**
- * @param {import('~/utils/constants').Commodity} commodity
+ * @param {import('~~/shared/utils/constants').Commodity} commodity
  * @returns {LayerGroup}
  */
 function createAgraratlasLayer(commodity) {
@@ -149,7 +149,7 @@ function createKatasterLayer() {
  */
 
 /**
- * @param {import('~/utils/constants').Commodity} commodity
+ * @param {import('~~/shared/utils/constants').Commodity} commodity
  * @returns {CommodityLayerset}}
  */
 export function createCommodityLayerset(commodity) {
