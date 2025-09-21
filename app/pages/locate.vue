@@ -16,33 +16,33 @@ const commodity = ref(commodities[0]?.value);
 </script>
 
 <template>
-  <v-container class="pt-1 fill-height">
-    <v-row class="fill-height">
-      <v-col cols="12">
-        <v-card class="fill-height">
-          <v-card-title
-            >Erzeugungsort erfassen
+  <v-container class="fill-height mt-1">
+    <v-layout class="fill-height">
+      <v-app-bar density="compact">
+        <v-app-bar-title>Erzeugungsort erfassen </v-app-bar-title>
+        <template #extension>
+          <v-toolbar density="compact" color="transparent">
             <v-radio-group
               v-model="commodity"
+              inline
               hide-details="auto"
               density="compact"
-              class="mt-2"
-              inline
+              class="ml-2"
             >
               <v-radio
                 v-for="item in commodities"
                 :key="item.value"
-                class="mr-2"
+                class="ml-2"
                 :label="item.title"
                 :value="item.value"
               />
             </v-radio-group>
-          </v-card-title>
-          <v-card-text class="fill-height">
-            <places-map :commodity="commodity" class="fill-height" />
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
+          </v-toolbar>
+        </template>
+      </v-app-bar>
+      <v-main>
+        <places-map :commodity="commodity" class="fill-height" />
+      </v-main>
+    </v-layout>
   </v-container>
 </template>

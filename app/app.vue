@@ -16,8 +16,9 @@ const items = routes
 
 <template>
   <NuxtLoadingIndicator color="blue" :height="2" />
-  <v-app :theme="theme.value">
-    <v-app-bar elevation="0" scroll-behavior="hide" scroll-threshold="50">
+  <v-app :theme="theme.value" class="pb-12">
+    <!-- class="pb-12" is a workaround for the scroll bounce issue https://github.com/vuetifyjs/vuetify/issues/19090 -->
+    <v-app-bar elevation="0" scroll-behavior="hide" scroll-threshold="48">
       <NuxtLink to="https://bmluk.gv.at/" target="_blank">
         <v-img width="199" height="63" :src="`/BMLUK_Logo_${theme.value}.svg`" />
       </NuxtLink>
