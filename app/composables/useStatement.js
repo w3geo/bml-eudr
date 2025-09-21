@@ -1,10 +1,10 @@
-/** @typedef {Ref<{quantity: Quantity, geojson: import('geojson').FeatureCollection, speciesList: Array<string>|null}|null>} Snapshot */
+/** @typedef {Ref<{quantity: Quantity, geojson: import('geojson').FeatureCollection, speciesList: import('~~/server/utils/soap-traces.js').SpeciesList|null}|null>} Snapshot */
 
 /**
  * @typedef UseStatement
  * @property {Ref<Quantity>} quantity
  * @property {Ref<import('geojson').FeatureCollection>} geojson
- * @property {Ref<Array<string>|null>} speciesList
+ * @property {Ref<import('~~/server/utils/soap-traces.js').SpeciesList|null>} speciesList
  * @property {Snapshot} snapshot
  * @property {Ref<boolean>} modifiedSinceSnapshot
  * @property {() => void} createSnapshot
@@ -13,14 +13,14 @@
  */
 
 /**
- * @typedef {Partial<Record<import('~/utils/constants').HSCode, number>>} Quantity
+ * @typedef {Partial<Record<import('~~/shared/utils/constants').HSCode, number>>} Quantity
  */
 
 /**
  * @param {Snapshot} snapshot
  * @param {Ref<Quantity>} quantity
  * @param {Ref<import('geojson').FeatureCollection>} geojson
- * @param {Ref<Array<string>|null>} speciesList
+ * @param {Ref<import('~~/server/utils/soap-traces.js').SpeciesList|null>} speciesList
  * @param {Ref<boolean>} modifiedSinceSnapshot
  */
 function createSnapshot(snapshot, quantity, geojson, speciesList, modifiedSinceSnapshot) {
@@ -36,7 +36,7 @@ function createSnapshot(snapshot, quantity, geojson, speciesList, modifiedSinceS
  * @param {Snapshot} snapshot
  * @param {Ref<Quantity>} quantity
  * @param {Ref<import('geojson').FeatureCollection>} geojson
- * @param {Ref<Array<string>|null>} speciesList
+ * @param {Ref<import('~~/server/utils/soap-traces.js').SpeciesList|null>} speciesList
  * @param {Ref<boolean>} modifiedSinceSnapshot
  */
 function restoreSnapshot(snapshot, quantity, geojson, speciesList, modifiedSinceSnapshot) {
@@ -50,10 +50,10 @@ function restoreSnapshot(snapshot, quantity, geojson, speciesList, modifiedSince
 }
 
 /**
- * @param {import('~/utils/constants').Commodity} commodity
+ * @param {import('~~/shared/utils/constants').Commodity} commodity
  * @param {Ref<Quantity>} quantity
  * @param {Ref<import('geojson').FeatureCollection>} geojson
- * @param {Ref<Array<string>|null>} speciesList
+ * @param {Ref<import('~~/server/utils/soap-traces.js').SpeciesList|null>} speciesList
  */
 function clear(commodity, quantity, geojson, speciesList) {
   quantity.value = {};
@@ -62,7 +62,7 @@ function clear(commodity, quantity, geojson, speciesList) {
 }
 
 /**
- * @param {import('~/utils/constants').Commodity} commodity
+ * @param {import('~~/shared/utils/constants').Commodity} commodity
  * @returns {UseStatement}
  */
 export function useStatement(commodity) {
@@ -74,7 +74,7 @@ export function useStatement(commodity) {
   /** @type {import('vue').Ref<Quantity>} */
   const quantity = useState(`quantity-${commodity}`, () => /** @type {Quantity} */ ({}));
 
-  /** @type {import('vue').Ref<Array<string>|null>} */
+  /** @type {import('vue').Ref<import('~~/server/utils/soap-traces.js').SpeciesList|null>} */
   const speciesList = useState(`speciesList-${commodity}`, () =>
     commodity === 'holz' ? [] : null,
   );

@@ -2,7 +2,8 @@ import statements from '../db/schema/statements';
 import { desc, eq } from 'drizzle-orm';
 
 export default defineEventHandler(async (event) => {
-  const userId = (await requireUserSession(event)).user.login;
+  const session = await requireUserSession(event);
+  const userId = session.user.login;
   if (!userId) {
     throw createError({ status: 401, statusMessage: 'Unauthorized' });
   }
@@ -13,7 +14,17 @@ export default defineEventHandler(async (event) => {
     .where(eq(statements.userId, userId))
     .orderBy(desc(statements.date));
 
-  const ddsInfo = await retrieveDDS(dds.map((dd) => /** @type {string} */ (dd.ddsId)));
+  const ddsInfo = await retrieveDDS(dds.map((dds) => /** @type {string} */ (dds.ddsId)));
+  if (ddsInfo) {
+    for (const dds of ddsInfo) {
+      if (dds.referenceNumber && dds.verificationNumber) {
+        delete session.commodities?.[dds.ddsId];
+      }
+      dds.commodities = session.commodities?.[dds.ddsId];
+    }
+  }
+
+  await replaceUserSession(event, session);
 
   return ddsInfo;
 });

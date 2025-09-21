@@ -1,5 +1,5 @@
 import { and, eq } from 'drizzle-orm';
-import { LOGIN_PROVIDED_FIELDS } from '~/utils/constants';
+import { LOGIN_PROVIDED_FIELDS } from '~~/shared/utils/constants';
 import users from '~~/server/db/schema/users';
 
 export default defineEventHandler(async (event) => {

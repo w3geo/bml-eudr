@@ -3,7 +3,7 @@ import { mdiNoteEdit, mdiPlus } from '@mdi/js';
 
 const props = defineProps({
   item: {
-    type: /** @type {import('vue').PropType<import('~/pages/statement.vue').CommodityDataWithKey>} */ (
+    type: /** @type {import('vue').PropType<import('~~/server/utils/soap-traces.js').CommodityDataWithKey>} */ (
       Object
     ),
     required: true,

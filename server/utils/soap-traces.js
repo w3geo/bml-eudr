@@ -1,7 +1,8 @@
-import { COMMODITIES, HS_HEADING } from '~/utils/constants';
 import { randomBytes, createHash } from 'crypto';
 import { DOMParser } from '@xmldom/xmldom';
 import { Agent } from 'undici';
+import { unref } from 'vue';
+import { COMMODITIES, HS_HEADING } from '~~/shared/utils/constants.js';
 
 /** @typedef {'AVAILABLE' | 'SUBMITTED' | 'REJECTED' | 'CANCELLED' | 'WITHDRAWN' | 'ARCHIVED'} TracesStatus */
 
@@ -12,26 +13,29 @@ import { Agent } from 'undici';
  * @property {string} [verificationNumber]
  * @property {TracesStatus} status
  * @property {Date} date
- * @property {Array<import('~~/server/utils/soap-traces').CommodityDataWithKey>} [commodities]
+ * @property {Array<CommodityDataWithKey>} [commodities]
+ * @property {string} [commoditiesSummary] Short summary of commodities (for display in list)
  */
 
 /**
  * @typedef {Object} StatementPayload
- * @property {Array<import('~~/server/utils/soap-traces').CommodityDataWithKey>} commodities
+ * @property {Array<CommodityDataWithKey>} commodities
  * @property {boolean} geolocationVisible
  */
 
 /** @typedef {StatementInfo & StatementPayload} StatementData */
 
+/** @typedef {Array<[string, string]>} SpeciesList */
+
 /**
  * @typedef {Object} CommodityData
- * @property {import('~/composables/useStatement').Quantity} quantity
- * @property {import('geojson').FeatureCollection} geojson
- * @property {Array<[string, string]>} [speciesList]
+ * @property {import('~/composables/useStatement').Quantity|import('vue').Ref<import('~/composables/useStatement').Quantity>} quantity
+ * @property {import('geojson').FeatureCollection|import('vue').Ref<import('geojson').FeatureCollection>} geojson
+ * @property {SpeciesList|import('vue').Ref<SpeciesList|null>} [speciesList]
  */
 
 /**
- * @typedef {{key: import('~/utils/constants.js').Commodity} & CommodityData} CommodityDataWithKey
+ * @typedef {{key: import('~~/shared/utils/constants.js').Commodity} & CommodityData} CommodityDataWithKey
  */
 const errorNS = 'http://ec.europa.eu/sanco/tracesnt/error/v01';
 const submissionNS = 'http://ec.europa.eu/tracesnt/certificate/eudr/submission/v1';
@@ -112,26 +116,27 @@ function getHeader() {
 function getCommoditiesXML(commodities) {
   const commodityXMLs = [];
   for (const commodity of commodities) {
-    if (commodity.geojson.features.length === 0) {
+    const geojson = unref(commodity.geojson);
+    if (geojson && geojson.features.length === 0) {
       continue;
     }
     const key = commodity.key;
-    const hsCodes = /** @type {Array<import('~/utils/constants').HSCode>} */ (
+    const hsCodes = /** @type {Array<import('~~/shared/utils/constants').HSCode>} */ (
       Object.keys(commodity.quantity)
     );
-    if (commodity.geojson.features.length === 0) {
+    if (geojson && geojson.features.length === 0) {
       continue;
     }
-    const speciesList = commodity.speciesList;
+    const speciesList = unref(commodity.speciesList);
     for (const hsCode of hsCodes) {
-      const quantity = /** @type {number} */ (commodity.quantity[hsCode]);
+      const quantity = /** @type {number} */ (unref(commodity.quantity)[hsCode]);
       if (!quantity) {
         continue;
       }
       const geoJSONBase64 = btoa(JSON.stringify(commodity.geojson));
 
       const quantityUnits =
-        COMMODITIES[/** @type {import('~/utils/constants.js').Commodity} */ (key)].units;
+        COMMODITIES[/** @type {import('~~/shared/utils/constants.js').Commodity} */ (key)].units;
 
       const speciesInfo = speciesList
         ? speciesList
@@ -154,7 +159,7 @@ function getCommoditiesXML(commodities) {
         `;
           break;
         case 't':
-          quantityInfo = `<v11:netWeight>${quantity * 1000}</v11:netWeight>`;
+          quantityInfo = `<v11:netWeight>${quantity * 1000}</v11:netWeight>`; // kg, converted from t
           break;
         case 'Stk.': // NAR - number of articles
           quantityInfo = `
@@ -501,7 +506,7 @@ export async function retrieveDDSData(referenceNumber, verificationNumber) {
   const commodities = [];
   for (let i = 0; i < commoditiesElements.length; i++) {
     const commodity = /** @type {import('@xmldom/xmldom').Element} */ (commoditiesElements.item(i));
-    const hsCode = /** @type {import('~/utils/constants').HSCode} */ (
+    const hsCode = /** @type {import('~~/shared/utils/constants').HSCode} */ (
       commodity.getElementsByTagNameNS(commodityNS, 'hsHeading').item(0)?.textContent
     );
     const goodsMeasureElement = commodity
@@ -510,20 +515,23 @@ export async function retrieveDDSData(referenceNumber, verificationNumber) {
     const geojsonText = commodity
       .getElementsByTagNameNS(commodityNS, 'geometryGeojson')
       .item(0)?.textContent;
-    const key = /** @type {import('~/utils/constants').Commodity} */ (
+    const key = /** @type {import('~~/shared/utils/constants').Commodity} */ (
       Object.keys(COMMODITIES).find((key) => {
         return COMMODITIES[
-          /** @type {import('~/utils/constants').Commodity} */ (key)
+          /** @type {import('~~/shared/utils/constants').Commodity} */ (key)
         ].hsHeadings.includes(hsCode);
       })
     );
     const quantity = {
-      [hsCode]: Number(
-        goodsMeasureElement?.getElementsByTagNameNS(commodityNS, 'netWeight').item(0)
-          ?.textContent ||
+      [hsCode]:
+        Number(
+          goodsMeasureElement?.getElementsByTagNameNS(commodityNS, 'netWeight').item(0)
+            ?.textContent, // kg, convert to t
+        ) / 1000 ||
+        Number(
           goodsMeasureElement?.getElementsByTagNameNS(commodityNS, 'supplementaryUnit').item(0)
             ?.textContent,
-      ),
+        ),
     };
     const existing = commodities.find((c) => c.key === key);
     if (existing) {
