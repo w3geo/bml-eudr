@@ -12,7 +12,7 @@ import { COMMODITIES, HS_HEADING } from '~~/shared/utils/constants.js';
  * @property {string} [referenceNumber]
  * @property {string} [verificationNumber]
  * @property {TracesStatus} status
- * @property {Date} date
+ * @property {string} date
  * @property {Array<CommodityDataWithKey>} [commodities]
  * @property {string} [commoditiesSummary] Short summary of commodities (for display in list)
  */
@@ -359,7 +359,7 @@ export async function retrieveDDS(ddsIds) {
       referenceNumber,
       verificationNumber,
       status: /** @type {TracesStatus} */ (status),
-      date: new Date(date),
+      date,
     });
   }
   return statementInfos;
@@ -436,7 +436,7 @@ export async function retrieveDDSByInternalReference(internalReference) {
           /** @type {TracesStatus} */ (
             statement.getElementsByTagNameNS(retrievalNS, 'status').item(0)?.textContent
           ) || 'UNKNOWN',
-        date: new Date(date),
+        date,
       });
     }
 

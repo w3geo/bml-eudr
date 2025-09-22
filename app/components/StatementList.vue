@@ -1,11 +1,11 @@
 <script setup>
 import {
   mdiCardBulletedOutline,
+  mdiContentCopy,
   mdiEmailFastOutline,
   mdiMessageTextOutline,
   mdiRefreshCircle,
-  mdiUnfoldLessHorizontal,
-  mdiUnfoldMoreHorizontal,
+  mdiTableArrowDown,
 } from '@mdi/js';
 
 const { mdAndUp } = useDisplay();
@@ -32,6 +32,17 @@ onNuxtReady(() => {
   }
 });
 
+/** @type {import('vue').Ref<string|null>} */
+const errorMessage = ref(null);
+const displayErrorMessage = computed({
+  get: () => !!errorMessage.value,
+  set: (value) => {
+    if (!value) {
+      errorMessage.value = null;
+    }
+  },
+});
+
 /**
  * @param {string} ddsId
  */
@@ -55,18 +66,101 @@ async function toggleFullStatement(ddsId) {
     start();
     const data = await $fetch(`/api/statements/${ddsId}`);
     Object.assign(statement, data);
+    statements.value = [...statements.value];
   } catch (error) {
     if (error instanceof Error) {
       clear();
       console.error('Failed to retrieve DDS data', error.message);
     }
+  } finally {
+    finish();
+    clear();
+  }
+}
+
+/**
+ * @param {import('~~/server/utils/soap-traces').StatementInfo} statement
+ * @returns {Promise<Array<import('~~/server/utils/soap-traces').CommodityDataWithKey>|undefined>}
+ */
+const getCommodities = async (statement) => {
+  if (!statement.commodities) {
+    await toggleFullStatement(statement.ddsId);
+  }
+  if (!statement.commodities) {
+    errorMessage.value =
+      'Details zu dieser Sorgfaltserklärung konnten nicht abgerufen werden. Versuchen Sie es später erneut.';
     return;
   }
-  finish();
-  clear();
+  return statement.commodities;
+};
 
-  statements.value = [...statements.value];
-}
+/**
+ * @param href {string}
+ */
+const createAndClickLink = (href) => {
+  const link = document.createElement('a');
+  link.type = 'hidden';
+  link.href = href;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+};
+
+/**
+ * @param {import('~~/server/utils/soap-traces').StatementInfo} statement
+ * @returns {Promise<void>}
+ */
+const sendEmail = async (statement) => {
+  const commodities = await getCommodities(statement);
+  if (!commodities) {
+    return;
+  }
+  createAndClickLink(
+    `mailto:?subject=EUDR Sorgfaltserklärung von ${userData.value?.name}&body=${encodeURIComponent(
+      `Ersteller: ${userData.value?.name}\nReferenznummer: ${statement.referenceNumber}\nVerifikationsnummer: ${statement.verificationNumber}\nErklärungsdatum: ${new Date(statement.date).toLocaleString('sv-SE')}\n${getCommoditiesSummary(
+        commodities,
+      )}`,
+    )}`,
+  );
+};
+
+/**
+ * @param {import('~~/server/utils/soap-traces').StatementInfo} statement
+ * @returns {Promise<void>}
+ */
+const sendTextMessage = async (statement) => {
+  const commodities = await getCommodities(statement);
+  if (!commodities) {
+    return;
+  }
+  createAndClickLink(
+    `sms:?body=${encodeURIComponent(
+      `EUDR Sorgfaltserklärung\n\nErsteller: ${userData.value?.name}\nReferenznummer: ${statement.referenceNumber}\nVerifikationsnummer: ${statement.verificationNumber}\nErklärungsdatum: ${new Date(statement.date).toLocaleString('sv-SE')}\n${getCommoditiesSummary(
+        commodities,
+      )}`,
+    )}`,
+  );
+};
+
+/**
+ * @param {import('~~/server/utils/soap-traces').StatementInfo} statement
+ * @returns {Promise<void>}
+ */
+const copyToClipboard = async (statement) => {
+  const commodities = await getCommodities(statement);
+  if (!commodities) {
+    return;
+  }
+  try {
+    await navigator.clipboard.writeText(
+      `EUDR Sorgfaltserklärung\n\nErsteller: ${userData.value?.name}\nReferenznummer: ${statement.referenceNumber}\nVerifikationsnummer: ${statement.verificationNumber}\nErklärungsdatum: ${new Date(statement.date).toLocaleString('sv-SE')}\n${getCommoditiesSummary(
+        commodities,
+      )}`,
+    );
+  } catch {
+    errorMessage.value = 'Sorgfaltserklärung kann nicht in die Zwischenablage kopiert werden.';
+  }
+};
 </script>
 
 <template>
@@ -76,29 +170,17 @@ async function toggleFullStatement(ddsId) {
         <v-card-title class="pt-0 pb-0">
           <v-toolbar flat color="transparent" density="compact"
             >{{ item.referenceNumber || 'Wird erstellt...' }}<v-spacer />
-            <v-tooltip open-on-click>
+            <v-tooltip v-if="!item.referenceNumber" open-on-click>
               <template #activator="{ props }">
                 <v-btn
                   flat
                   density="compact"
-                  :icon="
-                    item.referenceNumber
-                      ? item.commodities
-                        ? mdiUnfoldLessHorizontal
-                        : mdiUnfoldMoreHorizontal
-                      : mdiRefreshCircle
-                  "
+                  :icon="mdiRefreshCircle"
                   v-bind="props"
                   @click="toggleFullStatement(item.ddsId)"
                 ></v-btn>
               </template>
-              {{
-                item.referenceNumber
-                  ? item.commodities
-                    ? 'Details ausblenden'
-                    : 'Referenznummer teilen, Details ansehen'
-                  : 'Aktualisieren'
-              }}
+              Aktualisieren
             </v-tooltip>
           </v-toolbar>
         </v-card-title>
@@ -119,53 +201,44 @@ async function toggleFullStatement(ddsId) {
               </tr>
             </tbody>
           </v-table>
-          <template v-if="item.commodities">
-            <br />
-            <v-table density="compact">
-              <tbody>
-                <template v-for="value in item.commodities" :key="value.key">
-                  <tr>
-                    <td>
-                      <v-icon
-                        :icon="
-                          COMMODITIES[
-                            /** @type {import('~~/shared/utils/constants').Commodity} */ (value.key)
-                          ]?.icon || mdiCardBulletedOutline
-                        "
-                      />
-                    </td>
-                    <td>
-                      {{ getCommoditySummary(value) }}
-                    </td>
-                  </tr>
-                </template>
-              </tbody>
-            </v-table>
-          </template>
+          <br />
+          <v-table density="compact">
+            <tbody v-if="item.commodities">
+              <template v-for="value in item.commodities" :key="value.key">
+                <tr>
+                  <td>
+                    <v-icon
+                      :icon="
+                        COMMODITIES[
+                          /** @type {import('~~/shared/utils/constants').Commodity} */ (value.key)
+                        ]?.icon || mdiCardBulletedOutline
+                      "
+                    />
+                  </td>
+                  <td>
+                    {{ getCommoditySummary(value) }}
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+            <tbody v-else>
+              <tr>
+                <td class="text-center">
+                  <v-btn
+                    flat
+                    :prepend-icon="mdiTableArrowDown"
+                    @click="toggleFullStatement(item.ddsId)"
+                    >Details laden</v-btn
+                  >
+                </td>
+              </tr>
+            </tbody>
+          </v-table>
         </v-card-text>
-        <v-card-actions v-if="item.commodities">
-          <v-btn
-            v-if="item.referenceNumber"
-            :prepend-icon="mdiEmailFastOutline"
-            :href="`mailto:?subject=EUDR Sorgfaltserklärung von ${userData?.name}&body=${encodeURIComponent(
-              `Ersteller: ${userData?.name}\nReferenznummer: ${item.referenceNumber}\nVerifikationsnummer: ${item.verificationNumber}\nErklärungsdatum: ${new Date(item.date).toLocaleString('sv-SE')}\n${getCommoditiesSummary(
-                item.commodities,
-              )}`,
-            )}`"
-          >
-            E-Mail
-          </v-btn>
-          <v-btn
-            v-if="item.referenceNumber"
-            :prepend-icon="mdiMessageTextOutline"
-            :href="`sms:?body=${encodeURIComponent(
-              `EUDR Sorgfaltserklärung\n\nErsteller: ${userData?.name}\nReferenznummer: ${item.referenceNumber}\nVerifikationsnummer: ${item.verificationNumber}\nErklärungsdatum: ${new Date(item.date).toLocaleString('sv-SE')}\n${getCommoditiesSummary(
-                item.commodities,
-              )}`,
-            )}`"
-          >
-            SMS
-          </v-btn>
+        <v-card-actions v-if="item.referenceNumber">
+          <v-btn :prepend-icon="mdiContentCopy" @click="copyToClipboard(item)">Kopieren</v-btn>
+          <v-btn :prepend-icon="mdiEmailFastOutline" @click="sendEmail(item)">E-Mail</v-btn>
+          <v-btn :prepend-icon="mdiMessageTextOutline" @click="sendTextMessage(item)">SMS</v-btn>
         </v-card-actions>
       </v-card>
     </v-col>
@@ -179,4 +252,7 @@ async function toggleFullStatement(ddsId) {
       <NuxtLink to="/statement"> Sorgfaltserklärung </NuxtLink>.
     </v-col>
   </v-row>
+  <v-snackbar v-model="displayErrorMessage" timeout="6000">
+    {{ errorMessage }}
+  </v-snackbar>
 </template>
