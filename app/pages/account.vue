@@ -84,7 +84,8 @@ const loginError = useCookie('login-error');
             <v-img height="50" :src="`./logo_eama_${theme.value}.png`" />
           </v-card-actions>
           <v-card-text class="text-center">
-            Minimaler Aufwand bei der Sorgfaltserklärung
+            Nutzung bestehender Verwaltungsdaten zur einfacheren Zuordnung der Bewirtschafter zu
+            ihren Flächen bzw. Rindern
           </v-card-text>
         </v-card>
       </v-col>
@@ -95,7 +96,8 @@ const loginError = useCookie('login-error');
             <v-img height="50" :src="`./id-austria-logo-${theme.value}.png`" />
           </v-card-actions>
           <v-card-text class="text-center">
-            Für alle, die über kein eAMA Login verfügen
+            Für alle, die über kein eAMA Login verfügen (keine Zuordnung der Bewirtschafter zu ihren
+            Flächen bzw. Rindern)
           </v-card-text>
         </v-card>
       </v-col>
@@ -130,7 +132,8 @@ const loginError = useCookie('login-error');
             </v-form>
           </v-card-actions>
           <v-card-text v-if="!emailSubmitted" class="text-center">
-            Wenn jemand anders die Sorgfaltserklärung erstellen soll
+            Wenn jemand anderes die Sorgfaltserklärung erstellen soll (keine Zuordnung der
+            Bewirtschafter zu ihren Flächen bzw. Rindern)
           </v-card-text>
           <v-card-text v-else class="text-center">
             Bitte geben Sie den per E-Mail erhaltenen Code ein.
