@@ -7,7 +7,7 @@ import { mdiCow, mdiForestOutline, mdiSprout } from '@mdi/js';
  * @property {string} title
  * @property {string} icon
  * @property {'t' | 'Stk.' | 'm³'} units
- * @property {number} [factor]
+ * @property {number} [yieldPerHectare]
  * @property {Array<HSCode>} hsHeadings
  */
 
@@ -27,7 +27,7 @@ export const COMMODITIES = {
     title: 'Sojabohnen',
     icon: mdiSprout,
     units: 't',
-    factor: 4,
+    yieldPerHectare: 4,
     hsHeadings: ['1201'],
   },
   rind: {
