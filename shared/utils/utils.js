@@ -7,7 +7,7 @@ import { COMMODITIES, HS_HEADING } from './constants.js';
 export function getCommoditySummary(commodity) {
   /** @type {import('~~/shared/utils/constants').Commodity} */
   const commodityKey = commodity.key;
-  const places = unref(commodity.geojson).features.length || 0;
+  const places = unref(commodity.geojson)?.features.length || 0;
   const hsHeadings = COMMODITIES[commodityKey].hsHeadings
     .filter((hsHeading) => unref(commodity.quantity)[hsHeading])
     .map(

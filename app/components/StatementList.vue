@@ -159,7 +159,7 @@ const copyToClipboard = async (statement) => {
     );
   } catch {
     errorMessage.value =
-      'Die Sorgfaltserklärung konnte nicht in die Zwischenablage kopiert werden. Bitte versuchen Sie es erneut.';
+      'Die Sorgfaltserklärung konnte nicht in die Zwischenablage kopiert werden. Bitte klicken Sie erneut auf "Kopieren".';
   }
 };
 </script>
