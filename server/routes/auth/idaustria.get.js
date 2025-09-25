@@ -1,6 +1,6 @@
 import users from '~~/server/db/schema/users';
 
-export default defineOAuthUSPEventHandler({
+export default defineOAuthIdAustriaEventHandler({
   async onSuccess(event, { user }) {
     // {
     //   login: 'XFN+558990w:1Q+hUTUFXbLSxLJimdn+GVVgVBg=',

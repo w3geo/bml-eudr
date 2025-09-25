@@ -76,9 +76,9 @@ const loginError = useCookie('login-error');
         </v-card>
       </v-col>
     </v-row>
-    <v-row>
+    <v-row v-if="!loggedIn">
       <v-col :cols="xs ? 12 : 6">
-        <v-card v-if="!loggedIn" class="fill-height" href="./auth/ama">
+        <v-card class="fill-height" href="./auth/ama">
           <v-card-title class="text-center"> Anmelden mit </v-card-title>
           <v-card-actions class="d-flex justify-center">
             <v-img height="50" :src="`./logo_eama_${theme.value}.png`" />
@@ -90,7 +90,7 @@ const loginError = useCookie('login-error');
         </v-card>
       </v-col>
       <v-col :cols="xs ? 12 : 6">
-        <v-card v-if="!loggedIn" class="fill-height" href="./auth/idaustria">
+        <v-card class="fill-height" href="./auth/idaustria">
           <v-card-title class="text-center"> Anmelden mit </v-card-title>
           <v-card-actions class="d-flex justify-center">
             <v-img height="50" :src="`./id-austria-logo-${theme.value}.png`" />
@@ -102,7 +102,7 @@ const loginError = useCookie('login-error');
         </v-card>
       </v-col>
       <v-col :cols="xs ? 12 : 6">
-        <v-card v-if="!loggedIn" class="fill-height">
+        <v-card class="fill-height">
           <v-card-title v-if="!emailSubmitted" class="text-center"> Anmelden mit </v-card-title>
           <v-card-title v-else class="text-center"> Einmalcode eingeben </v-card-title>
           <v-card-actions class="d-flex justify-center">
@@ -140,9 +140,14 @@ const loginError = useCookie('login-error');
           </v-card-text>
         </v-card>
       </v-col>
+      <v-col :cols="xs ? 12 : 6">
+        <v-card class="fill-height" href="./auth/usp">
+          <v-card-title class="text-center"> USP </v-card-title>
+        </v-card>
+      </v-col>
       <DevOnly>
         <v-col :cols="xs ? 12 : 6">
-          <v-card v-if="!loggedIn" class="fill-height" href="./auth/development">
+          <v-card class="fill-height" href="./auth/development">
             <v-card-title class="text-center"> Entwickler </v-card-title>
           </v-card>
         </v-col>

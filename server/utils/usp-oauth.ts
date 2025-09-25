@@ -133,7 +133,21 @@ export function defineOAuthUSPEventHandler({
       return handleAccessTokenErrorResponse(event, 'usp', tokens, onError);
     }
 
-    const tokenData = await decodeJwt(tokens.id_token);
+    const tokenData = decodeJwt(tokens.id_token);
+
+    console.log('USP token data', tokenData);
+
+    //TODO Remove this block when user data to session assignment is implemented
+    const temporaryError = createError({
+      statusCode: 404,
+      message: `Noch nicht implementiert`,
+    });
+    if (temporaryError) {
+      if (onError) {
+        return onError(event, temporaryError);
+      }
+      throw temporaryError;
+    }
 
     const user = {
       login: tokenData['urn:pvpgvat:oidc.bpk'],
