@@ -341,17 +341,25 @@ function cancelSpecies() {
                 </v-tooltip>
               </template>
             </v-checkbox>
-            <p class="mt-4">
-              Durch Übermittlung dieser Sorgfaltserklärung bestätigt der Marktteilnehmer, dass er
-              die Sorgfaltspflicht gemäß der Verordnung (EU) 2023/1115 erfüllt hat, und dass kein
-              oder lediglich ein vernachlässigbares Risiko dahin gehend festgestellt wurde, dass die
+            <div class="text-body-1 mt-4">
+              Hiermit beauftrage ich das Bundesministerium für Land- und Forstwirtschaft, Klima- und
+              Umweltschutz, Regionen und Wasserwirtschaft (BMLUK), für mich als Bevollmächtiger im
+              Sinne von Artikel 2 Ziffer 22 der Verordnung (EU) 2023/1115 aufzutreten und die von
+              mir gestellte Sorgfaltserklärung an das Informationssystem gemäß Artikel 33 dieser
+              Verordnung zu übermitteln. Ich bestätige, dass ich die alleinige Verantwortung für den
+              Inhalt der Sorgfaltserklärung übernehme.
+            </div>
+            <div class="text-body-1 mt-4">
+              Durch Übermittlung dieser Sorgfaltserklärung bestätige ich, dass ich die
+              Sorgfaltspflicht gemäß der Verordnung (EU) 2023/1115 durchgeführt habe, und dass kein
+              oder lediglich ein vernachlässigbares Risiko dahingehend festgestellt wurde, dass die
               relevanten Erzeugnisse gegen Artikel 3 Buchstaben a oder b dieser Verordnung
               verstoßen.
-            </p>
+            </div>
           </v-card-text>
           <v-card-actions v-if="canSend">
             <v-btn :prepend-icon="mdiCheckDecagram" color="primary" @click="submit">
-              Übermitteln
+              Bestätigen und übermitteln
             </v-btn>
           </v-card-actions>
         </v-card>

@@ -17,20 +17,14 @@ useSeoMeta({
       <v-col cols="12">
         <v-card>
           <v-card-text>
-            <p>
+            <div class="text-body-1 mb-2">
               Herzlich willkommen auf der Seite zur Erstellung Ihrer Sorgfaltserklärung im Rahmen
               der EU- Entwaldungsverordnung (EUDR) link zur EUDR VO 2023/1115!
-            </p>
-            <br />
-            <p>
-              Nutzen Sie unser Service-Angebot, um sicherzustellen, dass Ihre Produkte den
-              Anforderungen der EUDR entsprechen und tragen Sie dazu bei, die globalen Wälder zu
-              bewahren.
-            </p>
-            <br />
-            <p>
-              Wir unterstützen Sie auf dem Weg zu nachhaltigem und verantwortungsvollem Handeln!
-            </p>
+            </div>
+            <div class="text-body-1">
+              Auf dieser Homepage haben Sie die Möglichkeit, Ihre Sorgfaltserklärung schnell und
+              einfach abzugeben.
+            </div>
           </v-card-text>
           <v-card-text class="d-flex flex-column align-center">
             <v-img
