@@ -1,5 +1,4 @@
 import { request } from 'https';
-import users from '~~/server/db/schema/users';
 
 export default defineEventHandler(async (event) => {
   try {
@@ -60,28 +59,12 @@ export default defineEventHandler(async (event) => {
       req.end();
     });
 
-    await useDb()
-      .insert(users)
-      .values({
-        id: user.betriebsnummern,
-        emailVerified: false,
-        loginProvider: 'AMA',
-      })
-      //TODO remove - this only deletes legacy data
-      .onConflictDoUpdate({
-        target: users.id,
-        set: {
-          name: null,
-          address: null,
-          identifierType: null,
-          identifierValue: null,
-        },
-      });
     await setUserSession(event, {
       user: {
         login: user.betriebsnummern,
       },
       loggedInAt: Date.now(),
+      loginProvider: 'AMA',
       secure: {
         name: user.bewname,
         address: user.bewadr,

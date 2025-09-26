@@ -31,7 +31,7 @@ async function submitOtp() {
 }
 
 /** @type {import('vue').Ref<import('~/components/UserData.vue').default|null>} */
-const userData = ref(null);
+const userDataForm = ref(null);
 
 const loginRetry = useCookie('login-retry');
 const loginError = useCookie('login-error');
@@ -58,12 +58,12 @@ const loginError = useCookie('login-error');
         <v-card v-if="loggedIn">
           <v-card-title>Angaben zum Betrieb</v-card-title>
           <v-card-text>
-            <UserData ref="userData" verbose />
+            <UserData ref="userDataForm" verbose />
           </v-card-text>
-          <v-card-actions>
+          <v-card-actions v-if="userDataForm?.canSave">
             <v-btn
               color="primary"
-              @click="async () => (await userData?.validate()) && userData?.save()"
+              @click="async () => (await userDataForm?.validate()) && userDataForm?.save()"
             >
               Speichern
             </v-btn>

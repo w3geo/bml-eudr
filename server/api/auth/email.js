@@ -32,7 +32,6 @@ export default defineEventHandler(async (event) => {
       .values({
         id: data.email,
         email: data.email,
-        emailVerified: false,
         loginProvider: 'OTP',
         otp: code,
       })
@@ -69,7 +68,6 @@ export default defineEventHandler(async (event) => {
   await useDb()
     .update(users)
     .set({
-      emailVerified: true,
       otp: null, // Clear the OTP after successful login
       statementToken: user.statementToken || generate(20, { specialChars: false }), // and make sure the user has a statement token
     })
@@ -80,6 +78,13 @@ export default defineEventHandler(async (event) => {
       login: user.id,
     },
     loggedInAt: Date.now(),
+    loginProvider: 'OTP',
+    secure: {
+      name: user.name,
+      address: user.address,
+      identifierType: user.identifierType,
+      identifierValue: user.identifierValue,
+    },
   });
 
   return sendRedirect(event, '/account');

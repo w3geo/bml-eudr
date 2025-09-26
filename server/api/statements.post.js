@@ -54,14 +54,18 @@ export default defineEventHandler(async (event) => {
   }
 
   /** @type {Array<Promise<*>>} */
-  const promises = [
-    db.insert(statements).values({
-      ddsId,
-      userId: onBehalfOfUser ? onBehalfOfUser.id : userId,
-      author: onBehalfOfUser ? userId : null,
-      date: new Date(),
-    }),
-  ];
+  const promises = [];
+  if (onBehalfOfUser) {
+    promises.push(
+      db.insert(statements).values({
+        ddsId,
+        userId: onBehalfOfUser.id,
+        authorName: /** @type {string} */ (session.secure?.name),
+        authorAddress: /** @type {string} */ (session.secure?.address),
+        date: new Date(),
+      }),
+    );
+  }
   if (cattleCount && user.loginProvider === 'AMA') {
     promises.push(
       db.insert(amaCattle).values({
@@ -74,7 +78,6 @@ export default defineEventHandler(async (event) => {
   await Promise.all(promises);
   if (!onBehalfOfUser) {
     await setUserSession(event, {
-      ...session,
       commodities: {
         ...session.commodities,
         [ddsId]: commodities.map((c) => ({

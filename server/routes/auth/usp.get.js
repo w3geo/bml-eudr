@@ -21,23 +21,16 @@ export default defineOAuthUSPEventHandler({
       .insert(users)
       .values({
         id: user.login,
-        emailVerified: false,
         loginProvider: 'USP',
       })
-      //TODO remove - this only deletes legacy data
-      .onConflictDoUpdate({
-        target: users.id,
-        set: {
-          name: null,
-          address: null,
-        },
-      });
+      .onConflictDoNothing();
 
     await setUserSession(event, {
       user: {
         login: user.login,
       },
-      secure: { name, address },
+      loginProvider: 'USP',
+      secure: { name, address, identifierType: 'GLN', identifierValue: user.identifierValue },
       loggedInAt: Date.now(),
     });
 

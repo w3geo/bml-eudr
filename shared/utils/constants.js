@@ -62,11 +62,13 @@ export const COMMODITY_KEYS = /** @type {Array<Commodity>} */ (Object.keys(COMMO
 
 /** @type {Record<LoginProvider, Array<keyof import('~~/server/db/schema/users.js').User>>} */
 export const LOGIN_PROVIDED_FIELDS = {
-  OTP: ['email'],
+  OTP: [],
   IDA: ['name', 'address'],
   AMA: ['name', 'address', 'identifierType', 'identifierValue'],
   USP: ['name', 'address', 'identifierType', 'identifierValue'],
 };
+
+export const editableUserDataFields = ['name', 'address', 'identifierType', 'identifierValue'];
 
 const VALID_EMAIL_REGEX =
   /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
