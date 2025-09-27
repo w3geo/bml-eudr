@@ -46,7 +46,7 @@ useSeoMeta({
               Ausnahmen:
               <ul class="pl-4 mt-2">
                 <li class="mb-1">
-                  Bei Anmeldung mit ID Austria werden auf der Seite "Mein Konto" unter "Angaben zum
+                  Bei Anmeldung mit ID Austria wird auf der Seite "Mein Konto" unter "Angaben zum
                   Betrieb" die Identifikationsnummer (GLN, UID oder Steuernummer) zum Zweck der
                   Erstellung von Sorgfaltserklärungen gespeichert.
                 </li>
