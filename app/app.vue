@@ -1,13 +1,11 @@
 <script setup>
 import { mdiAccountCircle } from '@mdi/js';
-import DisclaimerDialog from './components/DisclaimerDialog.vue';
 
 useHead({
   titleTemplate: (titleChunk) => (titleChunk ? `${titleChunk} | EUDR Meldung` : 'EUDR Meldung'),
 });
 const theme = useColorMode();
 const { mdAndUp } = useDisplay();
-const { user } = useUserSession();
 const drawer = ref(false);
 const router = useRouter();
 const routes = router.getRoutes();
@@ -35,13 +33,7 @@ const items = routes
               EUDR Meldung
             </NuxtLink>
           </v-app-bar-title>
-          <v-btn
-            variant="plain"
-            to="/account"
-            :icon="!user?.login ? mdiAccountCircle : undefined"
-            :append-icon="user?.login ? mdiAccountCircle : undefined"
-            :text="user?.login"
-          />
+          <v-btn variant="plain" to="/account" :icon="mdiAccountCircle" />
         </v-toolbar>
       </template>
     </v-app-bar>

@@ -1,3 +1,4 @@
+import { eq } from 'drizzle-orm';
 import users from '~~/server/db/schema/users';
 
 export default defineOAuthIdAustriaEventHandler({
@@ -21,23 +22,22 @@ export default defineOAuthIdAustriaEventHandler({
       .insert(users)
       .values({
         id: user.login,
-        emailVerified: false,
         loginProvider: 'IDA',
       })
-      //TODO remove - this only deletes legacy data
-      .onConflictDoUpdate({
-        target: users.id,
-        set: {
-          name: null,
-          address: null,
-        },
-      });
+      .onConflictDoNothing();
 
+    const [userData] = await useDb().select().from(users).where(eq(users.id, user.login));
     await setUserSession(event, {
       user: {
         login: user.login,
       },
-      secure: { name, address },
+      loginProvider: 'IDA',
+      secure: {
+        name: name,
+        address: address,
+        identifierType: userData?.identifierType,
+        identifierValue: userData?.identifierValue,
+      },
       loggedInAt: Date.now(),
     });
 

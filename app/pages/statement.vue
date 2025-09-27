@@ -341,19 +341,29 @@ function cancelSpecies() {
               </template>
             </v-checkbox>
             <div class="text-body-1 mt-4">
-              Hiermit beauftrage ich das Bundesministerium für Land- und Forstwirtschaft, Klima- und
-              Umweltschutz, Regionen und Wasserwirtschaft (BMLUK), für mich als Bevollmächtiger im
-              Sinne von Artikel 2 Ziffer 22 der Verordnung (EU) 2023/1115 aufzutreten und die von
-              mir gestellte Sorgfaltserklärung an das Informationssystem gemäß Artikel 33 dieser
-              Verordnung zu übermitteln. Ich bestätige, dass ich die alleinige Verantwortung für den
-              Inhalt der Sorgfaltserklärung übernehme.
+              Hiermit beauftrag{{ onBehalfOfUser ? 't ' + onBehalfOfUser.name : 'e ich' }} das
+              Bundesministerium für Land- und Forstwirtschaft, Klima- und Umweltschutz, Regionen und
+              Wasserwirtschaft (BMLUK), für {{ onBehalfOfUser ? onBehalfOfUser.name : 'mich' }} als
+              Bevollmächtiger im Sinne von Artikel 2 Ziffer 22 der Verordnung (EU) 2023/1115
+              aufzutreten und die
+              {{ onBehalfOfUser ? 'für ' + onBehalfOfUser.name : 'von mir' }} erstellte
+              Sorgfaltserklärung an das Informationssystem gemäß Artikel 33 dieser Verordnung zu
+              übermitteln.
+              {{ onBehalfOfUser ? onBehalfOfUser.name + ' bestätigt' : 'Ich bestätige' }}, die
+              alleinige Verantwortung für den Inhalt der Sorgfaltserklärung zu übernehmen.
             </div>
             <div class="text-body-1 mt-4">
-              Durch Übermittlung dieser Sorgfaltserklärung bestätige ich, dass ich die
-              Sorgfaltspflicht gemäß der Verordnung (EU) 2023/1115 durchgeführt habe, und dass kein
-              oder lediglich ein vernachlässigbares Risiko dahingehend festgestellt wurde, dass die
-              relevanten Erzeugnisse gegen Artikel 3 Buchstaben a oder b dieser Verordnung
-              verstoßen.
+              Durch Übermittlung dieser Sorgfaltserklärung bestätig{{
+                onBehalfOfUser ? 't ' + onBehalfOfUser.name : 'e ich'
+              }}, die Sorgfaltspflicht gemäß der Verordnung (EU) 2023/1115 durchgeführt zu haben,
+              und dass kein oder lediglich ein vernachlässigbares Risiko dahingehend festgestellt
+              wurde, dass die relevanten Erzeugnisse gegen Artikel 3 Buchstaben a oder b dieser
+              Verordnung verstoßen.
+            </div>
+            <div v-if="onBehalfOfUser" class="text-body-1 mt-4">
+              Ich nehme zur Kenntnis, dass Name und Adresse meines Betriebes gespeichert werden, um
+              mich als Ersteller dieser Sorgfaltserklärung für {{ onBehalfOfUser.name }} zuordnen zu
+              können.
             </div>
           </v-card-text>
           <v-card-actions v-if="canSend">
@@ -373,13 +383,18 @@ function cancelSpecies() {
           <v-card>
             <v-card-title>Jemand anders beauftragen</v-card-title>
             <v-card-text>
-              Sie können jetzt einen Link zur Erstellung einer Sorgfaltserklärung verschicken.
-              <b>Bitte beachten Sie:</b> Nur Personen, die über ein eAMA oder ID Austria Login
-              verfügen, können Sorgfaltserklärungen erstellen.<br /><br />
-              Mit der Weitergabe des Links per E-Mail, SMS oder QR-Code erklärt sich der
-              Marktteilnehmer damit einverstanden, dass die Sorgfaltserklärung zwar von einer
-              anderen Person erstellt wird, die Verantwortung für die Richtigkeit der Angaben aber
-              weiterhin beim Marktteilnehmer liegt.
+              <div class="text-body-1 mb-2">
+                Sie können jetzt einen Link zur Erstellung einer Sorgfaltserklärung verschicken.
+                <b>Bitte beachten Sie:</b> Nur Personen, die über ein eAMA oder ID Austria Login
+                verfügen, können Sorgfaltserklärungen erstellen.
+              </div>
+              <div class="text-body-1 mb-2">
+                Mit der Weitergabe des Links per E-Mail, SMS oder QR-Code nehme ich zur Kenntnis,
+                dass die volle Verantwortung für die Richtigkeit der Angaben einer von einer anderen
+                Person für mich erstellten Sorgfaltserklärung bei mir liegt. Weiters nehme ich zur
+                Kenntnis, dass die interne TRACES Datenbank ID der Sorgfaltserklärung gespeichert
+                wird, um diese dem Ersteller zuordnen zu können.
+              </div>
             </v-card-text>
             <v-card-actions>
               <v-btn

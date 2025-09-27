@@ -1,0 +1,1 @@
+ALTER TABLE "statements" ALTER COLUMN "author" SET NOT NULL;

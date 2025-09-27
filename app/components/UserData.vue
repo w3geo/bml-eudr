@@ -1,6 +1,5 @@
 <script setup>
 import { mdiInformationOutline } from '@mdi/js';
-import { saveUserData } from '~/utils/utils';
 
 const props = defineProps({
   verbose: Boolean,
@@ -8,8 +7,9 @@ const props = defineProps({
 
 const snackbar = ref(false);
 const form = ref();
-/** @type {Ref<import('~~/server/db/schema/users').User|undefined>} */
+/** @type {Ref<import('~/utils/utils').EditableUserData|undefined>} */
 const editableUserData = ref();
+const canSave = ref(false);
 
 async function validate() {
   const { valid } = await form.value.validate();
@@ -17,13 +17,20 @@ async function validate() {
 }
 
 async function save() {
-  await saveUserData(editableUserData);
+  if (!canSave.value) {
+    return;
+  }
+  await $fetch('/api/users/me', {
+    method: 'PUT',
+    body: editableUserData.value,
+  });
   snackbar.value = true;
 }
 
 defineExpose({
   validate,
   save,
+  canSave,
 });
 
 const { data: userData } = await useFetch('/api/users/me');
@@ -31,6 +38,7 @@ editableUserData.value = userData.value;
 const loginProvidedFields = userData.value
   ? LOGIN_PROVIDED_FIELDS[userData.value.loginProvider]
   : [];
+canSave.value = loginProvidedFields.length < 4;
 
 const { mdAndUp, xs } = useDisplay();
 
@@ -76,19 +84,7 @@ const idItems = [
           :rules="[(v) => !!v || 'Adresse ist erforderlich']"
         ></v-text-field>
       </v-col>
-      <v-col :cols="mdAndUp ? 6 : 12">
-        <v-text-field
-          v-model="editableUserData.email"
-          density="compact"
-          hide-details="auto"
-          variant="outlined"
-          label="e-mail (optional)"
-          :readonly="loginProvidedFields.includes('email')"
-          :disabled="loginProvidedFields.includes('email')"
-          :rules="[(v) => !v || /.+@.+\..+/.test(v) || 'E-mail muss gültig sein']"
-        ></v-text-field>
-      </v-col>
-      <v-col :cols="mdAndUp ? 3 : xs ? 12 : 6">
+      <v-col :cols="mdAndUp ? 4 : xs ? 12 : 6">
         <v-select
           v-model="editableUserData.identifierType"
           density="compact"
@@ -103,7 +99,7 @@ const idItems = [
           :rules="[(v) => !!v || 'Identifikationstyp ist erforderlich']"
         ></v-select>
       </v-col>
-      <v-col :cols="mdAndUp ? 3 : xs ? 12 : 6">
+      <v-col :cols="mdAndUp ? 8 : xs ? 12 : 6">
         <v-text-field
           v-model="editableUserData.identifierValue"
           density="compact"
@@ -115,14 +111,14 @@ const idItems = [
           :rules="[(v) => !!v || 'Identifikationsnummer ist erforderlich']"
         ></v-text-field>
       </v-col>
-      <v-col v-if="props.verbose" cols="12" class="text-body-1 mb-6">
+      <v-col v-if="props.verbose && canSave" cols="12" class="text-body-1 mb-6">
         <v-alert :icon="mdiInformationOutline">
-          Wir speichern nur Felder, die Sie selbst ausfüllen. Nicht editierbare Felder kommen direkt
+          Nur die von Ihnen ausgefüllten Felder werden gespeichert. Nicht editierbare Felder kommen
           von Ihrem Login-Provider.
         </v-alert>
       </v-col>
     </v-row>
-    <v-snackbar v-if="props.verbose" v-model="snackbar" timeout="2000">
+    <v-snackbar v-if="props.verbose && canSave" v-model="snackbar" timeout="2000">
       Benutzerdaten wurden gespeichert.
     </v-snackbar>
   </v-form>

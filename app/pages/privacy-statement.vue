@@ -25,39 +25,49 @@ useSeoMeta({
               <a href="mailto:service.entwaldung@bmluk.gv.at">service.entwaldung@bmluk.gv.at</a>.
             </div>
             <div class="text-body-1 mb-2">
-              Auf der Seite "Mein Konto" unter "Angaben zum Betrieb", werden die von Ihnen
-              eingegebenen persönlichen Daten, nämlich bei Verwendung der Login-Methode "E-Mail"
-              Name, Adresse, e-mail Adresse und Identifikationsnummer (GLN, UID oder Steuernummer),
-              alternativ dazu bei Verwendung der Login-Methode "eAMA" die LFBIS-Nummer des
-              Betriebes, und alternativ dazu bei Verwendung der Login-Methode "ID Austria" die
-              Identifikationsnummer (GLN, UID oder Steuernummer), zum Zweck der Erstellung von
-              Sorgfaltserklärungen gespeichert.
+              Vom BMLUK werden im Rahmen der Nutzung dieser Applikation keine personenbezogenen
+              Daten gespeichert.
             </div>
             <div class="text-body-1 mb-2">
-              Nach Erstellung einer Sorgfaltserklärung wird die von der TRACES Datenbank der EU
-              Kommission bereitgestellte ID der Sorgfaltserklärung zum Zweck der Zurodnung derselben
-              zu Ihrem Benutzerkonto gespeichert.
+              Ausnahmen:
+              <ul class="pl-4 mt-2">
+                <li class="mb-1">
+                  Auf der Seite "Mein Konto" unter "Angaben zum Betrieb", werden die von Ihnen
+                  eingegebenen personenbezogenen Daten, nämlich bei Verwendung der Login-Methode "ID
+                  Austria" die Identifikationsnummer (GLN, UID oder Steuernummer)bei Verwendung der
+                  Login-Methode "E-Mail" zusätzlich Name, Adresse, und e-mail Adresse, zum Zweck der
+                  Erstellung von Sorgfaltserklärungen gespeichert.
+                </li>
+                <li class="mb-1">
+                  Sofern Sie für jemand anderen eine Sorgfaltserklärung erstellen, speichern wir
+                  Namen und Adresse Ihres Betriebes, um Sie als Ersteller der Sorgfaltserklärung
+                  zuordnen zu können.
+                </li>
+                <li class="mb-1">
+                  Sofern Sie von jemand anderem eine Sorgfaltserklärung erstellen lassen, speichern
+                  wir die interne ID der Sorgfaltserklärung, die von der TRACES Datenbank der
+                  EU-Kommission vergeben wird, damit wir die Sorgfaltserklärung dem Konto des
+                  Erstellers zuordnen können.
+                </li>
+              </ul>
             </div>
             <div class="text-body-1 mb-2">
-              Sie können jederzeit durch formlose Mitteilung mit Angabe Ihrer Benutzer-ID (siehe
-              rechts oben in der grünen Titelleiste) an
+              Wenn Sie von einer der oben genannten Ausnahmen betroffen sind, können Sie jederzeit
+              durch formlose Mitteilung an
               <a href="mailto:service.entwaldung@bmluk.gv.at">service.entwaldung@bmluk.gv.at</a>
-              die Löschung Ihres Benutzerkontos beantragen, womit sämtliche vom BMLUK gespeicherten
-              Daten gelöscht werden. Aus technischen Gründen ist danach über die Applikation kein
-              Zugriff auf die Referenz- und Verifikationsnummern der mit der Applikation erstellten
-              Sorgfaltserklärungen mehr möglich. Sollten Sie später wieder Zugriff auf diese
-              Referenz- und Verifikationsnummern benötigen, müssen Sie sich erneut mit der gleichen
-              Login-Methode und dem gleichen Benutzer anmelden.
+              die Löschung Ihrer vom BMLUK gespeicherten Daten beantragen.
             </div>
             <div class="text-body-1 mb-2">
-              Bei Klicken der Schaltfläche "Übermitteln" auf der Seite "Sorgfaltserklärung" werden
-              Ihre Benutzer-ID als interne Referenz (LFBIS-Nummer bei eAMA Login, bPK bei ID Austria
-              Login, e-mail Adresse bei E-Mail Login), Name und Adresse des Betriebes, die
-              Identifikationsnummer, sowie die für die Sorgfaltserklärung erfassten Flächen- bzw.
-              Punktdaten, Erzeugnisse, und deren Mengen an die TRACES Datenbank der EU-Kommission
-              übermittelt. Die dortige Verarbeitung dieser Daten liegt außerhalb des
-              Verantworungsbereiches des BMLUK. Die Datenschutzerklärung der EU-Kommission für die
-              TRACES Datenbank ist unter
+              Bei Klicken der Schaltfläche "Bestätigen und Übermitteln" auf der Seite
+              "Sorgfaltserklärung" wird Ihre Benutzer-ID (LFBIS-Nummer bei eAMA Login, bPK bei ID
+              Austria Login, e-mail Adresse bei E-Mail Login) als interne Referenz an die
+              TRACES-Datenbank der EU übermittelt, damit Sie bei Nutzung dieser Applikation die
+              Zugriff auf Ihre Sorgfaltserklärungen haben. Weiters werden Name und Adresse des
+              Betriebes, die Identifikationsnummer, sowie die für die Sorgfaltserklärung erfassten
+              Flächen- bzw. Punktdaten, Erzeugnisse, und deren Mengen an die TRACES Datenbank der
+              EU-Kommission übermittelt, da diese Angaben für die Sorgfaltserklärung verpflichtend
+              sind. Die Verarbeitung dieser Daten liegt außerhalb des Verantworungsbereiches des
+              BMLUK. Die Datenschutzerklärung der EU-Kommission für die TRACES Datenbank ist unter
               <a
                 href="https://eudr.webcloud.ec.europa.eu/tracesnt/privacy-statement"
                 target="_blank"

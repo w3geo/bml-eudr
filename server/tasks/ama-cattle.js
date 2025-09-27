@@ -43,7 +43,7 @@ export default defineTask({
               referenzNummer: dds.referenceNumber,
               verifikationsNummer: dds.verificationNumber,
               stueckZahl: entry.count,
-              datumVon: dds.date.toISOString(),
+              datumVon: new Date(dds.date).toISOString(),
             },
             null,
             2,

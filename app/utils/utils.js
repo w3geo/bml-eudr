@@ -1,25 +1,18 @@
 /**
+ * @typedef {Object} EditableUserData
+ * @property {string} name
+ * @property {string} address
+ * @property {'GLN'|'TIN'|'VAT'} identifierType
+ * @property {string} identifierValue
+ */
+
+/**
  * @param {number} number
  * @param {number} precision
  * @returns {number}
  */
 export function toPrecision(number, precision) {
   return Math.round(number * 10 ** precision) / 10 ** precision;
-}
-
-/**
- * @param {import('vue').Ref<import('~~/server/db/schema/users').User|undefined|null>} userData
- * @returns {Promise<void>}
- */
-export async function saveUserData(userData) {
-  const body = userData.value;
-  if (!body) {
-    return;
-  }
-  await $fetch('/api/users/me', {
-    method: 'PUT',
-    body,
-  });
 }
 
 /**

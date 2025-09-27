@@ -1,29 +1,30 @@
+import { eq } from 'drizzle-orm';
 import users from '~~/server/db/schema/users';
 
 export default defineEventHandler(async (event) => {
   if (process.env.NODE_ENV === 'development') {
+    const id = 'Developer';
     const name = 'Dave Eloper';
     const address = 'Rosengasse 7, 3424 Zeiselmauer-Wolfpassing';
     await useDb()
       .insert(users)
       .values({
-        id: 'Developer',
-        emailVerified: false,
+        id,
         loginProvider: 'IDA',
       })
-      //TODO remove - this only deletes legacy data
-      .onConflictDoUpdate({
-        target: users.id,
-        set: {
-          name: null,
-          address: null,
-        },
-      });
+      .onConflictDoNothing();
+    const [user] = await useDb().select().from(users).where(eq(users.id, id));
     await setUserSession(event, {
       user: {
-        login: 'Developer',
+        login: id,
       },
-      secure: { name, address },
+      loginProvider: 'IDA',
+      secure: {
+        name,
+        address,
+        identifierType: user?.identifierType,
+        identifierValue: user?.identifierValue,
+      },
       loggedInAt: Date.now(),
     });
     return sendRedirect(event, '/account');
