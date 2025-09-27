@@ -15,7 +15,7 @@ const summary = computed(() => getCommoditySummary(props.item));
 
 <template>
   <v-card
-    :color="summary ? 'teal-darken-4' : ''"
+    :color="summary ? 'green-darken-4' : ''"
     class="d-flex flex-column align-center justify-center"
     min-height="180"
     @click="emit('openEditor', props.item.key)"
@@ -29,7 +29,7 @@ const summary = computed(() => getCommoditySummary(props.item));
     </v-card-text>
     <v-card-actions>
       <v-btn v-if="!summary" color="primary" :prepend-icon="mdiPlus"> Hinzufügen </v-btn
-      ><v-btn v-else color="primary" :prepend-icon="mdiNoteEdit"> Bearbeiten </v-btn>
+      ><v-btn v-else color="secondary" :prepend-icon="mdiNoteEdit"> Bearbeiten </v-btn>
     </v-card-actions>
   </v-card>
 </template>

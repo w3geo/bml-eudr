@@ -292,13 +292,13 @@ function cancelSpecies() {
       <v-col cols="12">
         <v-card v-if="incomplete">
           <v-card-title>Sorgfaltserklärung</v-card-title>
-          <v-card-text class="text-body-1 mb-2">
+          <v-card-text class="text-body-1">
             <v-alert color="primary" :icon="mdiAccountEdit">
-              Vervollständigen Sie bitte Ihr Profil, um fortzufahren:
+              Vervollständigen Sie bitte Ihr Profil, um fortzufahren.
             </v-alert>
           </v-card-text>
           <v-card-text>
-            <UserData ref="userDataComplete" verbose />
+            <UserData ref="userDataComplete" editable />
           </v-card-text>
           <v-card-actions>
             <v-btn color="primary" @click="completeUserData"> Speichern </v-btn>
