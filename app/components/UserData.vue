@@ -2,7 +2,7 @@
 import { mdiInformationOutline } from '@mdi/js';
 
 const props = defineProps({
-  verbose: Boolean,
+  editable: Boolean,
 });
 
 const snackbar = ref(false);
@@ -14,6 +14,9 @@ const canSave = ref(false);
 async function validate() {
   const { valid } = await form.value.validate();
   return valid;
+}
+function resetValidation() {
+  form.value.resetValidation();
 }
 
 async function save() {
@@ -29,6 +32,7 @@ async function save() {
 
 defineExpose({
   validate,
+  resetValidation,
   save,
   canSave,
 });
@@ -67,8 +71,8 @@ const idItems = [
           hide-details="auto"
           variant="outlined"
           label="Name"
-          :readonly="loginProvidedFields.includes('name')"
-          :disabled="loginProvidedFields.includes('name')"
+          :readonly="!props.editable || loginProvidedFields.includes('name')"
+          :disabled="!props.editable || loginProvidedFields.includes('name')"
           :rules="[(v) => !!v || 'Name ist erforderlich']"
         ></v-text-field>
       </v-col>
@@ -79,8 +83,8 @@ const idItems = [
           hide-details="auto"
           variant="outlined"
           label="Straße Hausnummer, PLZ Ort"
-          :readonly="loginProvidedFields.includes('address')"
-          :disabled="loginProvidedFields.includes('address')"
+          :readonly="!props.editable || loginProvidedFields.includes('address')"
+          :disabled="!props.editable || loginProvidedFields.includes('address')"
           :rules="[(v) => !!v || 'Adresse ist erforderlich']"
         ></v-text-field>
       </v-col>
@@ -94,8 +98,8 @@ const idItems = [
           :items="idItems"
           item-value="value"
           item-text="title"
-          :readonly="loginProvidedFields.includes('identifierType')"
-          :disabled="loginProvidedFields.includes('identifierType')"
+          :readonly="!props.editable || loginProvidedFields.includes('identifierType')"
+          :disabled="!props.editable || loginProvidedFields.includes('identifierType')"
           :rules="[(v) => !!v || 'Identifikationstyp ist erforderlich']"
         ></v-select>
       </v-col>
@@ -106,12 +110,12 @@ const idItems = [
           hide-details="auto"
           variant="outlined"
           label="Identifikationsnummer"
-          :readonly="loginProvidedFields.includes('identifierValue')"
-          :disabled="loginProvidedFields.includes('identifierValue')"
+          :readonly="!props.editable || loginProvidedFields.includes('identifierValue')"
+          :disabled="!props.editable || loginProvidedFields.includes('identifierValue')"
           :rules="[(v) => !!v || 'Identifikationsnummer ist erforderlich']"
         ></v-text-field>
       </v-col>
-      <v-col v-if="props.verbose && canSave" cols="12" class="text-body-1 mb-2">
+      <v-col v-if="props.editable && canSave" cols="12" class="text-body-1 mb-2">
         <v-alert v-if="loginProvidedFields.length > 0" :icon="mdiInformationOutline" class="mb-4">
           Nicht editierbare Felder wurden vom Anmeldedienst übernommen.
         </v-alert>
@@ -119,7 +123,7 @@ const idItems = [
         Sorgfaltserklärungen gespeichert und verarbeitet werden.
       </v-col>
     </v-row>
-    <v-snackbar v-if="props.verbose && canSave" v-model="snackbar" timeout="2000">
+    <v-snackbar v-if="props.editable && canSave" v-model="snackbar" timeout="2000">
       Benutzerdaten wurden gespeichert.
     </v-snackbar>
   </v-form>

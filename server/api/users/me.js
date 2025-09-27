@@ -74,7 +74,7 @@ export default defineEventHandler(async (event) => {
   if (event.method === 'PUT' && event.headers.get('content-type') === 'application/json') {
     /** @type {import('~~/server/db/schema/users.js').User} */
     const properties = await readBody(event);
-    const loginProvidedFields = LOGIN_PROVIDED_FIELDS[session.loginProvider];
+    const loginProvidedFields = LOGIN_PROVIDED_FIELDS[session.loginProvider] || [];
     await setUserSession(event, {
       secure: {
         ...session.secure,

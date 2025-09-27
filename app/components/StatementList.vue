@@ -167,7 +167,7 @@ const copyToClipboard = async (statement) => {
 <template>
   <v-row v-if="statementCount > 0">
     <v-col v-for="item in statements" :key="item.ddsId" :cols="mdAndUp ? 6 : 12">
-      <v-card color="teal-darken-4">
+      <v-card color="green-darken-4">
         <v-card-title class="pt-0 pb-0">
           <v-toolbar flat color="transparent" density="compact"
             >{{ item.referenceNumber || 'Wird erstellt...' }}<v-spacer />

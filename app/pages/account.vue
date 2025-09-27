@@ -1,6 +1,6 @@
 <script setup>
 import { DevOnly } from '#components';
-import { mdiEmailFastOutline } from '@mdi/js';
+import { mdiEmailFastOutline, mdiUnfoldLessHorizontal, mdiUnfoldMoreHorizontal } from '@mdi/js';
 
 definePageMeta({
   title: 'Mein Konto',
@@ -10,13 +10,14 @@ definePageMeta({
 useSeoMeta({
   title: 'Mein Konto',
 });
-const { loggedIn, clear } = useUserSession();
+const { loggedIn } = useUserSession();
 const theme = useColorMode();
 const { xs } = useDisplay();
 
 const email = ref();
 const otp = ref();
 const emailSubmitted = ref(false);
+const expandUserData = ref(false);
 
 async function submitEmail() {
   await $fetch('/api/auth/email', {
@@ -33,6 +34,15 @@ async function submitOtp() {
 /** @type {import('vue').Ref<import('~/components/UserData.vue').default|null>} */
 const userDataForm = ref(null);
 
+const unwatch = watch(userDataForm, async (form) => {
+  if (form) {
+    const formOk = await form.validate();
+    form.resetValidation();
+    expandUserData.value = !formOk;
+    unwatch();
+  }
+});
+
 const loginRetry = useCookie('login-retry');
 const loginError = useCookie('login-error');
 </script>
@@ -46,34 +56,43 @@ const loginError = useCookie('login-error');
       <v-alert v-if="loginError" closable>
         {{ loginError }}
       </v-alert>
-      <v-col cols="12">
-        <v-card v-if="loggedIn">
-          <v-card-title>Meine Referenznummern</v-card-title>
-          <v-card-text>
-            <StatementList />
-          </v-card-text>
-        </v-card>
-      </v-col>
       <v-col>
         <v-card v-if="loggedIn">
-          <v-card-title>Angaben zum Betrieb</v-card-title>
-          <v-card-text>
-            <UserData ref="userDataForm" verbose />
-          </v-card-text>
-          <v-card-actions>
-            <v-btn
-              v-if="userDataForm?.canSave"
-              color="primary"
-              @click="async () => (await userDataForm?.validate()) && userDataForm?.save()"
-            >
-              Speichern
-            </v-btn>
-            <v-spacer />
-            <v-btn color="secondary" @click="clear"> Logout </v-btn>
-          </v-card-actions>
+          <v-card-title
+            ><v-toolbar color="transparent" flat density="compact"
+              >Angaben zum Betrieb<v-spacer /><v-btn
+                flat
+                density="compact"
+                :icon="expandUserData ? mdiUnfoldLessHorizontal : mdiUnfoldMoreHorizontal"
+                @click="expandUserData = !expandUserData" /></v-toolbar
+          ></v-card-title>
+          <v-expand-transition>
+            <v-sheet v-show="expandUserData">
+              <v-card-text>
+                <UserData ref="userDataForm" editable />
+              </v-card-text>
+              <v-card-actions>
+                <v-btn
+                  v-if="userDataForm?.canSave"
+                  color="primary"
+                  @click="async () => (await userDataForm?.validate()) && userDataForm?.save()"
+                >
+                  Speichern
+                </v-btn>
+              </v-card-actions>
+            </v-sheet>
+          </v-expand-transition>
         </v-card>
         <v-card v-else>
           <v-card-title>Nicht angemeldet</v-card-title>
+        </v-card>
+      </v-col>
+      <v-col cols="12">
+        <v-card v-if="loggedIn">
+          <v-card-title class="mt-2 mb-2">Meine Referenznummern</v-card-title>
+          <v-card-text>
+            <StatementList />
+          </v-card-text>
         </v-card>
       </v-col>
     </v-row>
