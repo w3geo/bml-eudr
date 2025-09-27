@@ -60,8 +60,9 @@ const loginError = useCookie('login-error');
           <v-card-text>
             <UserData ref="userDataForm" verbose />
           </v-card-text>
-          <v-card-actions v-if="userDataForm?.canSave">
+          <v-card-actions>
             <v-btn
+              v-if="userDataForm?.canSave"
               color="primary"
               @click="async () => (await userDataForm?.validate()) && userDataForm?.save()"
             >
