@@ -66,36 +66,28 @@ const treeSpeciesList = [
   ['Thuja ssp.', 'Thuje'],
   ['Tsuga ssp.', 'Hemlocktanne'],
   ['Acacieae', 'Akazie'],
-  ['Acer ssp.', 'fremdländische Ahorn'],
   ['Ailanthus altissima', 'Götterbaum'],
-  ['Betula ssp.', 'fremdländische Birke'],
   ['Carya ssp.', 'Hickory'],
   ['Celtis ssp.', 'Zürgelbaum'],
-  ['Corylus ssp.', 'fremdländische Hasel'],
   ['Elaeagnus ssp.', 'Ölweide'],
-  ['Fagus ssp.', 'fremdländische Buche'],
-  ['Fraxinus ssp.', 'fremdländische Esche'],
   ['Ginkgo biloba', 'Ginkgo'],
   ['Gleditsia ssp.', 'Gleditschie'],
-  ['Juglans ssp.', 'fremdländische Walnuss'],
   ['Liriodendron ssp.', 'Tulpenbaum'],
   ['Morus ssp.', 'Maulbeere'],
   ['Paulownia tomentosa', 'Blauglockenbaum'],
   ['Platanus ssp.', 'Platane'],
-  ['Populus ssp.', 'fremdländische Pappel oder Hybride'],
-  ['Prunus ssp.', 'fremdländische Prunusart'],
-  ['Quercus ssp.', 'fremdländische Eiche oder Hybride'],
   ['Styphnolobium japonicum', 'Japanischer Schnurbaum'],
 ];
 
 const opened = defineModel({ type: Boolean, required: true });
 const emit = defineEmits(['save', 'cancel']);
 
-const selectedSpecies = ref([]);
+/** @type {import('vue').ShallowRef<Array<[string, string] | string>>} */
+const selectedSpecies = shallowRef([]);
 const { speciesList } = useStatement('holz');
 
 function save() {
-  speciesList.value = selectedSpecies.value;
+  speciesList.value = selectedSpecies.value.map((s) => (Array.isArray(s) ? s : [s, s]));
   emit('save');
 }
 

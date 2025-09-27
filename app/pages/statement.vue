@@ -7,7 +7,6 @@ import {
   mdiEmailFastOutline,
   mdiHelpCircleOutline,
   mdiMessageTextOutline,
-  mdiQrcode,
 } from '@mdi/js';
 import { FetchError } from 'ofetch';
 import useOnBehalfOf from '~/composables/useOnBehalfOf';
@@ -395,11 +394,7 @@ function cancelSpecies() {
                 color="primary"
                 :href="`sms:?body=${encodeURIComponent(`Bitte erstellen Sie für ${user.name} eine EUDR Sorgfaltserklärung: ${statementTokenUrl}`)}`"
               ></v-btn>
-              <qr-code-button
-                :prepend-icon="mdiQrcode"
-                color="primary"
-                :payload="statementTokenUrl"
-              ></qr-code-button>
+              <qr-code-button color="primary" :payload="statementTokenUrl"></qr-code-button>
             </v-card-actions>
           </v-card>
         </v-col>
