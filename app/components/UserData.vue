@@ -36,7 +36,7 @@ defineExpose({
 const { data: userData } = await useFetch('/api/users/me');
 editableUserData.value = userData.value;
 const loginProvidedFields = userData.value
-  ? LOGIN_PROVIDED_FIELDS[userData.value.loginProvider]
+  ? (LOGIN_PROVIDED_FIELDS[userData.value.loginProvider] ?? [])
   : [];
 canSave.value = loginProvidedFields.length < 4;
 
@@ -78,7 +78,7 @@ const idItems = [
           density="compact"
           hide-details="auto"
           variant="outlined"
-          label="Adresse"
+          label="Straße Hausnummer, PLZ Ort"
           :readonly="loginProvidedFields.includes('address')"
           :disabled="loginProvidedFields.includes('address')"
           :rules="[(v) => !!v || 'Adresse ist erforderlich']"
@@ -111,11 +111,12 @@ const idItems = [
           :rules="[(v) => !!v || 'Identifikationsnummer ist erforderlich']"
         ></v-text-field>
       </v-col>
-      <v-col v-if="props.verbose && canSave" cols="12" class="text-body-1 mb-6">
-        <v-alert :icon="mdiInformationOutline">
-          Nur die von Ihnen ausgefüllten Felder werden gespeichert. Nicht editierbare Felder kommen
-          von Ihrem Login-Provider.
+      <v-col v-if="props.verbose && canSave" cols="12" class="text-body-1 mb-2">
+        <v-alert v-if="loginProvidedFields.length > 0" :icon="mdiInformationOutline" class="mb-4">
+          Nicht editierbare Felder wurden vom Anmeldedienst übernommen.
         </v-alert>
+        Mit dem Klicken auf "Speichern" stimme ich zu, dass meine Daten zum Zweck der Erstellung von
+        Sorgfaltserklärungen gespeichert und verarbeitet werden.
       </v-col>
     </v-row>
     <v-snackbar v-if="props.verbose && canSave" v-model="snackbar" timeout="2000">

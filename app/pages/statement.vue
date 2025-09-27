@@ -292,7 +292,7 @@ function cancelSpecies() {
       <v-col cols="12">
         <v-card v-if="incomplete">
           <v-card-title>Sorgfaltserklärung</v-card-title>
-          <v-card-text class="text-body-1 mb-6">
+          <v-card-text class="text-body-1 mb-2">
             <v-alert color="primary" :icon="mdiAccountEdit">
               Vervollständigen Sie bitte Ihr Profil, um fortzufahren:
             </v-alert>
@@ -361,9 +361,8 @@ function cancelSpecies() {
               Verordnung verstoßen.
             </div>
             <div v-if="onBehalfOfUser" class="text-body-1 mt-4">
-              Ich nehme zur Kenntnis, dass Name und Adresse meines Betriebes gespeichert werden, um
-              mich als Ersteller dieser Sorgfaltserklärung für {{ onBehalfOfUser.name }} zuordnen zu
-              können.
+              Ich stimme zu, dass Name und Adresse meines Betriebes gespeichert werden, um mich als
+              Ersteller dieser Sorgfaltserklärung für {{ onBehalfOfUser.name }} zuordnen zu können.
             </div>
           </v-card-text>
           <v-card-actions v-if="canSend">
