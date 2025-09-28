@@ -10,6 +10,7 @@ import {
 
 const { mdAndUp } = useDisplay();
 const { start, finish, clear } = useLoadingIndicator();
+const { errorMessage } = useErrorMessage();
 const statementCount = ref(0);
 
 const { data: statements, error: statementsError } = await useFetch('/api/statements');
@@ -30,17 +31,6 @@ onNuxtReady(() => {
       }
     }, 30000);
   }
-});
-
-/** @type {import('vue').Ref<string|null>} */
-const errorMessage = ref(null);
-const displayErrorMessage = computed({
-  get: () => !!errorMessage.value,
-  set: (value) => {
-    if (!value) {
-      errorMessage.value = null;
-    }
-  },
 });
 
 /**
@@ -147,6 +137,7 @@ const sendTextMessage = async (statement) => {
  * @returns {Promise<void>}
  */
 const copyToClipboard = async (statement) => {
+  errorMessage.value = null;
   const commodities = await getCommodities(statement);
   if (!commodities) {
     return;
@@ -253,7 +244,4 @@ const copyToClipboard = async (statement) => {
       <NuxtLink to="/statement"> Sorgfaltserklärung </NuxtLink>.
     </v-col>
   </v-row>
-  <v-snackbar v-model="displayErrorMessage" timeout="6000">
-    {{ errorMessage }}
-  </v-snackbar>
 </template>
