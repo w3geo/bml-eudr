@@ -7,6 +7,7 @@ useHead({
 const theme = useColorMode();
 const { mdAndUp } = useDisplay();
 const { loggedIn, clear } = useUserSession();
+const { errorMessage, displayErrorMessage } = useErrorMessage();
 const drawer = ref(false);
 const router = useRouter();
 const routes = router.getRoutes();
@@ -70,7 +71,7 @@ const { data: userData } = await useFetch('/api/users/me');
             link
             to="/"
             :append-icon="mdiLogout"
-            class="pl-6 text-medium-emphasis text-button"
+            class="pl-6 text-medium-emphasis"
             @click="clear"
             >Abmelden</v-list-item
           ></template
@@ -80,5 +81,14 @@ const { data: userData } = await useFetch('/api/users/me');
     <v-main scrollable>
       <NuxtPage />
     </v-main>
+    <v-snackbar v-model="displayErrorMessage" color="warning" timeout="6000">
+      <v-alert class="pa-0" density="compact" type="warning">{{ errorMessage }}</v-alert>
+    </v-snackbar>
   </v-app>
 </template>
+
+<style scoped>
+.inline-block {
+  display: inline-block;
+}
+</style>

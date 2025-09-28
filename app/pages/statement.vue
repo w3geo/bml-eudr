@@ -20,6 +20,7 @@ definePageMeta({
 const { query } = useRoute();
 const { mdAndUp, xs } = useDisplay();
 const { start, finish, clear } = useLoadingIndicator();
+const { errorMessage } = useErrorMessage();
 /** @type {import('vue').Ref<import('~/components/UserData.vue').default|null>} */
 const userDataComplete = ref(null);
 
@@ -54,17 +55,6 @@ const editCommodity = ref(null);
 
 /** @type {import('vue').Ref<boolean>} */
 const savedOnBehalfOf = ref(false);
-
-/** @type {import('vue').Ref<string|null>} */
-const errorMessage = ref(null);
-const displayErrorMessage = computed({
-  get: () => !!errorMessage.value,
-  set: (value) => {
-    if (!value) {
-      errorMessage.value = null;
-    }
-  },
-});
 
 const map = computed({
   get: () => !!editCommodity.value,
@@ -414,9 +404,6 @@ function cancelSpecies() {
         </v-col>
       </template>
     </v-row>
-    <v-snackbar v-model="displayErrorMessage" timeout="6000">
-      {{ errorMessage }}
-    </v-snackbar>
   </v-container>
 </template>
 

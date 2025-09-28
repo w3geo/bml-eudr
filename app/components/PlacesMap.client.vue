@@ -9,6 +9,7 @@ import 'ol/ol.css';
 import { fromLonLat } from 'ol/proj';
 
 const { xs } = useDisplay();
+const { errorMessage } = useErrorMessage();
 
 const props = defineProps({
   commodity: {
@@ -117,8 +118,9 @@ function locateMe() {
       map.getView().animate({ center, zoom: 18, duration: 500 });
       mapContainer.value.classList.remove('spinner');
     },
-    () => {
+    (error) => {
       // Error (e.g., permission denied)
+      errorMessage.value = `Position konnte nicht ermittelt werden: ${error.message}`;
       mapContainer.value.classList.remove('spinner');
     },
     { enableHighAccuracy: true },
