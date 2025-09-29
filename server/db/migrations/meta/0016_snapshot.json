@@ -1,0 +1,302 @@
+{
+  "id": "5d3c98d5-3ee8-46c9-a28a-a14695420ece",
+  "prevId": "f4337d92-ef7c-434d-952c-12d15c424aab",
+  "version": "7",
+  "dialect": "postgresql",
+  "tables": {
+    "public.ama_cattle": {
+      "name": "ama_cattle",
+      "schema": "",
+      "columns": {
+        "ddsId": {
+          "name": "ddsId",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "userId": {
+          "name": "userId",
+          "type": "varchar(127)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "count": {
+          "name": "count",
+          "type": "smallint",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "ama_cattle_userId_users_id_fk": {
+          "name": "ama_cattle_userId_users_id_fk",
+          "tableFrom": "ama_cattle",
+          "tableTo": "users",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.lfbis_farm": {
+      "name": "lfbis_farm",
+      "schema": "",
+      "columns": {
+        "lfbis": {
+          "name": "lfbis",
+          "type": "varchar(10)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "localId": {
+          "name": "localId",
+          "type": "varchar(25)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "lfbisFarm_lfbis": {
+          "name": "lfbisFarm_lfbis",
+          "columns": [
+            {
+              "expression": "lfbis",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "lfbis_farm_localId_unique": {
+          "name": "lfbis_farm_localId_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "localId"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.lfbis_field": {
+      "name": "lfbis_field",
+      "schema": "",
+      "columns": {
+        "lfbis": {
+          "name": "lfbis",
+          "type": "varchar(10)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "localId": {
+          "name": "localId",
+          "type": "varchar(25)",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "lfbisField_lfbis": {
+          "name": "lfbisField_lfbis",
+          "columns": [
+            {
+              "expression": "lfbis",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": false,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {
+        "lfbis_field_localId_unique": {
+          "name": "lfbis_field_localId_unique",
+          "nullsNotDistinct": false,
+          "columns": [
+            "localId"
+          ]
+        }
+      },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.statements": {
+      "name": "statements",
+      "schema": "",
+      "columns": {
+        "ddsId": {
+          "name": "ddsId",
+          "type": "uuid",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "userId": {
+          "name": "userId",
+          "type": "varchar(127)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "authorName": {
+          "name": "authorName",
+          "type": "varchar(127)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "authorAddress": {
+          "name": "authorAddress",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "date": {
+          "name": "date",
+          "type": "timestamp",
+          "primaryKey": false,
+          "notNull": true
+        }
+      },
+      "indexes": {
+        "statements_ddsId": {
+          "name": "statements_ddsId",
+          "columns": [
+            {
+              "expression": "ddsId",
+              "isExpression": false,
+              "asc": true,
+              "nulls": "last"
+            }
+          ],
+          "isUnique": true,
+          "concurrently": false,
+          "method": "btree",
+          "with": {}
+        }
+      },
+      "foreignKeys": {
+        "statements_userId_users_id_fk": {
+          "name": "statements_userId_users_id_fk",
+          "tableFrom": "statements",
+          "tableTo": "users",
+          "columnsFrom": [
+            "userId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.users": {
+      "name": "users",
+      "schema": "",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "varchar(127)",
+          "primaryKey": true,
+          "notNull": true
+        },
+        "name": {
+          "name": "name",
+          "type": "varchar(127)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "address": {
+          "name": "address",
+          "type": "varchar(255)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "email": {
+          "name": "email",
+          "type": "varchar(127)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "identifierType": {
+          "name": "identifierType",
+          "type": "varchar(3)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "identifierValue": {
+          "name": "identifierValue",
+          "type": "varchar(15)",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "loginProvider": {
+          "name": "loginProvider",
+          "type": "varchar(3)",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "otp": {
+          "name": "otp",
+          "type": "numeric",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "statementToken": {
+          "name": "statementToken",
+          "type": "varchar(20)",
+          "primaryKey": false,
+          "notNull": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {},
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    }
+  },
+  "enums": {},
+  "schemas": {},
+  "sequences": {},
+  "roles": {},
+  "policies": {},
+  "views": {},
+  "_meta": {
+    "columns": {},
+    "schemas": {},
+    "tables": {}
+  }
+}

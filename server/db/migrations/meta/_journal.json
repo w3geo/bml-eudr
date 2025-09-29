@@ -113,6 +113,13 @@
       "when": 1759176983655,
       "tag": "0015_rename_localId-lfbis_farm-lfbis_field",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1759177558016,
+      "tag": "0016_resize_localid-lfbis_farm-lfbis_field",
+      "breakpoints": true
     }
   ]
 }
