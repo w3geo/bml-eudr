@@ -99,6 +99,13 @@
       "when": 1758923446105,
       "tag": "0013_statements-change-fields-users-remove-emailVerified",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1759175384733,
+      "tag": "0014_create-lfbis_farm-lfbis_field",
+      "breakpoints": true
     }
   ]
 }
