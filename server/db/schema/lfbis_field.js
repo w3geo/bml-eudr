@@ -4,7 +4,7 @@ const lfbisField = pgTable(
   'lfbis_field',
   {
     lfbis: varchar({ length: 10 }).notNull(),
-    field: varchar({ length: 10 }).unique().notNull(),
+    localId: varchar({ length: 10 }).unique().notNull(),
   },
   (table) => [index('lfbisField_lfbis').on(table.lfbis)],
 );
