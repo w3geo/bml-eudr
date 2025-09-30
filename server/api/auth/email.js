@@ -31,14 +31,12 @@ export default defineEventHandler(async (event) => {
       .insert(users)
       .values({
         id: data.email,
-        email: data.email,
         loginProvider: 'OTP',
         otp: code,
       })
       .onConflictDoUpdate({
         target: users.id,
         set: {
-          email: data.email,
           otp: code,
         },
       });

@@ -52,7 +52,6 @@ export default defineEventHandler(async (event) => {
         address: onBehalfOfUser.address,
         identifierType: onBehalfOfUser.identifierType,
         identifierValue: onBehalfOfUser.identifierValue,
-        email: onBehalfOfUser.email ?? null,
         otp: null,
         statementToken: null,
       };
@@ -64,7 +63,6 @@ export default defineEventHandler(async (event) => {
       address: session.secure.address,
       identifierType: session.secure.identifierType,
       identifierValue: session.secure.identifierValue,
-      email: user?.email ?? null,
       otp: user?.otp ?? null,
       statementToken: user?.statementToken ?? null,
       onBehalfOf: onBehalfOfUserData,

@@ -37,6 +37,7 @@ const { data: userData } = await useFetch('/api/users/me');
           <v-divider />
           <v-list-item class="text-medium-emphasis" link to="/account">Meine Konto</v-list-item>
           <v-list-item
+            :active="false"
             link
             to="/"
             :append-icon="mdiLogout"
@@ -66,8 +67,8 @@ const { data: userData } = await useFetch('/api/users/me');
           >Impressum</v-list-item
         >
         <template v-if="loggedIn">
-          <v-divider />
           <v-list-item
+            :active="false"
             link
             to="/"
             :append-icon="mdiLogout"

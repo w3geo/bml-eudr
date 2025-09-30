@@ -41,7 +41,7 @@ const incomplete = computed(() => {
 
 const statementTokenUrl =
   user.value?.loginProvider === 'OTP'
-    ? `${useRequestURL().origin}/statement?onBehalfOf=${user.value?.email}&token=${user.value?.statementToken}`
+    ? `${useRequestURL().origin}/statement?onBehalfOf=${user.value?.id}&token=${user.value?.statementToken}`
     : undefined;
 
 /** @type {import('vue').Ref<import('~/components/UserData.vue').default|null>} */

@@ -1,3 +1,4 @@
+import type { IdentifierType } from '~/utils/utils';
 import type { CommodityDataWithKey } from '../server/utils/soap-traces';
 import type { LoginProvider } from './utils/constants';
 
@@ -16,7 +17,7 @@ declare module '#auth-utils' {
     name: string;
     email: string;
     address: string;
-    identifierType: 'GLN' | 'TIN' | 'VAT';
+    identifierType: IdentifierType;
     identifierValue: string;
   }
 }
