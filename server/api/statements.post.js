@@ -53,7 +53,7 @@ export default defineEventHandler(async (event) => {
       identifierValue: userFromDb.identifierValue,
     };
   } else {
-    if (!session.secure?.name || !session.secure?.address || !session.secure?.identifierType) {
+    if (!session.secure) {
       throw createError({ status: 400, statusMessage: 'User is missing required fields' });
     }
     user = {
