@@ -127,6 +127,13 @@
       "when": 1759178082561,
       "tag": "0017_remove_unique-lfbis_farm-lfbis_field",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1759236055753,
+      "tag": "0018_users_remove-email",
+      "breakpoints": true
     }
   ]
 }

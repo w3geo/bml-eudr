@@ -4,10 +4,9 @@ const users = pgTable('users', {
   id: varchar({ length: 127 }).primaryKey(),
   name: varchar({ length: 127 }),
   address: varchar({ length: 255 }),
-  email: varchar({ length: 127 }),
   identifierType: varchar({ enum: ['GLN', 'TIN', 'VAT'], length: 3 }),
   identifierValue: varchar({ length: 15 }),
-  loginProvider: varchar({ enum: ['AMA', 'IDA', 'USP', 'OTP'], length: 3 }).notNull(),
+  loginProvider: varchar({ enum: ['AMA', 'IDA', 'USP', 'OTP'], length: 3 }),
   otp: numeric(),
   statementToken: varchar({ length: 20 }),
 });

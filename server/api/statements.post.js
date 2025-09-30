@@ -27,12 +27,39 @@ export default defineEventHandler(async (event) => {
     await db.update(users).set({ statementToken: null }).where(eq(users.id, onBehalfOfUser.id));
   }
 
-  const [user] = await db
-    .select()
-    .from(users)
-    .where(eq(users.id, onBehalfOfUser ? onBehalfOfUser.id : userId));
-  if (!user) {
-    throw createError({ status: 404, statusMessage: 'User not found' });
+  /** @type {import('~~/server/utils/soap-traces').User} */
+  let user;
+  if (onBehalfOfUser) {
+    const [userFromDb] = await db.select().from(users).where(eq(users.id, onBehalfOfUser.id));
+    if (!userFromDb) {
+      throw createError({ status: 404, statusMessage: 'On-behalf-of user not found' });
+    }
+    if (
+      !userFromDb.name ||
+      !userFromDb.address ||
+      !userFromDb.identifierType ||
+      !userFromDb.identifierValue
+    ) {
+      throw createError({
+        status: 400,
+        statusMessage: 'On-behalf-of user is missing required fields',
+      });
+    }
+    user = {
+      id: userFromDb.id,
+      name: userFromDb.name,
+      address: userFromDb.address,
+      identifierType: userFromDb.identifierType,
+      identifierValue: userFromDb.identifierValue,
+    };
+  } else {
+    if (!session.secure?.name || !session.secure?.address || !session.secure?.identifierType) {
+      throw createError({ status: 400, statusMessage: 'User is missing required fields' });
+    }
+    user = {
+      id: session.user.login,
+      ...session.secure,
+    };
   }
 
   const commodities = statement.commodities;
@@ -66,7 +93,7 @@ export default defineEventHandler(async (event) => {
       }),
     );
   }
-  if (cattleCount && user.loginProvider === 'AMA') {
+  if (!onBehalfOfUser && cattleCount && session.loginProvider === 'AMA') {
     promises.push(
       db.insert(amaCattle).values({
         ddsId,

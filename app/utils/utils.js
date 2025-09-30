@@ -1,8 +1,10 @@
+/** @typedef {'GLN'|'TIN'|'VAT'} IdentifierType */
+
 /**
  * @typedef {Object} EditableUserData
  * @property {string} name
  * @property {string} address
- * @property {'GLN'|'TIN'|'VAT'} identifierType
+ * @property {IdentifierType} identifierType
  * @property {string} identifierValue
  */
 

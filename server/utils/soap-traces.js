@@ -6,6 +6,8 @@ import { COMMODITIES, HS_HEADING } from '~~/shared/utils/constants.js';
 
 /** @typedef {'AVAILABLE' | 'SUBMITTED' | 'REJECTED' | 'CANCELLED' | 'WITHDRAWN' | 'ARCHIVED'} TracesStatus */
 
+/** @typedef {{id: string, name: string, address: string, identifierType: import('~/utils/utils').IdentifierType, identifierValue: string}} User */
+
 /**
  * @typedef {Object} StatementInfo
  * @property {string} ddsId
@@ -198,7 +200,7 @@ function getCommoditiesXML(commodities) {
 /**
  * @param {Array<CommodityDataWithKey>} commodities
  * @param {boolean} geolocationVisible
- * @param {import('~~/server/db/schema/users').User} user
+ * @param {User} user
  * @returns {string}
  */
 function getSubmitXML(commodities, geolocationVisible, user) {
@@ -261,7 +263,7 @@ function getRetrieveXML(identifiers) {
 /**
  * @param {Array<CommodityDataWithKey>} commodities
  * @param {boolean} geolocationVisible
- * @param {import('~~/server/db/schema/users').User} user
+ * @param {User} user
  * @returns {Promise<{ ddsId: string | undefined, error: string | undefined }>}
  */
 export async function submitDDS(commodities, geolocationVisible, user) {
