@@ -45,72 +45,63 @@ function createAgraratlasLayer(commodity, farms = [], fields = []) {
       maxzoom: 17,
     });
     const schlaege = getMapboxLayer(agraratlas, 'invekos_schlaege_polygon-fill');
-    if (fields.length) {
-      addMapboxLayer(
-        agraratlas,
-        {
-          ...schlaege,
-          id: 'invekos_schlaege_polygon-not-commodity-not-my-field-fill',
-          filter: [
-            'all',
-            ['!', ['in', ['get', 'localID'], fields]],
-            ['!', ['in', SNAR_SUBSTRING[commodity], ['get', 'snar_bezeichnung']]],
-          ],
-          paint: {
-            ...schlaege.paint,
-            'fill-color': 'rgba(255, 255, 255, 0.1)',
-          },
-        },
-        'invekos_schlaege_polygon-fill',
-      );
-    }
-
+    addMapboxLayer(
+      agraratlas,
+      {
+        ...schlaege,
+        id: 'invekos_schlaege_polygon-not-commodity-not-my-field-fill',
+        filter: [
+          'all',
+          ['!', ['in', ['get', 'localID'], ['literal', fields]]],
+          ['!', ['in', SNAR_SUBSTRING[commodity], ['get', 'snar_bezeichnung']]],
+        ],
+      },
+      'invekos_schlaege_polygon-fill',
+    );
     addMapboxLayer(
       agraratlas,
       {
         ...schlaege,
         id: 'invekos_schlaege_polygon-not-commodity-my-field-fill',
-        filter: fields.length
-          ? [
-              'all',
-              ['in', ['get', 'localID'], fields],
-              ['!', ['in', SNAR_SUBSTRING[commodity], ['get', 'snar_bezeichnung']]],
-            ]
-          : ['!', ['in', SNAR_SUBSTRING[commodity], ['get', 'snar_bezeichnung']]],
+        filter: [
+          'all',
+          ['in', ['get', 'localID'], ['literal', fields]],
+          ['!', ['in', SNAR_SUBSTRING[commodity], ['get', 'snar_bezeichnung']]],
+        ],
+        paint: {
+          ...schlaege.paint,
+          'fill-color': 'rgba(255, 255, 255, 0.1)',
+        },
       },
       'invekos_schlaege_polygon-fill',
     );
-    if (fields.length) {
-      addMapboxLayer(
-        agraratlas,
-        {
-          ...schlaege,
-          id: 'invekos_schlaege_polygon-commodity-not-my-field-fill',
-          filter: [
-            'all',
-            ['!', ['in', ['get', 'localID'], fields]],
-            ['in', SNAR_SUBSTRING[commodity], ['get', 'snar_bezeichnung']],
-          ],
-          paint: {
-            ...schlaege.paint,
-            'fill-color': 'rgba(255, 255, 0, 0.25)',
-          },
+    addMapboxLayer(
+      agraratlas,
+      {
+        ...schlaege,
+        id: 'invekos_schlaege_polygon-commodity-not-my-field-fill',
+        filter: [
+          'all',
+          ['!', ['in', ['get', 'localID'], ['literal', fields]]],
+          ['in', SNAR_SUBSTRING[commodity], ['get', 'snar_bezeichnung']],
+        ],
+        paint: {
+          ...schlaege.paint,
+          'fill-color': 'rgba(255, 255, 0, 0.5)',
         },
-        'invekos_schlaege_polygon-fill',
-      );
-    }
+      },
+      'invekos_schlaege_polygon-fill',
+    );
     addMapboxLayer(
       agraratlas,
       {
         ...schlaege,
         id: 'invekos_schlaege_polygon-commodity-my-field-fill',
-        filter: fields.length
-          ? [
-              'all',
-              ['in', ['get', 'localID'], fields],
-              ['in', SNAR_SUBSTRING[commodity], ['get', 'snar_bezeichnung']],
-            ]
-          : ['in', SNAR_SUBSTRING[commodity], ['get', 'snar_bezeichnung']],
+        filter: [
+          'all',
+          ['in', ['get', 'localID'], ['literal', fields]],
+          ['in', SNAR_SUBSTRING[commodity], ['get', 'snar_bezeichnung']],
+        ],
         paint: {
           ...schlaege.paint,
           'fill-color': 'rgba(255, 138, 0, 0.5)',
@@ -126,29 +117,27 @@ function createAgraratlasLayer(commodity, farms = [], fields = []) {
         'type': 'circle',
         'source': 'agrargis',
         'source-layer': 'invekos_hofstellen',
-        'filter': farms.length ? ['!', ['in', ['get', 'localID'], farms]] : undefined,
+        'filter': ['!', ['in', ['get', 'localID'], ['literal', farms]]],
         'paint': {
           'circle-radius': 7,
-          'circle-color': 'rgba(255, 255, 0, 0.25)',
+          'circle-color': 'rgba(255, 255, 0, 0.5)',
           'circle-stroke-color': 'rgb(238, 90, 78)',
           'circle-stroke-width': 2,
         },
       });
-      if (farms.length) {
-        addMapboxLayer(agraratlas, {
-          'id': 'invekos_hofstelle-point-my-farm',
-          'type': 'circle',
-          'source': 'agrargis',
-          'source-layer': 'invekos_hofstellen',
-          'filter': ['in', ['get', 'localID'], farms],
-          'paint': {
-            'circle-radius': 7,
-            'circle-color': 'rgba(255, 138, 0, 0.5)',
-            'circle-stroke-color': 'rgb(238, 90, 78)',
-            'circle-stroke-width': 2,
-          },
-        });
-      }
+      addMapboxLayer(agraratlas, {
+        'id': 'invekos_hofstelle-point-my-farm',
+        'type': 'circle',
+        'source': 'agrargis',
+        'source-layer': 'invekos_hofstellen',
+        'filter': ['in', ['get', 'localID'], ['literal', farms]],
+        'paint': {
+          'circle-radius': 7,
+          'circle-color': 'rgba(255, 138, 0, 0.5)',
+          'circle-stroke-color': 'rgb(238, 90, 78)',
+          'circle-stroke-width': 2,
+        },
+      });
     }
   });
   return agraratlas;
