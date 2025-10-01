@@ -24,8 +24,9 @@ export default defineEventHandler(async (event) => {
   }
 
   const db = useDb();
-  return await db
+  const localIds = await db
     .select({ localId: table.localId })
     .from(table)
     .where(eq(table.lfbis, session.user.login));
+  return localIds.map((r) => r.localId);
 });
