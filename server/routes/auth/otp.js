@@ -11,10 +11,13 @@ import users from '~~/server/db/schema/users';
 export default defineEventHandler(async (event) => {
   /** @type {UserPayload} */
   const data = event.method === 'POST' ? await readBody(event) : await getQuery(event);
+  if (event.method === 'GET' && !data.code) {
+    throw createError({ status: 400, statusMessage: 'Bad Request' });
+  }
   if (!data?.email) {
     throw createError({
       status: 400,
-      statusMessage: 'email is required',
+      statusMessage: 'Bad Request',
     });
   }
 
@@ -41,13 +44,14 @@ export default defineEventHandler(async (event) => {
         },
       });
 
-    return sendMail({
+    await sendMail({
       subject: code + ' - Einmalcode EUDR Meldung',
       text:
         'Um Ihr Login bei EUDR Meldung abzuschließen, geben Sie bitte diesen Einmalcode ein: ' +
         code,
       to: data.email,
     });
+    return sendNoContent(event, 201);
   }
 
   const [user] = await useDb()
