@@ -39,6 +39,9 @@ const mapContainer = ref();
 const { user } = useUserSession();
 const login = user.value?.login;
 
+const fields = (await useFetch('/api/lfbis?layer=fields')).data.value?.map((f) => f.localId);
+const farms = (await useFetch('/api/lfbis?layer=farms')).data.value?.map((f) => f.localId);
+
 const map = new Map({
   target: mapContainer.value,
   layers: [backgroundKatasterLayer],
@@ -53,7 +56,7 @@ watch(
       map.removeLayer(geolocationLayer.value);
       geolocationLayer.value.getSource()?.dispose();
     }
-    const commodityLayerset = createCommodityLayerset(newValue);
+    const commodityLayerset = createCommodityLayerset(newValue, farms, fields);
     const { geojson } = useStatement(newValue);
     geolocationLayer.value = new VectorLayer({ source: createGeolocationSource(geojson) });
     commodityLayer.value = commodityLayerset.layerGroup;

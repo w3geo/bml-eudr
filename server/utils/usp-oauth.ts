@@ -102,18 +102,13 @@ export function defineOAuthUSPEventHandler({
     const redirectURL = config.redirectURL || getOAuthRedirectURL(event);
 
     if (!query.code) {
-      config.scope = config.scope || ['openid', 'profile', 'eid'];
-      // if (config.emailRequired && !config.scope.includes("user:email")) {
-      //   config.scope.push("user:email");
-      // }
-
       return sendRedirect(
         event,
         withQuery(config.authorizationURL as string, {
           response_type: 'code',
           client_id: config.clientId,
           redirect_uri: redirectURL,
-          scope: config.scope.join(' '),
+          scope: config.scope?.join(' '),
           ...config.authorizationParams,
         }),
       );

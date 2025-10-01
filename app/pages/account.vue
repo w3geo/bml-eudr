@@ -20,7 +20,7 @@ const emailSubmitted = ref(false);
 const expandUserData = ref(false);
 
 async function submitEmail() {
-  await $fetch('/api/auth/email', {
+  await $fetch('/auth/otp', {
     method: 'POST',
     body: { email: email.value },
   });
@@ -28,7 +28,7 @@ async function submitEmail() {
 }
 
 async function submitOtp() {
-  window.location.href = `/api/auth/email?code=${otp.value}&email=${email.value}`;
+  window.location.href = `/auth/otp?code=${otp.value}&email=${email.value}`;
 }
 
 /** @type {import('vue').Ref<import('~/components/UserData.vue').default|null>} */

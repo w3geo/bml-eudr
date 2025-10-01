@@ -2,9 +2,6 @@ import { and, eq } from 'drizzle-orm';
 import users from '~~/server/db/schema/users';
 
 export default defineEventHandler(async (event) => {
-  if (event.method !== 'GET') {
-    throw createError({ status: 405, statusMessage: 'Method Not Allowed' });
-  }
   const query = getQuery(event);
   if (!query.onBehalfOf || !query.token) {
     throw createError({ status: 400, statusMessage: 'Bad Request' });

@@ -67,14 +67,10 @@ const { data: userData } = await useFetch('/api/users/me');
           >Impressum</v-list-item
         >
         <template v-if="loggedIn">
-          <v-list-item
-            :active="false"
-            link
-            to="/"
-            :append-icon="mdiLogout"
-            class="pl-6 text-medium-emphasis"
-            @click="clear"
-            >Abmelden</v-list-item
+          <v-list-item :append-icon="mdiLogout" class="pl-6 text-medium-emphasis" @click="clear"
+            ><NuxtLink class="text-medium-emphasis text-decoration-none" to="/"
+              >Abmelden</NuxtLink
+            ></v-list-item
           ></template
         >
       </v-list>
