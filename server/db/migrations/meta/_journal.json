@@ -134,6 +134,13 @@
       "when": 1759236055753,
       "tag": "0018_users_remove-email",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1759419959916,
+      "tag": "0019_ama_cattle-remove-users-join",
+      "breakpoints": true
     }
   ]
 }

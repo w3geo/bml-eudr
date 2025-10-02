@@ -97,7 +97,7 @@ export default defineEventHandler(async (event) => {
     promises.push(
       db.insert(amaCattle).values({
         ddsId,
-        userId,
+        lfbis: userId,
         count: cattleCount,
       }),
     );

@@ -1,11 +1,8 @@
 import { pgTable, smallint, uuid, varchar } from 'drizzle-orm/pg-core';
-import users from './users';
 
 const amaCattle = pgTable('ama_cattle', {
   ddsId: uuid().primaryKey(),
-  userId: varchar({ length: 127 })
-    .notNull()
-    .references(() => users.id),
+  lfbis: varchar({ length: 127 }).notNull(),
   count: smallint().notNull(),
 });
 
