@@ -34,6 +34,22 @@ To convert the AMA client certificate to .crt and .key files for use with Node H
 
 `temp.key` can be deleted. `ama-partner.crt` is used for the agent's `cert`, `ama-partner.key` for the agent's `key`.
 
+## Import LFBIS-INSPIRE link tables
+
+LFBIS-INSPIRE link tables are provided by AMA. When handling this data, be aware that the process is subject to GDPR regulations. This means: delete all data when finished processing, and use it only in the way described in this process.
+
+Link data is provided as a set of two CSV files, one for fields ("SCHLAEGE" and one for farms ("HOFSTELLEN"). To bring them into the correct form, use the `scripts/lfbis-inspire.js` script, e.g.
+```sh
+node scripts/lfbis-inspire.js --in VERKN_INSPIRE_SCHLAEGE_BNR.csv --out schlaege.csv
+node scripts/lfbis-inspire.js --in VERKN_INSPIRE_HOFSTELLEN_BNR.csv --out hofstellen.csv
+```
+Now import the `schlaege.csv` and `hofstellen.csv` files into the database, using your preferred database management tool:
+
+* `schlaege.csv` goes into the `lfbis_field` table
+* `hofstellen.csv` goes into the `lfbis_farm` table
+
+Be sure to empty existing contents of the tables before importing new data!
+
 # Nuxt Minimal Starter
 
 Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
