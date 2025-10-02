@@ -106,7 +106,8 @@ export async function getCompleteFeature(feature, getId, source, zoom) {
 
 /**
  * @param {import('ol/layer/Group.js').default} layerGroup
- * @param {string} glLayer
+ * @param {string} glLayer A glLayer on the OpenLayers layer that holds the features we want to select from.
+ * Features from other glLayers on the same OpeLayers layer will also be returned.
  * @param {(feature: import('ol/Feature.js').FeatureLike) => (string|number|undefined)} getId
  * @param {number} zoom
  */

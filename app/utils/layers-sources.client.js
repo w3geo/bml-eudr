@@ -49,7 +49,7 @@ function createAgraratlasLayer(commodity, farms = [], fields = []) {
       agraratlas,
       {
         ...schlaege,
-        id: 'invekos_schlaege_polygon-not-commodity-not-my-field-fill',
+        id: 'invekos_schlaege_polygon-not-commodity-fill',
         filter: [
           'all',
           ['!', ['in', ['get', 'localID'], ['literal', fields]]],
@@ -79,7 +79,7 @@ function createAgraratlasLayer(commodity, farms = [], fields = []) {
       agraratlas,
       {
         ...schlaege,
-        id: 'invekos_schlaege_polygon-commodity-not-my-field-fill',
+        id: 'invekos_schlaege_polygon-commodity-fill',
         filter: [
           'all',
           ['!', ['in', ['get', 'localID'], ['literal', fields]]],
@@ -113,7 +113,7 @@ function createAgraratlasLayer(commodity, farms = [], fields = []) {
     removeMapboxLayer(agraratlas, 'invekos_schlaege_polygon-fill');
     if (commodity === 'rind') {
       addMapboxLayer(agraratlas, {
-        'id': 'invekos_hofstelle-point-not-my-farm',
+        'id': 'invekos_hofstelle-point',
         'type': 'circle',
         'source': 'agrargis',
         'source-layer': 'invekos_hofstellen',
