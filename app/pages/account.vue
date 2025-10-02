@@ -13,11 +13,15 @@ useSeoMeta({
 const { loggedIn } = useUserSession();
 const theme = useColorMode();
 const { xs } = useDisplay();
+const { errorMessage } = useErrorMessage();
 
 const email = ref();
 const otp = ref();
 const emailSubmitted = ref(false);
 const expandUserData = ref(false);
+watch(expandUserData, (val) => {
+  console.log('expandUserData', val);
+});
 
 async function submitEmail() {
   await $fetch('/auth/otp', {
@@ -34,28 +38,42 @@ async function submitOtp() {
 /** @type {import('vue').Ref<import('~/components/UserData.vue').default|null>} */
 const userDataForm = ref(null);
 
-const unwatch = watch(userDataForm, async (form) => {
-  if (form) {
-    const formOk = await form.validate();
-    form.resetValidation();
-    expandUserData.value = !formOk;
-    unwatch();
-  }
-});
+const { data: statements, error: statementsError } = await useFetch('/api/statements');
+const unwatch = watch(
+  [userDataForm, statements, statementsError],
+  async ([form, statements, statementsError]) => {
+    if (form) {
+      const formOk = await form.validate();
+      console.log(formOk);
+      form.resetValidation();
+      const noStatements = !statementsError && (statements?.length || 0) === 0;
+      expandUserData.value = !formOk || noStatements;
+      unwatch();
+    }
+  },
+);
 
 const loginRetry = useCookie('login-retry');
 const loginError = useCookie('login-error');
+watch(
+  [loginRetry, loginError],
+  ([retry, error]) => {
+    if (!retry && !error) {
+      return;
+    }
+    errorMessage.value = error || 'Anmeldung fehlgeschlagen, bitte versuchen Sie es noch einmal.';
+  },
+  { immediate: true },
+);
+
+if (!statementsError.value) {
+  expandUserData.value = (statements.value?.length || 0) === 0;
+}
 </script>
 
 <template>
   <v-container>
     <v-row>
-      <v-alert v-if="loginRetry" closable>
-        Anmeldung fehlgeschlagen, bitte versuchen Sie es noch einmal.
-      </v-alert>
-      <v-alert v-if="loginError" closable>
-        {{ loginError }}
-      </v-alert>
       <v-col>
         <v-card v-if="loggedIn">
           <v-card-title
@@ -110,14 +128,26 @@ const loginError = useCookie('login-error');
         </v-card>
       </v-col>
       <v-col :cols="xs ? 12 : 6">
+        <v-card class="fill-height" href="./auth/usp">
+          <v-card-title class="text-center"> Anmelden über </v-card-title>
+          <v-card-actions class="d-flex justify-center">
+            <v-img height="50" :src="`./USP_Logo_${theme.value}.png`" />
+          </v-card-actions>
+          <v-card-text class="text-center">
+            Für land-/forstwirtschaftliche Betriebe, die über kein eAMA Login verfügen (keine
+            Zuordnung der Bewirtschafter zu ihren Flächen)
+          </v-card-text>
+        </v-card>
+      </v-col>
+      <v-col :cols="xs ? 12 : 6">
         <v-card class="fill-height" href="./auth/idaustria">
           <v-card-title class="text-center"> Anmelden mit </v-card-title>
           <v-card-actions class="d-flex justify-center">
             <v-img height="50" :src="`./id-austria-logo-${theme.value}.png`" />
           </v-card-actions>
           <v-card-text class="text-center">
-            Für alle, die über kein eAMA Login verfügen (keine Zuordnung der Bewirtschafter zu ihren
-            Flächen bzw. Rindern)
+            Für private Bewirtschafter, die über kein eAMA Login verfügen (keine Zuordnung der
+            Bewirtschafter zu ihren Flächen)
           </v-card-text>
         </v-card>
       </v-col>
@@ -153,16 +183,11 @@ const loginError = useCookie('login-error');
           </v-card-actions>
           <v-card-text v-if="!emailSubmitted" class="text-center">
             Wenn jemand anderes die Sorgfaltserklärung erstellen soll (keine Zuordnung der
-            Bewirtschafter zu ihren Flächen bzw. Rindern)
+            Bewirtschafter zu ihren Flächen)
           </v-card-text>
           <v-card-text v-else class="text-center">
             Bitte geben Sie den per E-Mail erhaltenen Code ein.
           </v-card-text>
-        </v-card>
-      </v-col>
-      <v-col :cols="xs ? 12 : 6">
-        <v-card class="fill-height" href="./auth/usp">
-          <v-card-title class="text-center"> USP </v-card-title>
         </v-card>
       </v-col>
       <DevOnly>
