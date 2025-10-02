@@ -128,50 +128,19 @@ export function defineOAuthUSPEventHandler({
       return handleAccessTokenErrorResponse(event, 'usp', tokens, onError);
     }
 
-    const tokenData = decodeJwt(tokens.id_token);
+    const tokenData = decodeJwt(tokens.access_token);
 
     console.log('USP token data', tokenData);
 
-    //TODO Remove this block when user data to session assignment is implemented
-    const temporaryError = createError({
-      statusCode: 404,
-      message: `Noch nicht implementiert`,
-    });
-    if (temporaryError) {
-      if (onError) {
-        return onError(event, temporaryError);
-      }
-      throw temporaryError;
-    }
-
     const user = {
-      login: tokenData['urn:pvpgvat:oidc.bpk'],
-      firstName: tokenData.given_name,
-      lastName: tokenData.family_name,
+      login: tokenData['urn:pvpgvat:oidc.ou_gv_ou_id'],
+      name: tokenData['urn:pvpgvat:oidc.ou'],
+      streetAddress: tokenData['urn:uspgvat:enterprise_street_address'],
+      houseNumber: tokenData['urn:uspgvat:enterprise_house_number'],
+      postalCode: tokenData['urn:uspgvat:enterprise_postal_code'],
+      locality: tokenData['urn:uspgvat:enterprise_locality'],
+      enterpriseKeys: tokenData['urn:uspgvat:enterprise_keys'],
     };
-    const meldeadresse = tokenData['urn:eidgvat:attributes.mainAddress'] as string;
-    if (!meldeadresse) {
-      const error = createError({
-        statusCode: 401,
-        message:
-          'Kein Login mit diesem Account möglich. Österreichische Meldeadresse erforderlich. Bitte verwenden Sie einen anderen Account.',
-      });
-      if (onError) {
-        return onError(event, error);
-      }
-      throw error;
-    }
-    Object.assign(
-      user,
-      JSON.parse(
-        new TextDecoder().decode(
-          Uint8Array.from(
-            atob(meldeadresse) as Iterable<string>,
-            (m) => m.codePointAt(0) as number,
-          ),
-        ),
-      ),
-    );
 
     return onSuccess(event, {
       user,
