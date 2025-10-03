@@ -19,6 +19,7 @@ declare module '#auth-utils' {
     address: string;
     identifierType: IdentifierType;
     identifierValue: string;
+    sid?: string;
   }
 }
 

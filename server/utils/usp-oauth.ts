@@ -85,6 +85,22 @@ export function defineOAuthUSPEventHandler({
 
     const query = getQuery<{ code?: string; error?: string }>(event);
 
+    console.log('Query', query);
+    if ('logout' in query) {
+      const requestURL = getRequestURL(event);
+      await clearUserSession(event);
+      const sid = (await getUserSession(event)).secure?.sid;
+      console.log('Logging out', sid);
+      return sendRedirect(
+        event,
+        withQuery('https://sso.usp.gv.at/realms/usp-clients/protocol/openid-connect/logout', {
+          id_token_hint: sid,
+          client_id: config.clientId,
+          post_logout_redirect_uri: `${requestURL.protocol}//${requestURL.host}/`,
+        }),
+      );
+    }
+
     if (query.error) {
       const error = createError({
         statusCode: 401,
@@ -130,7 +146,7 @@ export function defineOAuthUSPEventHandler({
 
     const tokenData = decodeJwt(tokens.access_token);
 
-    console.log('USP token data', tokenData);
+    console.log('USP access token data', tokenData);
 
     const user = {
       login: tokenData['urn:pvpgvat:oidc.ou_gv_ou_id'],

@@ -1,5 +1,7 @@
+import { decodeJwt } from 'jose';
+
 export default defineOAuthUSPEventHandler({
-  async onSuccess(event, { user }) {
+  async onSuccess(event, { user, tokens }) {
     const name = `${user.name}`;
     const address = `${user.streetAddress} ${user.houseNumber}, ${user.postalCode} ${user.locality}`;
     const identifierValue = user.enterpriseKeys
@@ -12,7 +14,13 @@ export default defineOAuthUSPEventHandler({
         login: user.login,
       },
       loginProvider: 'USP',
-      secure: { name, address, identifierType: 'GLN', identifierValue },
+      secure: {
+        name,
+        address,
+        identifierType: 'GLN',
+        identifierValue,
+        sid: decodeJwt(tokens.access_token).sid,
+      },
       loggedInAt: Date.now(),
     });
 
