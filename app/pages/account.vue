@@ -119,7 +119,7 @@ if (!statementsError.value) {
         <v-card class="fill-height" href="./auth/ama">
           <v-card-title class="text-center"> Anmelden mit </v-card-title>
           <v-card-actions class="d-flex justify-center">
-            <v-img height="50" :src="`./logo_eama_${theme.value}.png`" />
+            <v-img alt="eAMA" height="50" :src="`./logo_eama_${theme.value}.png`" />
           </v-card-actions>
           <v-card-text class="text-center">
             Nutzung bestehender Verwaltungsdaten zur einfacheren Zuordnung der Bewirtschafter zu
@@ -131,7 +131,11 @@ if (!statementsError.value) {
         <v-card class="fill-height" href="./auth/usp">
           <v-card-title class="text-center"> Anmelden über </v-card-title>
           <v-card-actions class="d-flex justify-center">
-            <v-img height="50" :src="`./USP_Logo_${theme.value}.png`" />
+            <v-img
+              alt="Unternehmensserviceportal"
+              height="50"
+              :src="`./USP_Logo_${theme.value}.png`"
+            />
           </v-card-actions>
           <v-card-text class="text-center">
             Für land-/forstwirtschaftliche Betriebe, die über kein eAMA Login verfügen (keine
@@ -143,7 +147,7 @@ if (!statementsError.value) {
         <v-card class="fill-height" href="./auth/idaustria">
           <v-card-title class="text-center"> Anmelden mit </v-card-title>
           <v-card-actions class="d-flex justify-center">
-            <v-img height="50" :src="`./id-austria-logo-${theme.value}.png`" />
+            <v-img alt="ID Austria" height="50" :src="`./id-austria-logo-${theme.value}.png`" />
           </v-card-actions>
           <v-card-text class="text-center">
             Für private Bewirtschafter, die über kein eAMA Login verfügen (keine Zuordnung der
