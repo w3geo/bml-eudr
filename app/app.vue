@@ -15,6 +15,15 @@ const items = routes
   .sort((a, b) => Number(a.meta.sort) - Number(b.meta.sort))
   .map((route) => ({ title: route.meta.title, to: route.path }));
 const { data: userData } = await useFetch('/api/users/me');
+
+const logout = () => {
+  if (useUserSession().session.value?.loginProvider === 'USP') {
+    window.location.href = './auth/usp?logout';
+  } else {
+    clear();
+    router.push('/');
+  }
+};
 </script>
 
 <template>
@@ -36,13 +45,7 @@ const { data: userData } = await useFetch('/api/users/me');
           <v-list-item :subtitle="userData?.name" />
           <v-divider />
           <v-list-item class="text-medium-emphasis" link to="/account">Meine Konto</v-list-item>
-          <v-list-item
-            :active="false"
-            link
-            to="/"
-            :append-icon="mdiLogout"
-            class="text-medium-emphasis"
-            @click="clear"
+          <v-list-item :append-icon="mdiLogout" class="text-medium-emphasis" @click="logout"
             >Abmelden</v-list-item
           >
         </v-list>
@@ -67,10 +70,8 @@ const { data: userData } = await useFetch('/api/users/me');
           >Impressum</v-list-item
         >
         <template v-if="loggedIn">
-          <v-list-item :append-icon="mdiLogout" class="pl-6 text-medium-emphasis" @click="clear"
-            ><NuxtLink class="text-medium-emphasis text-decoration-none" to="/"
-              >Abmelden</NuxtLink
-            ></v-list-item
+          <v-list-item :append-icon="mdiLogout" class="pl-6 text-medium-emphasis" @click="logout"
+            >Abmelden</v-list-item
           ></template
         >
       </v-list>
