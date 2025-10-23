@@ -1,5 +1,3 @@
-import { decodeJwt } from 'jose';
-
 export default defineOAuthUSPEventHandler({
   async onSuccess(event, { user, tokens }) {
     const name = `${user.name}`;
@@ -19,7 +17,7 @@ export default defineOAuthUSPEventHandler({
         address,
         identifierType: 'GLN',
         identifierValue,
-        sid: decodeJwt(tokens.access_token).sid,
+        idToken: tokens.id_token,
       },
       loggedInAt: Date.now(),
     });
