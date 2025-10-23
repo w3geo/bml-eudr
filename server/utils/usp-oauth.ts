@@ -81,11 +81,11 @@ export function defineOAuthUSPEventHandler({
         //FIXME Set correct default
         'https://eid2.oesterreich.gv.at/auth/idp/profile/oidc/token',
       authorizationParams: {},
-      scope: ['openid'],
     }) as OAuthUSPConfig;
 
     const query = getQuery<{ code?: string; error?: string }>(event);
 
+    console.log('Query', query);
     if ('logout' in query) {
       const requestURL = getRequestURL(event);
       await clearUserSession(event);
@@ -120,7 +120,7 @@ export function defineOAuthUSPEventHandler({
       return sendRedirect(
         event,
         withQuery(config.authorizationURL as string, {
-          response_type: 'code',
+          response_type: 'code id_token',
           client_id: config.clientId,
           redirect_uri: redirectURL,
           scope: config.scope?.join(' '),
@@ -145,8 +145,6 @@ export function defineOAuthUSPEventHandler({
 
     const tokenData = decodeJwt(tokens.access_token);
 
-    console.log('Token data', tokenData);
-
     const user = {
       login: tokenData['urn:pvpgvat:oidc.ou_gv_ou_id'],
       name: tokenData['urn:pvpgvat:oidc.ou'],
@@ -156,9 +154,6 @@ export function defineOAuthUSPEventHandler({
       locality: tokenData['urn:uspgvat:enterprise_locality'],
       enterpriseKeys: tokenData['urn:uspgvat:enterprise_keys'],
     };
-
-    console.log('User', user);
-    console.log('Tokens', tokens);
 
     return onSuccess(event, {
       user,
