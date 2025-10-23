@@ -19,9 +19,6 @@ const email = ref();
 const otp = ref();
 const emailSubmitted = ref(false);
 const expandUserData = ref(false);
-watch(expandUserData, (val) => {
-  console.log('expandUserData', val);
-});
 
 async function submitEmail() {
   await $fetch('/auth/otp', {
@@ -44,7 +41,6 @@ const unwatch = watch(
   async ([form, statements, statementsError]) => {
     if (form) {
       const formOk = await form.validate();
-      console.log(formOk);
       form.resetValidation();
       const noStatements = !statementsError && (statements?.length || 0) === 0;
       expandUserData.value = !formOk || noStatements;

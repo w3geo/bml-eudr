@@ -78,15 +78,16 @@ useSeoMeta({
             <div class="text-body-1 mb-2">
               Bei Klicken der Schaltfläche "Bestätigen und Übermitteln" auf der Seite
               "Sorgfaltserklärung" wird zum Zweck der Verknüpfung mit dieser Applikation Ihre
-              Benutzer-ID (LFBIS-Nummer bei eAMA Login, e-mail Adresse bei E-Mail Login) als interne
-              Referenz an die TRACES-Datenbank übermittelt.
+              Benutzer-ID (LFBIS-Nummer bei eAMA Login, KUR bei USP Login, bPK bei ID Austria Login,
+              e-mail Adresse bei E-Mail Login) als interne Referenz an die TRACES-Datenbank
+              übermittelt.
             </div>
             <div class="text-body-1 mb-2">
               Bei Klicken der Schaltfläche "Bestätigen und Übermitteln" auf der Seite
-              "Sorgfaltserklärung" werden Name und Adresse des Betriebes, die Identifikationsnummer,
-              sowie die für die Sorgfaltserklärung erfassten Flächen- bzw. Punktdaten, Erzeugnisse,
-              und deren Mengen an die TRACES-Datenbank übermittelt, da diese Angaben für die
-              Sorgfaltserklärung verpflichtend sind.
+              "Sorgfaltserklärung" werden Name und Adresse des Betriebes, die Identifikationsnummer
+              (GLN, UID oder Steuernummer), sowie die für die Sorgfaltserklärung erfassten Flächen-
+              bzw. Punktdaten, Erzeugnisse, und deren Mengen an die TRACES-Datenbank übermittelt, da
+              diese Angaben für die Sorgfaltserklärung verpflichtend sind.
             </div>
           </v-card-text>
         </v-card>
