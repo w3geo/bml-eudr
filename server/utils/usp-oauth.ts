@@ -146,8 +146,6 @@ export function defineOAuthUSPEventHandler({
 
     const tokenData = decodeJwt(tokens.access_token);
 
-    console.log('USP access token data', tokenData);
-
     const user = {
       login: tokenData['urn:pvpgvat:oidc.ou_gv_ou_id'],
       name: tokenData['urn:pvpgvat:oidc.ou'],
