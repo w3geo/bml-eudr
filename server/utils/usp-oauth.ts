@@ -63,6 +63,8 @@ export interface OAuthUSPConfig {
   redirectURL?: string;
 }
 
+const idTokens: Record<string, string> = {};
+
 export function defineOAuthUSPEventHandler({
   config,
   onSuccess,
@@ -81,15 +83,35 @@ export function defineOAuthUSPEventHandler({
         //FIXME Set correct default
         'https://eid2.oesterreich.gv.at/auth/idp/profile/oidc/token',
       authorizationParams: {},
+      scope: ['openid'],
     }) as OAuthUSPConfig;
+
+    if (!config.clientId || !config.clientSecret) {
+      return handleMissingConfiguration(event, 'usp', ['clientId', 'clientSecret'], onError);
+    }
 
     const query = getQuery<{ code?: string; error?: string }>(event);
 
-    console.log('Query', query);
     if ('logout' in query) {
       const requestURL = getRequestURL(event);
+      const sid = (await getUserSession(event)).secure?.sid;
       await clearUserSession(event);
-      const idToken = (await getUserSession(event)).secure?.idToken;
+
+      console.log('Logging out USP user with sid', sid);
+      console.log('Current idTokens:', idTokens);
+
+      if (!sid) {
+        return sendRedirect(event, '/');
+      }
+
+      const idToken = idTokens[sid];
+
+      if (!idToken) {
+        return sendRedirect(event, '/');
+      }
+
+      delete idTokens[sid]; //eslint-disable-line @typescript-eslint/no-dynamic-delete
+
       return sendRedirect(
         event,
         withQuery('https://sso.usp.gv.at/realms/usp-clients/protocol/openid-connect/logout', {
@@ -110,17 +132,13 @@ export function defineOAuthUSPEventHandler({
       return onError(event, error);
     }
 
-    if (!config.clientId || !config.clientSecret) {
-      return handleMissingConfiguration(event, 'usp', ['clientId', 'clientSecret'], onError);
-    }
-
     const redirectURL = config.redirectURL || getOAuthRedirectURL(event);
 
     if (!query.code) {
       return sendRedirect(
         event,
         withQuery(config.authorizationURL as string, {
-          response_type: 'code id_token',
+          response_type: 'code',
           client_id: config.clientId,
           redirect_uri: redirectURL,
           scope: config.scope?.join(' '),
@@ -143,7 +161,14 @@ export function defineOAuthUSPEventHandler({
       return handleAccessTokenErrorResponse(event, 'usp', tokens, onError);
     }
 
+    console.log('sid', tokens.access_token.sid);
+    console.log('id_token', tokens.id_token);
+
     const tokenData = decodeJwt(tokens.access_token);
+
+    idTokens[tokenData.sid as string] = tokens.id_token;
+
+    console.log('Token data', tokenData);
 
     const user = {
       login: tokenData['urn:pvpgvat:oidc.ou_gv_ou_id'],
@@ -154,6 +179,9 @@ export function defineOAuthUSPEventHandler({
       locality: tokenData['urn:uspgvat:enterprise_locality'],
       enterpriseKeys: tokenData['urn:uspgvat:enterprise_keys'],
     };
+
+    console.log('User', user);
+    console.log('Tokens', tokens);
 
     return onSuccess(event, {
       user,

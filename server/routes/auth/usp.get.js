@@ -1,5 +1,9 @@
+import { decodeJwt } from 'jose';
+
 export default defineOAuthUSPEventHandler({
   async onSuccess(event, { user, tokens }) {
+    console.log('onSuccess: Logged in USP user', user);
+    console.log('onSuccess: Tokens', tokens);
     const name = `${user.name}`;
     const address = `${user.streetAddress} ${user.houseNumber}, ${user.postalCode} ${user.locality}`;
     const identifierValue = user.enterpriseKeys
@@ -17,7 +21,7 @@ export default defineOAuthUSPEventHandler({
         address,
         identifierType: 'GLN',
         identifierValue,
-        idToken: tokens.id_token,
+        sid: decodeJwt(tokens.access_token).sid,
       },
       loggedInAt: Date.now(),
     });
@@ -25,6 +29,7 @@ export default defineOAuthUSPEventHandler({
     return sendRedirect(event, '/account');
   },
   async onError(event, error) {
+    console.log('LOGIN ERROR USP', error);
     setCookie(event, 'login-error', error.message, {
       expires: new Date(Date.now() + 10000),
       secure: true,

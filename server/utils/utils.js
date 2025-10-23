@@ -20,7 +20,7 @@ export function getOAuthRedirectURL(event) {
  * @typedef {Object} RequestAccessTokenBody
  * @property {"authorization_code"} grant_type
  * @property {string} code
- * @property {string} redirect_uri
+ * @property {string} [redirect_uri]
  * @property {string} client_id
  * @property {string} [client_secret]
  * @property {Object<string, string>} [key]
