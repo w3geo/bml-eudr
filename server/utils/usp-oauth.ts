@@ -89,11 +89,12 @@ export function defineOAuthUSPEventHandler({
     if ('logout' in query) {
       const requestURL = getRequestURL(event);
       await clearUserSession(event);
-      const idToken = (await getUserSession(event)).secure?.idToken;
+      const sid = (await getUserSession(event)).secure?.sid;
+      console.log('Logging out', sid);
       return sendRedirect(
         event,
         withQuery('https://sso.usp.gv.at/realms/usp-clients/protocol/openid-connect/logout', {
-          id_token_hint: idToken,
+          id_token_hint: sid,
           client_id: config.clientId,
           post_logout_redirect_uri: `${requestURL.protocol}//${requestURL.host}/`,
         }),
@@ -120,7 +121,7 @@ export function defineOAuthUSPEventHandler({
       return sendRedirect(
         event,
         withQuery(config.authorizationURL as string, {
-          response_type: 'code id_token',
+          response_type: 'code',
           client_id: config.clientId,
           redirect_uri: redirectURL,
           scope: config.scope?.join(' '),
