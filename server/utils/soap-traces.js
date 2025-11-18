@@ -271,6 +271,7 @@ export async function submitDDS(commodities, geolocationVisible, user) {
     throw new Error('User is required for DDS submission');
   }
   const body = getSubmitXML(commodities, geolocationVisible, user);
+  console.log('Submitting TRACES XML:', body);
   const submitResponse = await fetch(
     'https://acceptance.eudr.webcloud.ec.europa.eu/tracesnt/ws/EUDRSubmissionServiceV1',
     {
@@ -290,6 +291,7 @@ export async function submitDDS(commodities, geolocationVisible, user) {
     },
   );
   const submitResponseXML = await submitResponse.text();
+  console.log('TRACES submit response:', submitResponseXML);
   const xml = new DOMParser().parseFromString(submitResponseXML, 'text/xml');
   const faultString = xml.getElementsByTagName('faultstring').item(0)?.textContent;
   const message = xml.getElementsByTagNameNS(errorNS, 'Message').item(0)?.textContent;
