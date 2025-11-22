@@ -73,12 +73,18 @@ if (!statementsError.value) {
       <v-col>
         <v-card v-if="loggedIn">
           <v-card-title
-            ><v-toolbar color="transparent" flat density="compact"
+            ><v-toolbar
+              color="transparent"
+              flat
+              density="compact"
+              class="cursor-pointer"
+              @click="expandUserData = !expandUserData"
               >Angaben zum Betrieb<v-spacer /><v-btn
                 flat
                 density="compact"
-                :icon="expandUserData ? mdiUnfoldLessHorizontal : mdiUnfoldMoreHorizontal"
-                @click="expandUserData = !expandUserData" /></v-toolbar
+                :icon="
+                  expandUserData ? mdiUnfoldLessHorizontal : mdiUnfoldMoreHorizontal
+                " /></v-toolbar
           ></v-card-title>
           <v-expand-transition>
             <v-sheet v-show="expandUserData">

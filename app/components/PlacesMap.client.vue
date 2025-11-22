@@ -86,13 +86,16 @@ onMounted(async () => {
   });
   view.fit(extent, { size: map.getSize(), maxZoom: 10, padding: [20, 20, 20, 20] });
   mapContainer.value.classList.add('spinner');
-  const address = props.address;
-  const value = address?.split(', ').reverse().join(' ');
+  const addressParts = props.address?.split(/, ?/);
+  const address =
+    addressParts && addressParts.length > 1
+      ? addressParts.slice(0, 2).reverse().join(' ')
+      : props.address;
   const animation = { center: getCenter(extent), zoom: 13, duration: 500 };
   try {
-    const locationData = value
+    const locationData = address
       ? $fetch(
-          `https://kataster.bev.gv.at/api/search/?layers=pg-adr-gn-rn-gst-kg-bl&term=${encodeURIComponent(value)}`,
+          `https://kataster.bev.gv.at/api/search/?layers=pg-adr-gn-rn-gst-kg-bl&term=${encodeURIComponent(address)}`,
         )
       : null;
     const { features } = locationData
