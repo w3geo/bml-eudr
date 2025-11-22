@@ -97,9 +97,6 @@ export function defineOAuthUSPEventHandler({
       const sid = (await getUserSession(event)).secure?.sid;
       await clearUserSession(event);
 
-      console.log('Logging out USP user with sid', sid);
-      console.log('Current idTokens:', idTokens);
-
       if (!sid) {
         return sendRedirect(event, '/');
       }
@@ -161,14 +158,9 @@ export function defineOAuthUSPEventHandler({
       return handleAccessTokenErrorResponse(event, 'usp', tokens, onError);
     }
 
-    console.log('sid', tokens.access_token.sid);
-    console.log('id_token', tokens.id_token);
-
     const tokenData = decodeJwt(tokens.access_token);
 
     idTokens[tokenData.sid as string] = tokens.id_token;
-
-    console.log('Token data', tokenData);
 
     const user = {
       login: tokenData['urn:pvpgvat:oidc.ou_gv_ou_id'],
@@ -179,9 +171,6 @@ export function defineOAuthUSPEventHandler({
       locality: tokenData['urn:uspgvat:enterprise_locality'],
       enterpriseKeys: tokenData['urn:uspgvat:enterprise_keys'],
     };
-
-    console.log('User', user);
-    console.log('Tokens', tokens);
 
     return onSuccess(event, {
       user,
