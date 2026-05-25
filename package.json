@@ -14,7 +14,10 @@
     "test": "npm run lint && npm run typecheck"
   },
   "engines": {
-    "node": "22.x"
+    "node": "24.x"
+  },
+  "overrides": {
+    "nodemailer": "8"
   },
   "dependencies": {
     "@eschricht/nuxt-color-mode": "^1.2.0",
@@ -24,9 +27,8 @@
     "@w3geo/vue-place-search": "^2.0.0",
     "@xmldom/xmldom": "^0.9.8",
     "db0": "^0.3.2",
-    "drizzle-orm": "^0.44.4",
-    "nodemailer": "^6.10.1",
-    "nuxt": "^4.1.2",
+    "drizzle-orm": "^0.45.2",
+    "nuxt": "^4.4.6",
     "nuxt-auth-utils": "^0.5.22",
     "nuxt-nodemailer": "^1.1.2",
     "ol": "^10.6.1",
@@ -40,7 +42,7 @@
     "vue": "^3.5.18",
     "vue-router": "^4.5.1",
     "vuetify": "^3.9.3",
-    "vuetify-nuxt-module": "^0.18.7"
+    "vuetify-nuxt-module": "^0.19.5"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.3.7",
@@ -48,7 +50,7 @@
     "@types/geojson": "^7946.0.16",
     "@types/otp-generator": "^4.0.2",
     "@types/pg": "^8.15.5",
-    "drizzle-kit": "^0.31.4",
+    "drizzle-kit": "^0.31.10",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.3",
     "nuxi": "^3.27.0",
