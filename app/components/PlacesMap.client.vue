@@ -28,6 +28,10 @@ const backgroundKatasterLayer = createBackgroundKatasterLayer();
 
 /** @type {Ref<import('ol/layer/Vector.js').default>} */
 const geolocationLayer = shallowRef(new VectorLayer());
+/** @type {import('vue').ComputedRef<import('ol/source/Vector.js').default>} */
+const geolocationSource = computed(
+  () => /** @type {import('ol/source/Vector.js').default} */ (geolocationLayer.value.getSource()),
+);
 /** @type {Ref<import('ol/layer/Group.js').default|null>} */
 const commodityLayer = shallowRef(null);
 /** @type {Ref<import('~/utils/layers-sources.client.js').GetFeatureAtPixel|(() => void)>} */
@@ -140,7 +144,7 @@ function locateMe() {
       <map-tools
         :map="map"
         :get-feature-at-pixel="getFeatureAtPixel"
-        :geolocation-source="geolocationLayer.getSource() || undefined"
+        :geolocation-source="geolocationSource"
         :commodity="props.commodity"
       />
       <v-spacer />

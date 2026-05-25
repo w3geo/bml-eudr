@@ -74,12 +74,16 @@ export default defineEventHandler(async (event) => {
     const properties = await readBody(event);
     const loginProvidedFields = LOGIN_PROVIDED_FIELDS[session.loginProvider] || [];
     await setUserSession(event, {
+      user: session.user,
+      loginProvider: session.loginProvider,
+      loggedInAt: session.loggedInAt,
+      commodities: session.commodities,
       secure: {
         ...session.secure,
-        name: properties.name,
-        address: properties.address,
-        identifierType: properties.identifierType,
-        identifierValue: properties.identifierValue,
+        name: properties.name ?? undefined,
+        address: properties.address ?? undefined,
+        identifierType: properties.identifierType ?? undefined,
+        identifierValue: properties.identifierValue ?? undefined,
       },
     });
     for (const property of loginProvidedFields) {

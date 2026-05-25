@@ -32,7 +32,7 @@ import { COMMODITIES, HS_HEADING } from '~~/shared/utils/constants.js';
 /**
  * @typedef {Object} CommodityData
  * @property {import('~/composables/useStatement').Quantity|import('vue').Ref<import('~/composables/useStatement').Quantity>} quantity
- * @property {import('geojson').FeatureCollection|import('vue').Ref<import('geojson').FeatureCollection>} geojson
+ * @property {import('geojson').FeatureCollection<import('geojson').Geometry | null>|import('vue').Ref<import('geojson').FeatureCollection<import('geojson').Geometry | null>>} geojson
  * @property {SpeciesList|import('vue').Ref<SpeciesList|null>} [speciesList]
  */
 

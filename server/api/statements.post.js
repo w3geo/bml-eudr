@@ -53,12 +53,22 @@ export default defineEventHandler(async (event) => {
       identifierValue: userFromDb.identifierValue,
     };
   } else {
-    if (!session.secure) {
+    const secure = session.secure;
+    if (
+      !secure ||
+      !secure.name ||
+      !secure.address ||
+      !secure.identifierType ||
+      !secure.identifierValue
+    ) {
       throw createError({ status: 400, statusMessage: 'User is missing required fields' });
     }
     user = {
       id: session.user.login,
-      ...session.secure,
+      name: secure.name,
+      address: secure.address,
+      identifierType: secure.identifierType,
+      identifierValue: secure.identifierValue,
     };
   }
 
@@ -105,8 +115,11 @@ export default defineEventHandler(async (event) => {
   await Promise.all(promises);
   if (!onBehalfOfUser) {
     await setUserSession(event, {
+      user: session.user,
+      loginProvider: session.loginProvider,
+      loggedInAt: session.loggedInAt,
       commodities: {
-        ...session.commodities,
+        ...(session.commodities ?? {}),
         [ddsId]: commodities.map((c) => ({
           key: c.key,
           quantity: c.quantity,

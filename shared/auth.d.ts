@@ -10,15 +10,14 @@ declare module '#auth-utils' {
   interface UserSession {
     loggedInAt: number;
     loginProvider: LoginProvider;
-    commodities: Record<string, Array<CommodityDataWithKey>>;
+    commodities?: Record<string, Array<CommodityDataWithKey>>;
   }
 
   interface SecureSessionData {
-    name: string;
-    email: string;
-    address: string;
-    identifierType: IdentifierType;
-    identifierValue: string;
+    name?: string;
+    address?: string;
+    identifierType?: IdentifierType;
+    identifierValue?: string;
     sid?: string;
   }
 }

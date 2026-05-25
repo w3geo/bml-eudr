@@ -35,8 +35,8 @@ export default defineOAuthIdAustriaEventHandler({
       secure: {
         name: name,
         address: address,
-        identifierType: userData?.identifierType,
-        identifierValue: userData?.identifierValue,
+        identifierType: userData?.identifierType ?? undefined,
+        identifierValue: userData?.identifierValue ?? undefined,
       },
       loggedInAt: Date.now(),
     });
