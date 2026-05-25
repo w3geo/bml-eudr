@@ -22,8 +22,8 @@ export default defineEventHandler(async (event) => {
       secure: {
         name,
         address,
-        identifierType: user?.identifierType,
-        identifierValue: user?.identifierValue,
+        identifierType: user?.identifierType ?? undefined,
+        identifierValue: user?.identifierValue ?? undefined,
       },
       loggedInAt: Date.now(),
     });

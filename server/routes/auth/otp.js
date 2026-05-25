@@ -82,10 +82,10 @@ export default defineEventHandler(async (event) => {
     loggedInAt: Date.now(),
     loginProvider: 'OTP',
     secure: {
-      name: user.name,
-      address: user.address,
-      identifierType: user.identifierType,
-      identifierValue: user.identifierValue,
+      name: user.name ?? undefined,
+      address: user.address ?? undefined,
+      identifierType: user.identifierType ?? undefined,
+      identifierValue: user.identifierValue ?? undefined,
     },
   });
 

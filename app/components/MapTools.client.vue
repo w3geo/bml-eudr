@@ -134,12 +134,15 @@ async function loadGeoJSON(event) {
         featureProjection: props.map.getView().getProjection(),
       });
       props.geolocationSource.addFeatures(features);
-      props.map.getView().fit(props.geolocationSource.getExtent(), {
-        size: props.map.getSize(),
-        maxZoom: 15,
-        padding: [20, 20, 20, 20],
-        duration: 500,
-      });
+      const extent = props.geolocationSource.getExtent();
+      if (extent) {
+        props.map.getView().fit(extent, {
+          size: props.map.getSize(),
+          maxZoom: 15,
+          padding: [20, 20, 20, 20],
+          duration: 500,
+        });
+      }
       file.value = null;
       fileUpload.value = false;
     } catch (error) {

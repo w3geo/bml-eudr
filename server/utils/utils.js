@@ -89,7 +89,7 @@ export function handleAccessTokenErrorResponse(event, oauthProvider, oauthError,
   });
 
   if (!onError) throw error;
-  return onError(event, error);
+  return onError(event, /** @type {import('h3').H3Error} */ (error));
 }
 
 /**
@@ -109,5 +109,5 @@ export function handleMissingConfiguration(event, provider, missingKeys, onError
   });
 
   if (!onError) throw error;
-  return onError(event, error);
+  return onError(event, /** @type {import('h3').H3Error} */ (error));
 }

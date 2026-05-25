@@ -2,10 +2,10 @@
 
 /**
  * @typedef {Object} EditableUserData
- * @property {string} name
- * @property {string} address
- * @property {IdentifierType} identifierType
- * @property {string} identifierValue
+ * @property {string} [name]
+ * @property {string} [address]
+ * @property {IdentifierType} [identifierType]
+ * @property {string} [identifierValue]
  */
 
 /**

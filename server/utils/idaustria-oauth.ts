@@ -1,4 +1,4 @@
-import type { H3Event } from 'h3';
+import type { H3Event, H3Error } from 'h3';
 import { eventHandler, getQuery, sendRedirect } from 'h3';
 import { withQuery } from 'ufo';
 import { defu } from 'defu';
@@ -90,7 +90,7 @@ export function defineOAuthIdAustriaEventHandler({
         data: query,
       });
       if (!onError) throw error;
-      return onError(event, error);
+      return onError(event, error as H3Error);
     }
 
     if (!config.clientId || !config.clientSecret) {
@@ -146,7 +146,7 @@ export function defineOAuthIdAustriaEventHandler({
           'Kein Login mit diesem Account möglich. Österreichische Meldeadresse erforderlich. Bitte verwenden Sie einen anderen Account.',
       });
       if (onError) {
-        return onError(event, error);
+        return onError(event, error as H3Error);
       }
       throw error;
     }

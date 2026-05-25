@@ -50,6 +50,11 @@ export default defineNuxtConfig({
       pass: '',
     },
   },
+  vite: {
+    optimizeDeps: {
+      include: ['@mdi/js', '@vue/devtools-core', '@vue/devtools-kit'],
+    },
+  },
   vuetify: {
     vuetifyOptions: {
       icons: {

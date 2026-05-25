@@ -41,7 +41,7 @@ const commodity = ref(commodities[0]?.value);
         </template>
       </v-app-bar>
       <v-main>
-        <places-map :commodity="commodity" class="fill-height" />
+        <places-map v-if="commodity" :commodity="commodity" class="fill-height" />
       </v-main>
     </v-layout>
   </v-container>
