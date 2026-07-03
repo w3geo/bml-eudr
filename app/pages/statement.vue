@@ -316,7 +316,7 @@ function cancelSpecies() {
               density="compact"
             >
               <template #label>
-                <div class="ml-1 text-body-2">Zugriff auf Erzeugungsorte erlauben</div>
+                <div class="ml-1 text-body-2">Zugriff auf Erzeugungsorte erlauben (empfohlen)</div>
                 <v-tooltip max-width="400" open-on-click>
                   <template #activator="{ props }">
                     <v-btn flat :icon="mdiHelpCircleOutline" size="x-small" v-bind="props"></v-btn>
