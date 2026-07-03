@@ -3,6 +3,7 @@ import {
   mdiCardBulletedOutline,
   mdiContentCopy,
   mdiEmailFastOutline,
+  mdiMap,
   mdiMessageTextOutline,
   mdiRefreshCircle,
   mdiTableArrowDown,
@@ -12,6 +13,22 @@ const { mdAndUp } = useDisplay();
 const { start, finish, clear } = useLoadingIndicator();
 const { errorMessage } = useErrorMessage();
 const statementCount = ref(0);
+
+const mapDialog = reactive({
+  open: false,
+  // prettier-ignore
+  geojson: /** @type {import('geojson').FeatureCollection<import('geojson').Geometry|null>|undefined} */ (undefined),
+  commodity: /** @type {import('~~/shared/utils/constants.js').Commodity|undefined} */ (undefined),
+});
+/**
+ * @param {import('geojson').FeatureCollection<import('geojson').Geometry|null>|import('vue').Ref<import('geojson').FeatureCollection<import('geojson').Geometry|null>>} geojson
+ * @param {string} commodity
+ */
+function openMapDialog(geojson, commodity) {
+  mapDialog.geojson = unref(geojson);
+  mapDialog.commodity = /** @type {import('~~/shared/utils/constants.js').Commodity} */ (commodity);
+  mapDialog.open = true;
+}
 
 const { data: statements, error: statementsError } = await useFetch('/api/statements');
 const { data: userData } = await useFetch('/api/users/me');
@@ -207,8 +224,17 @@ const copyToClipboard = async (statement) => {
                       "
                     />
                   </td>
-                  <td>
+                  <td style="width: 100%">
                     {{ getCommoditySummary(value) }}
+                  </td>
+                  <td>
+                    <v-btn
+                      v-if="unref(value.geojson)?.features?.some((f) => f.geometry)"
+                      density="compact"
+                      variant="text"
+                      :icon="mdiMap"
+                      @click="openMapDialog(value.geojson, value.key)"
+                    />
                   </td>
                 </tr>
               </template>
@@ -244,4 +270,9 @@ const copyToClipboard = async (statement) => {
       <NuxtLink to="/statement"> Sorgfaltserklärung </NuxtLink>.
     </v-col>
   </v-row>
+  <geolocations-dialog
+    v-model="mapDialog.open"
+    :geojson="mapDialog.geojson"
+    :commodity="mapDialog.commodity"
+  />
 </template>
