@@ -50,6 +50,30 @@ Now import the `schlaege.csv` and `hofstellen.csv` files into the database, usin
 
 Be sure to empty existing contents of the tables before importing new data!
 
+## TRACES API v1 → v3 changes
+
+The TRACES EUDR API was updated from V1 (separate `EUDRSubmissionServiceV1` / `EUDRRetrievalServiceV1` endpoints) to V3 (`EUDRDueDiligenceStatementServiceV3`, unified). The following notes document fields and business rules that are **not obvious from the V3 XSD alone** but are enforced at runtime.
+
+### Operator address is required
+
+Although `operatorAddress` inside `representedOperator` is marked optional in the V3 schema, TRACES enforces a business rule that requires `street` (and therefore the full structured address) when submitting as `REPRESENTATIVE_OPERATOR`. The existing combined address string (format `"Street HouseNo, PostalCode City"`) is parsed into the required structured fields (`country`, `street`, `postalCode`, `city`) at submission time.
+
+### `percentageEstimationOrDeviation` is required
+
+`GoodsMeasureType.percentageEstimationOrDeviation` is marked optional in the XSD but is enforced as mandatory by TRACES business rules for every commodity. A value of `0` (exact measurement) is used as the default.
+
+### `netWeight` is required for all commodity types
+
+`GoodsMeasureType.netWeight` is documented as "mandatory if activity type is IMPORT/EXPORT" but TRACES also enforces it for `DOMESTIC` declarations. Because users only enter volume (m³) for wood and head count for cattle, **estimated** values are computed at submission time:
+
+| Commodity | Unit | Estimation |
+|-----------|------|------------|
+| Sojabohnen | t → kg | exact (`quantity × 1000`) |
+| Holz | m³ → kg | estimated (`quantity × 600 kg/m³`, average Austrian timber density) |
+| Rinder | heads → kg | estimated (`quantity × 500 kg/head`, average EU cattle live weight) |
+
+If more accurate weights are needed in the future, a weight input field should be added to the UI for Holz and Rinder.
+
 # Nuxt Minimal Starter
 
 Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.

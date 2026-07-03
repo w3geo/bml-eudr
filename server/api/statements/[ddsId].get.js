@@ -23,7 +23,7 @@ export default defineEventHandler(async (event) => {
     return ddsInfo;
   }
 
-  const { commodities, error } = await retrieveDDSData(
+  const { commodities, geolocationVisible, error } = await retrieveDDSData(
     ddsInfo.referenceNumber,
     ddsInfo.verificationNumber,
   );
@@ -36,5 +36,5 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  return { ...ddsInfo, commodities };
+  return { ...ddsInfo, commodities, geolocationVisible };
 });
