@@ -41,7 +41,7 @@ onNuxtReady(() => {
   if (autoRefreshStatements && autoRefreshStatements.length > 0) {
     const interval = setInterval(async () => {
       for (const s of autoRefreshStatements) {
-        await toggleFullStatement(s.ddsId);
+        await toggleFullStatement(s.sdId);
       }
       if (statements.value?.every((s) => s.referenceNumber)) {
         clearInterval(interval);
@@ -51,15 +51,15 @@ onNuxtReady(() => {
 });
 
 /**
- * @param {string} ddsId
+ * @param {string} sdId
  */
-async function toggleFullStatement(ddsId) {
+async function toggleFullStatement(sdId) {
   if (!statements.value) {
     return;
   }
-  const statement = statements.value?.find((s) => s.ddsId === ddsId);
+  const statement = statements.value?.find((s) => s.sdId === sdId);
   if (!statement) {
-    console.error('No such statement', ddsId);
+    console.error('No such statement', sdId);
     return;
   }
 
@@ -71,13 +71,13 @@ async function toggleFullStatement(ddsId) {
 
   try {
     start();
-    const data = await $fetch(`/api/statements/${ddsId}`);
+    const data = await $fetch(`/api/statements/${sdId}`);
     Object.assign(statement, data);
     statements.value = [...statements.value];
   } catch (error) {
     if (error instanceof Error) {
       clear();
-      console.error('Failed to retrieve DDS data', error.message);
+      console.error('Failed to retrieve SD data', error.message);
     }
   } finally {
     finish();
@@ -91,11 +91,11 @@ async function toggleFullStatement(ddsId) {
  */
 const getCommodities = async (statement) => {
   if (!statement.commodities) {
-    await toggleFullStatement(statement.ddsId);
+    await toggleFullStatement(statement.sdId);
   }
   if (!statement.commodities) {
     errorMessage.value =
-      'Details zu dieser Sorgfaltserklärung konnten nicht abgerufen werden. Versuchen Sie es später erneut.';
+      'Details zu dieser Vereinfachten Erklärung konnten nicht abgerufen werden. Versuchen Sie es später erneut.';
     return;
   }
   return statement.commodities;
@@ -123,7 +123,7 @@ const sendEmail = async (statement) => {
     return;
   }
   createAndClickLink(
-    `mailto:?subject=EUDR Sorgfaltserklärung von ${userData.value?.name}&body=${encodeURIComponent(
+    `mailto:?subject=EUDR Vereinfachte Erklärung von ${userData.value?.name}&body=${encodeURIComponent(
       `Ersteller: ${userData.value?.name}\nReferenznummer: ${statement.referenceNumber}\nVerifikationsnummer: ${statement.verificationNumber}\nErklärungsdatum: ${new Date(statement.date).toLocaleString('sv-SE')}\n${getCommoditiesSummary(
         commodities,
       )}`,
@@ -142,7 +142,7 @@ const sendTextMessage = async (statement) => {
   }
   createAndClickLink(
     `sms:?body=${encodeURIComponent(
-      `EUDR Sorgfaltserklärung\n\nErsteller: ${userData.value?.name}\nReferenznummer: ${statement.referenceNumber}\nVerifikationsnummer: ${statement.verificationNumber}\nErklärungsdatum: ${new Date(statement.date).toLocaleString('sv-SE')}\n${getCommoditiesSummary(
+      `EUDR Vereinfachte Erklärung\n\nErsteller: ${userData.value?.name}\nReferenznummer: ${statement.referenceNumber}\nVerifikationsnummer: ${statement.verificationNumber}\nErklärungsdatum: ${new Date(statement.date).toLocaleString('sv-SE')}\n${getCommoditiesSummary(
         commodities,
       )}`,
     )}`,
@@ -161,20 +161,20 @@ const copyToClipboard = async (statement) => {
   }
   try {
     await navigator.clipboard.writeText(
-      `EUDR Sorgfaltserklärung\n\nErsteller: ${userData.value?.name}\nReferenznummer: ${statement.referenceNumber}\nVerifikationsnummer: ${statement.verificationNumber}\nErklärungsdatum: ${new Date(statement.date).toLocaleString('sv-SE')}\n${getCommoditiesSummary(
+      `EUDR Vereinfachte Erklärung\n\nErsteller: ${userData.value?.name}\nReferenznummer: ${statement.referenceNumber}\nVerifikationsnummer: ${statement.verificationNumber}\nErklärungsdatum: ${new Date(statement.date).toLocaleString('sv-SE')}\n${getCommoditiesSummary(
         commodities,
       )}`,
     );
   } catch {
     errorMessage.value =
-      'Die Sorgfaltserklärung konnte nicht in die Zwischenablage kopiert werden. Bitte klicken Sie erneut auf "Kopieren".';
+      'Die Vereinfachte Erklärung konnte nicht in die Zwischenablage kopiert werden. Bitte klicken Sie erneut auf "Kopieren".';
   }
 };
 </script>
 
 <template>
   <v-row v-if="statementCount > 0">
-    <v-col v-for="item in statements" :key="item.ddsId" :cols="mdAndUp ? 6 : 12">
+    <v-col v-for="item in statements" :key="item.sdId" :cols="mdAndUp ? 6 : 12">
       <v-card color="green-darken-4">
         <v-card-title class="pt-0 pb-0">
           <v-toolbar flat color="transparent" density="compact"
@@ -186,7 +186,7 @@ const copyToClipboard = async (statement) => {
                   density="compact"
                   :icon="mdiRefreshCircle"
                   v-bind="props"
-                  @click="toggleFullStatement(item.ddsId)"
+                  @click="toggleFullStatement(item.sdId)"
                 ></v-btn>
               </template>
               Aktualisieren
@@ -245,7 +245,7 @@ const copyToClipboard = async (statement) => {
                   <v-btn
                     flat
                     :prepend-icon="mdiTableArrowDown"
-                    @click="toggleFullStatement(item.ddsId)"
+                    @click="toggleFullStatement(item.sdId)"
                     >Details laden</v-btn
                   >
                 </td>
@@ -267,7 +267,7 @@ const copyToClipboard = async (statement) => {
     </v-col>
     <v-col v-else>
       Noch keine vorhanden. Erstellen Sie eine
-      <NuxtLink to="/statement"> Sorgfaltserklärung </NuxtLink>.
+      <NuxtLink to="/statement"> Vereinfachte Erklärung </NuxtLink>.
     </v-col>
   </v-row>
   <geolocations-dialog

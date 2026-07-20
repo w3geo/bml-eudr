@@ -5,20 +5,20 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 401, statusMessage: 'Unauthorized' });
   }
 
-  const { statements: ddsInfo, error } = await retrieveDDSByInternalReference(userId);
+  const { statements: sdInfo, error } = await retrieveSdByInternalReference(userId);
   if (error) {
     throw createError({ status: 500, statusMessage: 'Internal Server Error', message: error });
   }
-  if (ddsInfo) {
-    for (const dds of ddsInfo) {
-      if (dds.referenceNumber && dds.verificationNumber) {
-        delete session.commodities?.[dds.ddsId];
+  if (sdInfo) {
+    for (const sd of sdInfo) {
+      if (sd.referenceNumber && sd.verificationNumber) {
+        delete session.commodities?.[sd.sdId];
       }
-      dds.commodities = session.commodities?.[dds.ddsId];
+      sd.commodities = session.commodities?.[sd.sdId];
     }
   }
 
   await replaceUserSession(event, session);
 
-  return ddsInfo;
+  return sdInfo;
 });

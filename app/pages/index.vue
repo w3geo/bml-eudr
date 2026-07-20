@@ -7,7 +7,7 @@ definePageMeta({
 });
 useSeoMeta({
   title: 'Startseite',
-  description: 'Sorgfaltserklärung im Rahmen der EU-Entwaldungsverordnung (EUDR)',
+  description: 'Vereinfachte Erklärung im Rahmen der EU-Entwaldungsverordnung (EUDR)',
 });
 </script>
 
@@ -18,17 +18,17 @@ useSeoMeta({
         <v-card>
           <v-card-text>
             <div class="text-body-1 mb-2">
-              Herzlich willkommen auf der Seite zur Erstellung Ihrer Sorgfaltserklärung im Rahmen
-              der EU- Entwaldungsverordnung (EUDR) link zur EUDR VO 2023/1115!
+              Herzlich willkommen auf der Seite zur Erstellung Ihrer Vereinfachten Erklärung im
+              Rahmen der EU- Entwaldungsverordnung (EUDR) link zur EUDR VO 2023/1115!
             </div>
             <div class="text-body-1">
-              Auf dieser Homepage haben Sie die Möglichkeit, Ihre Sorgfaltserklärung schnell und
+              Auf dieser Homepage haben Sie die Möglichkeit, Ihre Vereinfachte Erklärung schnell und
               einfach abzugeben.
             </div>
           </v-card-text>
           <v-card-text class="d-flex flex-column align-center">
             <v-img
-              alt="Ablauf Sorgfaltserklärung"
+              alt="Ablauf Vereinfachte Erklärung"
               class="border-rounded"
               rounded
               width="800"
@@ -49,9 +49,9 @@ useSeoMeta({
       </v-col>
       <v-col>
         <v-card>
-          <v-card-title>Sorgfaltserklärung</v-card-title>
+          <v-card-title>Vereinfachte Erklärung</v-card-title>
           <v-card-text>
-            Erstellung der Sorgfaltserklärung und Referenznzmmernverwaltung direkt hier in der
+            Erstellung der Vereinfachten Erklärung und Referenznummernverwaltung direkt hier in der
             Applikation. Erfordert Anmeldung über eAMA Login oder ID Austria. Mit eAMA Login können
             Sie direkt die Ihrem Betrieb zugeordneten Flächen auswählen.
           </v-card-text>
@@ -67,7 +67,7 @@ useSeoMeta({
           <v-card-text>
             Erfassung des Erezugungsorts hier in der Applikation. Download der Geolokalisation,
             Weiterleitung zur TRACES-NT Datenbank der Europäischen Union. Die Erstellung der
-            Sorgfaltspflichtserklärung und Verwaltung der Referenznummern erfolgt dort.
+            Vereinfachte Erklärung und Verwaltung der Referenznummern erfolgt dort.
           </v-card-text>
           <v-card-actions class="justify-center">
             <v-btn to="/locate" :prepend-icon="mdiMapMarker" color="primary"> Auswählen </v-btn>

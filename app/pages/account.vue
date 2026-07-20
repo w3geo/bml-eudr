@@ -188,7 +188,7 @@ if (!statementsError.value) {
             </v-form>
           </v-card-actions>
           <v-card-text v-if="!emailSubmitted" class="text-center">
-            Wenn jemand anderes die Sorgfaltserklärung erstellen soll (keine Zuordnung der
+            Wenn jemand anderes die Vereinfachte Erklärung erstellen soll (keine Zuordnung der
             Bewirtschafter zu ihren Flächen)
           </v-card-text>
           <v-card-text v-else class="text-center">

@@ -5,7 +5,7 @@ import users from './users';
 const statements = pgTable(
   'statements',
   {
-    ddsId: uuid().primaryKey(),
+    sdId: uuid().primaryKey(),
     userId: varchar({ length: 127 })
       .notNull()
       .references(() => users.id),
@@ -13,7 +13,7 @@ const statements = pgTable(
     authorAddress: varchar({ length: 255 }).notNull(),
     date: timestamp().notNull(),
   },
-  (table) => [uniqueIndex('statements_ddsId').on(table.ddsId)],
+  (table) => [uniqueIndex('statements_ddsId').on(table.sdId)],
 );
 
 /** @typedef {import('drizzle-orm').InferSelectModel<statements>} Statement */
