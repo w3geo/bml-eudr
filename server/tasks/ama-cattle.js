@@ -8,7 +8,7 @@ export default defineTask({
     description: 'Task for transmitting cattle data to AMA',
   },
   async run() {
-    const doneDdsIds = [];
+    const doneSdIds = [];
     const base64 = btoa(`${process.env.AMA_CLIENT_ID}:${process.env.AMA_CLIENT_SECRET}`);
     const options = {
       method: 'PUT',
@@ -27,7 +27,7 @@ export default defineTask({
     };
     const queue = await useDb().select().from(amaCattle);
     for (const entry of queue) {
-      const ddss = await retrieveDDS([entry.ddsId]);
+      const ddss = await retrieveSd([entry.sdId]);
       if (!ddss) {
         continue;
       }
@@ -80,12 +80,12 @@ export default defineTask({
           req.write(requestBody);
           req.end();
         });
-        doneDdsIds.push(entry.ddsId);
+        doneSdIds.push(entry.sdId);
       } catch (e) {
         console.error('AMA Rinder request error:', e);
       }
     }
-    await useDb().delete(amaCattle).where(inArray(amaCattle.ddsId, doneDdsIds));
+    await useDb().delete(amaCattle).where(inArray(amaCattle.sdId, doneSdIds));
     return { result: 'Success' };
   },
 });

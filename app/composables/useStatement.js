@@ -1,10 +1,11 @@
-/** @typedef {Ref<{quantity: Quantity, geojson: import('geojson').FeatureCollection, speciesList: import('~~/server/utils/soap-traces.js').SpeciesList|null}|null>} Snapshot */
+/** @typedef {Ref<{quantity: Quantity, geojson: import('geojson').FeatureCollection, address: Address, geolocation: boolean}|null>} Snapshot */
 
 /**
  * @typedef UseStatement
  * @property {Ref<Quantity>} quantity
  * @property {Ref<import('geojson').FeatureCollection>} geojson
- * @property {Ref<import('~~/server/utils/soap-traces.js').SpeciesList|null>} speciesList
+ * @property {Ref<Address>} address
+ * @property {Ref<boolean>} geolocation
  * @property {Snapshot} snapshot
  * @property {Ref<boolean>} modifiedSinceSnapshot
  * @property {() => void} createSnapshot
@@ -17,48 +18,69 @@
  */
 
 /**
+ * Postal address of the production place, submitted to TRACES when "Postadresse"
+ * is selected as the production location (i.e. `geolocation` is false). `null`
+ * means "use the logged in user's address".
+ * @typedef {{ street: string, postalCode: string, city: string } | null} Address
+ */
+
+/**
+ * Drop zero (and other falsy) quantities so that an absent HS heading and one
+ * seeded to 0 compare equal. A 0 quantity means "not present" throughout the
+ * app (the in-statement filters all test `v > 0`).
+ * @param {Quantity} quantity
+ * @returns {Quantity}
+ */
+function normalizeQuantity(quantity) {
+  return /** @type {Quantity} */ (
+    Object.fromEntries(Object.entries(quantity ?? {}).filter(([, v]) => v))
+  );
+}
+
+/**
  * @param {Snapshot} snapshot
  * @param {Ref<Quantity>} quantity
  * @param {Ref<import('geojson').FeatureCollection>} geojson
- * @param {Ref<import('~~/server/utils/soap-traces.js').SpeciesList|null>} speciesList
- * @param {Ref<boolean>} modifiedSinceSnapshot
+ * @param {Ref<Address>} address
+ * @param {Ref<boolean>} geolocation
  */
-function createSnapshot(snapshot, quantity, geojson, speciesList, modifiedSinceSnapshot) {
+function createSnapshot(snapshot, quantity, geojson, address, geolocation) {
   snapshot.value = {
     quantity: structuredClone(toRaw(quantity.value)),
     geojson: structuredClone(geojson.value),
-    speciesList: speciesList.value ? structuredClone(toRaw(speciesList.value)) : null,
+    address: structuredClone(toRaw(address.value)),
+    geolocation: geolocation.value,
   };
-  modifiedSinceSnapshot.value = false;
 }
 
 /**
  * @param {Snapshot} snapshot
  * @param {Ref<Quantity>} quantity
  * @param {Ref<import('geojson').FeatureCollection>} geojson
- * @param {Ref<import('~~/server/utils/soap-traces.js').SpeciesList|null>} speciesList
- * @param {Ref<boolean>} modifiedSinceSnapshot
+ * @param {Ref<Address>} address
+ * @param {Ref<boolean>} geolocation
  */
-function restoreSnapshot(snapshot, quantity, geojson, speciesList, modifiedSinceSnapshot) {
+function restoreSnapshot(snapshot, quantity, geojson, address, geolocation) {
   if (snapshot.value) {
     quantity.value = snapshot.value.quantity;
     geojson.value = snapshot.value.geojson;
-    speciesList.value = snapshot.value.speciesList;
+    address.value = snapshot.value.address;
+    geolocation.value = snapshot.value.geolocation;
   }
   snapshot.value = null;
-  modifiedSinceSnapshot.value = false;
 }
 
 /**
- * @param {import('~~/shared/utils/constants').Commodity} commodity
  * @param {Ref<Quantity>} quantity
  * @param {Ref<import('geojson').FeatureCollection>} geojson
- * @param {Ref<import('~~/server/utils/soap-traces.js').SpeciesList|null>} speciesList
+ * @param {Ref<Address>} address
+ * @param {Ref<boolean>} geolocation
  */
-function clear(commodity, quantity, geojson, speciesList) {
+function clear(quantity, geojson, address, geolocation) {
   quantity.value = {};
   geojson.value = structuredClone(EMPTY_GEOJSON);
-  speciesList.value = commodity === 'holz' ? [] : null;
+  address.value = null;
+  geolocation.value = false;
 }
 
 /**
@@ -74,29 +96,50 @@ export function useStatement(commodity) {
   /** @type {import('vue').Ref<Quantity>} */
   const quantity = useState(`quantity-${commodity}`, () => /** @type {Quantity} */ ({}));
 
-  /** @type {import('vue').Ref<import('~~/server/utils/soap-traces.js').SpeciesList|null>} */
-  const speciesList = useState(`speciesList-${commodity}`, () =>
-    commodity === 'holz' ? [] : null,
-  );
+  /** @type {import('vue').Ref<Address>} */
+  const address = useState(`address-${commodity}`, () => null);
 
-  const modifiedSinceSnapshot = useState(`modifiedSinceSnapshot-${commodity}`, () => false);
-  watch([quantity, geojson, speciesList], () => {
-    modifiedSinceSnapshot.value = true;
-  });
+  /**
+   * Whether the production location is given as a drawn geolocation
+   * ("Geolokalisation", true) rather than a postal address ("Postadresse",
+   * false). Governs which of the two is submitted to TRACES.
+   * @type {import('vue').Ref<boolean>}
+   */
+  const geolocation = useState(`geolocation-${commodity}`, () => false);
 
   /** @type {Snapshot} */
-  let snapshot = useState(`snapshot-${commodity}`, () => null);
+  const snapshot = useState(`snapshot-${commodity}`, () => null);
+
+  // Derive "modified" by comparing the current state against the snapshot rather
+  // than flipping a flag from a watcher. A watcher would fire on the editor's
+  // pre-fill (making merely opening the editor look like a change) and had to be
+  // reset from createSnapshot, a fragile back-and-forth that fed update loops.
+  const modifiedSinceSnapshot = computed(() => {
+    const snap = snapshot.value;
+    if (!snap) {
+      return false;
+    }
+    return (
+      geolocation.value !== snap.geolocation ||
+      // Compare quantities with zeros stripped: PlacesForm seeds every HS heading
+      // to 0 on mount (after the snapshot is taken), and a 0 quantity means "not
+      // present" everywhere else, so absent and 0 must count as unchanged.
+      JSON.stringify(normalizeQuantity(quantity.value)) !==
+        JSON.stringify(normalizeQuantity(snap.quantity)) ||
+      JSON.stringify(address.value) !== JSON.stringify(snap.address) ||
+      JSON.stringify(geojson.value) !== JSON.stringify(snap.geojson)
+    );
+  });
 
   return {
     geojson,
     quantity,
-    speciesList,
+    address,
+    geolocation,
     snapshot,
     modifiedSinceSnapshot,
-    createSnapshot: () =>
-      createSnapshot(snapshot, quantity, geojson, speciesList, modifiedSinceSnapshot),
-    restoreSnapshot: () =>
-      restoreSnapshot(snapshot, quantity, geojson, speciesList, modifiedSinceSnapshot),
-    clear: () => clear(commodity, quantity, geojson, speciesList),
+    createSnapshot: () => createSnapshot(snapshot, quantity, geojson, address, geolocation),
+    restoreSnapshot: () => restoreSnapshot(snapshot, quantity, geojson, address, geolocation),
+    clear: () => clear(quantity, geojson, address, geolocation),
   };
 }

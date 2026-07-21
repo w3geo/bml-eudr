@@ -48,24 +48,24 @@ useSeoMeta({
                 <li class="mb-1">
                   Bei Anmeldung mit ID Austria wird auf der Seite "Mein Konto" unter "Angaben zum
                   Betrieb" die Identifikationsnummer (GLN, UID oder Steuernummer) zum Zweck der
-                  Erstellung von Sorgfaltserklärungen gespeichert.
+                  Erstellung von Vereinfachten Erklärungen gespeichert.
                 </li>
                 <li class="mb-1">
                   Bei Anmeldung mit E-Mail werden auf der Seite "Mein Konto" unter "Angaben zum
                   Betrieb" die E-Mail Adresse, Name, Adresse und Identifikationsnummer (GLN, UID
-                  oder Steuernummer) zum Zweck der Erstellung und Verwaltung von
-                  Sorgfaltserklärungen gespeichert.
+                  oder Steuernummer) zum Zweck der Erstellung und Verwaltung von Vereinfachten
+                  Erklärungen gespeichert.
                 </li>
                 <li class="mb-1">
-                  Sofern Sie für jemand anderen eine Sorgfaltserklärung erstellen, werden Name und
-                  Adresse Ihres Betriebes gespeichert, um Sie als Ersteller der Sorgfaltserklärung
-                  zuordnen zu können.
+                  Sofern Sie für jemand anderen eine Vereinfachte Erklärung erstellen, werden Name
+                  und Adresse Ihres Betriebes gespeichert, um Sie als Ersteller der Vereinfachten
+                  Erklärung zuordnen zu können.
                 </li>
                 <li class="mb-1">
-                  Sofern Sie von jemand anderem eine Sorgfaltserklärung erstellen lassen, wird die
-                  interne ID der Sorgfaltserklärung, die von der TRACES Datenbank der EU-Kommission
-                  vergeben wird gespeichert, um die Sorgfaltserklärung dem Konto des Erstellers
-                  zuordnen zu können.
+                  Sofern Sie von jemand anderem eine Vereinfachte Erklärung erstellen lassen, wird
+                  die interne ID der Vereinfachten Erklärung, die von der TRACES Datenbank der
+                  EU-Kommission vergeben wird gespeichert, um die Vereinfachte Erklärung dem Konto
+                  des Erstellers zuordnen zu können.
                 </li>
               </ul>
             </div>
@@ -76,18 +76,17 @@ useSeoMeta({
               die Löschung Ihrer vom BMLUK gespeicherten Daten beantragen.
             </div>
             <div class="text-body-1 mb-2">
-              Bei Klicken der Schaltfläche "Bestätigen und Übermitteln" auf der Seite
-              "Sorgfaltserklärung" wird zum Zweck der Verknüpfung mit dieser Applikation Ihre
-              Benutzer-ID (LFBIS-Nummer bei eAMA Login, KUR bei USP Login, bPK bei ID Austria Login,
-              e-mail Adresse bei E-Mail Login) als interne Referenz an die TRACES-Datenbank
-              übermittelt.
+              Bei Klicken der Schaltfläche „Bestätigen und Übermitteln" auf der Seite „Vereinfachte
+              Erklärung“ wird zum Zweck der Verknüpfung mit dieser Applikation Ihre Benutzer-ID
+              (LFBIS-Nummer bei eAMA Login, KUR bei USP Login, bPK bei ID Austria Login, e-mail
+              Adresse bei E-Mail Login) als interne Referenz an die TRACES-Datenbank übermittelt.
             </div>
             <div class="text-body-1 mb-2">
-              Bei Klicken der Schaltfläche "Bestätigen und Übermitteln" auf der Seite
-              "Sorgfaltserklärung" werden Name und Adresse des Betriebes, die Identifikationsnummer
-              (GLN, UID oder Steuernummer), sowie die für die Sorgfaltserklärung erfassten Flächen-
-              bzw. Punktdaten, Erzeugnisse, und deren Mengen an die TRACES-Datenbank übermittelt, da
-              diese Angaben für die Sorgfaltserklärung verpflichtend sind.
+              Bei Klicken der Schaltfläche „Bestätigen und Übermitteln“ auf der Seite „Vereinfachte
+              Erklärung“ werden Name und Adresse des Betriebes, die Identifikationsnummer (GLN, UID
+              oder Steuernummer), sowie die für die Vereinfachte Erklärung erfassten Flächen- bzw.
+              Punktdaten, Erzeugnisse, und deren Mengen an die TRACES-Datenbank übermittelt, da
+              diese Angaben für die Vereinfachte Erklärung verpflichtend sind.
             </div>
           </v-card-text>
         </v-card>

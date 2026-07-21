@@ -3,14 +3,15 @@ import { DOMParser } from '@xmldom/xmldom';
 import { Agent } from 'undici';
 import { unref } from 'vue';
 import { COMMODITIES, HS_HEADING } from '~~/shared/utils/constants.js';
+import { parseAddress } from '~~/shared/utils/utils.js';
 
-/** @typedef {'AVAILABLE' | 'SUBMITTED' | 'REJECTED' | 'CANCELLED' | 'WITHDRAWN' | 'ARCHIVED'} TracesStatus */
+/** @typedef {'AVAILABLE' | 'SUBMITTED' | 'REJECTED' | 'WITHDRAWN' | 'ARCHIVED' | 'GROUPED' | 'OBSOLETE'} TracesStatus */
 
 /** @typedef {{id: string, name: string, address: string, identifierType: import('~/utils/utils').IdentifierType, identifierValue: string}} User */
 
 /**
  * @typedef {Object} StatementInfo
- * @property {string} ddsId
+ * @property {string} sdId
  * @property {string} [referenceNumber]
  * @property {string} [verificationNumber]
  * @property {TracesStatus} status
@@ -27,23 +28,22 @@ import { COMMODITIES, HS_HEADING } from '~~/shared/utils/constants.js';
 
 /** @typedef {StatementInfo & StatementPayload} StatementData */
 
-/** @typedef {Array<[string, string]>} SpeciesList */
-
 /**
  * @typedef {Object} CommodityData
  * @property {import('~/composables/useStatement').Quantity|import('vue').Ref<import('~/composables/useStatement').Quantity>} quantity
  * @property {import('geojson').FeatureCollection<import('geojson').Geometry | null>|import('vue').Ref<import('geojson').FeatureCollection<import('geojson').Geometry | null>>} geojson
- * @property {SpeciesList|import('vue').Ref<SpeciesList|null>} [speciesList]
+ * @property {import('~/composables/useStatement').Address|import('vue').Ref<import('~/composables/useStatement').Address>} [address] Override for the producer postal address; defaults to the user's address.
+ * @property {boolean|import('vue').Ref<boolean>} [geolocation] Whether the drawn geolocation ("Geolokalisation") is submitted as the producer location instead of the postal address ("Postadresse").
  */
 
 /**
  * @typedef {{key: import('~~/shared/utils/constants.js').Commodity} & CommodityData} CommodityDataWithKey
  */
 const errorNS = 'http://ec.europa.eu/sanco/tracesnt/error/v01';
-const ddsNS = 'http://ec.europa.eu/tracesnt/certificate/eudr/due-diligence-statement/v3';
+const sdNS = 'http://ec.europa.eu/tracesnt/certificate/eudr/simplified-declaration/v3';
 const commonNS = 'http://ec.europa.eu/tracesnt/certificate/eudr/common/v3';
 const tracesV3Endpoint =
-  'https://acceptance.eudr.webcloud.ec.europa.eu/tracesnt/ws/EUDRDueDiligenceStatementServiceV3';
+  'https://acceptance.eudr.webcloud.ec.europa.eu/tracesnt/ws/EUDRSimplifiedDeclarationServiceV3';
 
 /** Generate Nonce
  * @returns {string}
@@ -120,38 +120,20 @@ function getCommoditiesXML(commodities) {
   const commodityXMLs = [];
   for (const commodity of commodities) {
     const geojson = unref(commodity.geojson);
-    if (geojson && geojson.features.length === 0) {
-      continue;
-    }
     const key = commodity.key;
+    const producerAddress = unref(commodity.address);
     const hsCodes = /** @type {Array<import('~~/shared/utils/constants').HSCode>} */ (
       Object.keys(commodity.quantity)
     );
-    if (geojson && geojson.features.length === 0) {
-      continue;
-    }
-    const speciesList = unref(commodity.speciesList);
     for (const hsCode of hsCodes) {
       const quantity = /** @type {number} */ (unref(commodity.quantity)[hsCode]);
       if (!quantity) {
         continue;
       }
-      const geoJSONBase64 = btoa(JSON.stringify(commodity.geojson));
 
       const quantityUnits =
         COMMODITIES[/** @type {import('~~/shared/utils/constants.js').Commodity} */ (key)].units;
 
-      const speciesInfo = speciesList
-        ? speciesList
-            .map(
-              ([scientificName, commonName]) => `
-                <dds:speciesInfo>
-                  <dds:scientificName>${scientificName}</dds:scientificName>
-                  <dds:commonName>${commonName}</dds:commonName>
-                </dds:speciesInfo>`,
-            )
-            .join('\n')
-        : '';
       /** @type {string} */
       let quantityInfo;
       switch (quantityUnits) {
@@ -179,46 +161,42 @@ function getCommoditiesXML(commodities) {
       }
 
       const descriptor = `
-        <dds:descriptors>
+        <sd:descriptors>
           <eudrCommon:descriptionOfGoods>${HS_HEADING[hsCode]}</eudrCommon:descriptionOfGoods>
           <eudrCommon:goodsMeasure>
-            <eudrCommon:percentageEstimationOrDeviation>0</eudrCommon:percentageEstimationOrDeviation>
             ${quantityInfo}
           </eudrCommon:goodsMeasure>
-        </dds:descriptors>`;
-      const hsHeading = `<dds:hsHeading>${hsCode}</dds:hsHeading>`;
+        </sd:descriptors>`;
+      const hsHeading = `<sd:hsHeading>${hsCode}</sd:hsHeading>`;
+
+      const hasGeometry =
+        unref(commodity.geolocation) && geojson?.features?.some((f) => f.geometry);
+      const producerLocation = hasGeometry
+        ? `<sd:producerLocation>
+              <sd:geometryGeojson>${btoa(JSON.stringify(geojson))}</sd:geometryGeojson>
+            </sd:producerLocation>`
+        : producerAddress
+          ? `<sd:producerLocation>
+              <sd:postalAddress>
+                ${producerAddress.street ? `<sd:producerStreet>${producerAddress.street}</sd:producerStreet>` : ''}
+                <sd:producerPostalCode>${producerAddress.postalCode}</sd:producerPostalCode>
+                <sd:producerCity>${producerAddress.city}</sd:producerCity>
+              </sd:postalAddress>
+            </sd:producerLocation>`
+          : '';
 
       commodityXMLs.push(`
-        <dds:commodities>
+        <sd:commodities>
           ${descriptor}
           ${hsHeading}
-          ${speciesInfo}
-          <dds:producers>
-            <dds:country>AT</dds:country>
-            <dds:geometryGeojson>${geoJSONBase64}</dds:geometryGeojson>
-          </dds:producers>
-        </dds:commodities>`);
+          <sd:producers>
+            <sd:producerCountry>AT</sd:producerCountry>
+            ${producerLocation}
+          </sd:producers>
+        </sd:commodities>`);
     }
   }
   return commodityXMLs.join('\n');
-}
-
-/**
- * Parse a combined address string ("Street HouseNo, PostalCode City") into structured components.
- * @param {string} address
- * @returns {{ street: string, postalCode: string, city: string } | null}
- */
-function parseAddress(address) {
-  const commaIdx = address.lastIndexOf(', ');
-  if (commaIdx === -1) return null;
-  const street = address.substring(0, commaIdx).trim();
-  const cityPart = address.substring(commaIdx + 2).trim();
-  const spaceIdx = cityPart.indexOf(' ');
-  if (spaceIdx === -1) return null;
-  const postalCode = cityPart.substring(0, spaceIdx).trim();
-  const city = cityPart.substring(spaceIdx + 1).trim();
-  if (!street || !postalCode || !city) return null;
-  return { street, postalCode, city };
 }
 
 /**
@@ -227,9 +205,9 @@ function parseAddress(address) {
  * @param {User} user
  * @returns {string}
  */
-function getSubmitXML(commodities, geolocationVisible, user) {
-  const commoditiesXML = getCommoditiesXML(commodities);
+function getSubmitSdXML(commodities, geolocationVisible, user) {
   const parsedAddress = parseAddress(user.address);
+  const commoditiesXML = getCommoditiesXML(commodities);
   const operatorAddress = parsedAddress
     ? `<eudrCommon:operatorAddress>
                 <eudrCommon:country>AT</eudrCommon:country>
@@ -238,52 +216,59 @@ function getSubmitXML(commodities, geolocationVisible, user) {
                 <eudrCommon:city>${parsedAddress.city}</eudrCommon:city>
               </eudrCommon:operatorAddress>`
     : '';
-
-  return `<?xml version="1.0" encoding="UTF-8"?>
-    <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
-      xmlns:dds="http://ec.europa.eu/tracesnt/certificate/eudr/due-diligence-statement/v3"
-      xmlns:eudrCommon="http://ec.europa.eu/tracesnt/certificate/eudr/common/v3"
-      xmlns:v4="http://ec.europa.eu/sanco/tracesnt/base/v4">
-      ${getHeader()}
-      <soapenv:Body>
-        <dds:SubmitDdsRequest>
-          <dds:operatorRole>REPRESENTATIVE_OPERATOR</dds:operatorRole>
-          <dds:statement>
-            <dds:internalReferenceNumber>${user.id}</dds:internalReferenceNumber>
-            <dds:activityType>DOMESTIC</dds:activityType>
-            <dds:representedOperator>
+  const representedOperatorXML = `<sd:representedOperator>
               <eudrCommon:operatorReferenceNumber>
                 <eudrCommon:identifierType>${user.identifierType?.toLowerCase()}</eudrCommon:identifierType>
                 <eudrCommon:identifierValue>${user.identifierValue}</eudrCommon:identifierValue>
               </eudrCommon:operatorReferenceNumber>
               ${operatorAddress}
               <eudrCommon:operatorName>${user.name}</eudrCommon:operatorName>
-            </dds:representedOperator>
-            <dds:countryOfActivity>AT</dds:countryOfActivity>
+            </sd:representedOperator>`;
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+    <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+      xmlns:sd="http://ec.europa.eu/tracesnt/certificate/eudr/simplified-declaration/v3"
+      xmlns:eudrCommon="http://ec.europa.eu/tracesnt/certificate/eudr/common/v3"
+      xmlns:v4="http://ec.europa.eu/sanco/tracesnt/base/v4">
+      ${getHeader()}
+      <soapenv:Body>
+        <sd:SubmitSdRequest>
+          <sd:operatorRole>REPRESENTATIVE_MSPO</sd:operatorRole>
+          <sd:statement>
+            <sd:internalReferenceNumber>${user.id}</sd:internalReferenceNumber>
+            <sd:activityType>DOMESTIC</sd:activityType>
+            ${representedOperatorXML}
+            <sd:countryOfActivity>AT</sd:countryOfActivity>
             ${commoditiesXML}
-            <dds:geoLocationConfidential>${!geolocationVisible}</dds:geoLocationConfidential>
-          </dds:statement>
-        </dds:SubmitDdsRequest>
+            <sd:geoLocationConfidential>${!geolocationVisible}</sd:geoLocationConfidential>
+          </sd:statement>
+        </sd:SubmitSdRequest>
       </soapenv:Body>
     </soapenv:Envelope>`;
 }
 
 /**
- * @param {Array<string>} ddsIds TRACES UUIDs
+ * @param {Array<string>} sdIds TRACES UUIDs
  * @returns {string}
  */
-function getRetrieveXML(ddsIds) {
-  const uuidListXML = ddsIds.map((id) => `<dds:uuidList>${id}</dds:uuidList>`).join('\n');
+function getRetrieveSdXML(sdIds) {
+  const uuidListXML = sdIds
+    .map(
+      (id) =>
+        `<sd:uuidAndVersionNumberList><eudrCommon:uuid>${id}</eudrCommon:uuid></sd:uuidAndVersionNumberList>`,
+    )
+    .join('\n');
 
   return `<?xml version="1.0" encoding="UTF-8"?>
     <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
-      xmlns:dds="http://ec.europa.eu/tracesnt/certificate/eudr/due-diligence-statement/v3"
+      xmlns:sd="http://ec.europa.eu/tracesnt/certificate/eudr/simplified-declaration/v3"
+      xmlns:eudrCommon="http://ec.europa.eu/tracesnt/certificate/eudr/common/v3"
       xmlns:v4="http://ec.europa.eu/sanco/tracesnt/base/v4">
       ${getHeader()}
       <soapenv:Body>
-        <dds:GetDdsRequest>
+        <sd:GetSdRequest>
           ${uuidListXML}
-        </dds:GetDdsRequest>
+        </sd:GetSdRequest>
       </soapenv:Body>
     </soapenv:Envelope>`;
 }
@@ -292,13 +277,13 @@ function getRetrieveXML(ddsIds) {
  * @param {Array<CommodityDataWithKey>} commodities
  * @param {boolean} geolocationVisible
  * @param {User} user
- * @returns {Promise<{ ddsId: string | undefined, error: string | undefined }>}
+ * @returns {Promise<{ sdId: string | undefined, error: string | undefined }>}
  */
-export async function submitDDS(commodities, geolocationVisible, user) {
+export async function submitSD(commodities, geolocationVisible, user) {
   if (!user) {
-    throw new Error('User is required for DDS submission');
+    throw new Error('User is required for SD submission');
   }
-  const body = getSubmitXML(commodities, geolocationVisible, user);
+  const body = getSubmitSdXML(commodities, geolocationVisible, user);
   const submitResponse = await fetch(tracesV3Endpoint, {
     // Work around self-signed certificate on acceptance server
     //@ts-ignore
@@ -311,8 +296,7 @@ export async function submitDDS(commodities, geolocationVisible, user) {
     body,
     headers: {
       'Content-Type': 'text/xml; charset=utf-8',
-      'SOAPAction':
-        'http://ec.europa.eu/tracesnt/certificate/eudr/due-diligence-statement/submitDds',
+      'SOAPAction': 'http://ec.europa.eu/tracesnt/certificate/eudr/simplified-declaration/submitSd',
     },
   });
   const submitResponseXML = await submitResponse.text();
@@ -323,22 +307,22 @@ export async function submitDDS(commodities, geolocationVisible, user) {
   if (submitResponse.status >= 500) {
     console.error('TRACES submit error:', submitResponseXML, 'body:', body);
     return {
-      ddsId: undefined,
+      sdId: undefined,
       error: error || 'TRACES database currently unavailable, try again later',
     };
   }
 
-  const ddsId = xml.getElementsByTagNameNS(ddsNS, 'uuid').item(0)?.textContent || undefined;
+  const sdId = xml.getElementsByTagNameNS(sdNS, 'sdIdentifier').item(0)?.textContent || undefined;
 
-  return { ddsId, error };
+  return { sdId, error };
 }
 
 /**
- * @param {Array<string>} ddsIds TRACES identifiers
- * @returns {Promise<Array<StatementInfo> | null>} DDS info or null in case of an error
+ * @param {Array<string>} sdIds TRACES identifiers
+ * @returns {Promise<Array<StatementInfo> | null>} SD info or null in case of an error
  */
-export async function retrieveDDS(ddsIds) {
-  const retrieveXML = getRetrieveXML(ddsIds);
+export async function retrieveSd(sdIds) {
+  const retrieveXML = getRetrieveSdXML(sdIds);
   const retrieveResponse = await fetch(tracesV3Endpoint, {
     // Work around self-signed certificate on acceptance server
     //@ts-ignore
@@ -351,22 +335,22 @@ export async function retrieveDDS(ddsIds) {
     body: retrieveXML,
     headers: {
       'Content-Type': 'text/xml; charset=utf-8',
-      'SOAPAction': 'http://ec.europa.eu/tracesnt/certificate/eudr/due-diligence-statement/getDds',
+      'SOAPAction': 'http://ec.europa.eu/tracesnt/certificate/eudr/simplified-declaration/getSd',
     },
   });
   const retrieveResponseXML = await retrieveResponse.text();
   const xml = new DOMParser().parseFromString(retrieveResponseXML, 'text/xml');
-  const overviewElements = xml.getElementsByTagNameNS(ddsNS, 'ddsOverviewList');
+  const overviewElements = xml.getElementsByTagNameNS(sdNS, 'sdOverviewList');
   if (!overviewElements) {
     return null;
   }
   const statementInfos = [];
   for (let i = 0, ii = overviewElements.length; i < ii; i++) {
     const overview = overviewElements.item(i);
-    const ddsId = overview?.getElementsByTagNameNS(commonNS, 'uuid').item(0)?.textContent;
+    const sdId = overview?.getElementsByTagNameNS(commonNS, 'uuid').item(0)?.textContent;
     const date = overview?.getElementsByTagNameNS(commonNS, 'date').item(0)?.textContent;
     const status = overview?.getElementsByTagNameNS(commonNS, 'status').item(0)?.textContent;
-    if (!ddsId || !date || !status) {
+    if (!sdId || !date || !status) {
       continue;
     }
     const referenceNumber =
@@ -376,7 +360,7 @@ export async function retrieveDDS(ddsIds) {
       overview.getElementsByTagNameNS(commonNS, 'verificationNumber').item(0)?.textContent ||
       undefined;
     statementInfos.push({
-      ddsId,
+      sdId,
       referenceNumber,
       verificationNumber,
       status: /** @type {TracesStatus} */ (status),
@@ -390,15 +374,15 @@ export async function retrieveDDS(ddsIds) {
  * @param {string} internalReference
  * @returns {Promise<{statements?: Array<StatementInfo>, error?: string | undefined}>}
  */
-export async function retrieveDDSByInternalReference(internalReference) {
+export async function retrieveSdByInternalReference(internalReference) {
   const body = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
-    xmlns:dds="http://ec.europa.eu/tracesnt/certificate/eudr/due-diligence-statement/v3"
+    xmlns:sd="http://ec.europa.eu/tracesnt/certificate/eudr/simplified-declaration/v3"
     xmlns:v4="http://ec.europa.eu/sanco/tracesnt/base/v4">
         ${getHeader()}
         <soapenv:Body>
-            <dds:GetDdsByInternalReferenceRequest>
-                <dds:internalReference>${internalReference}</dds:internalReference>
-            </dds:GetDdsByInternalReferenceRequest>
+            <sd:GetSdByInternalReferenceRequest>
+                <sd:internalReference>${internalReference}</sd:internalReference>
+            </sd:GetSdByInternalReferenceRequest>
         </soapenv:Body>
     </soapenv:Envelope>`;
 
@@ -416,7 +400,7 @@ export async function retrieveDDSByInternalReference(internalReference) {
       headers: {
         'Content-Type': 'text/xml; charset=utf-8',
         'SOAPAction':
-          'http://ec.europa.eu/tracesnt/certificate/eudr/due-diligence-statement/getDdsByInternalReference',
+          'http://ec.europa.eu/tracesnt/certificate/eudr/simplified-declaration/getSdByInternalReference',
       },
     });
     const submitResponseXML = await submitResponse.text();
@@ -430,20 +414,20 @@ export async function retrieveDDSByInternalReference(internalReference) {
       };
     }
 
-    const overviewElements = xml.getElementsByTagNameNS(ddsNS, 'ddsOverviewList');
+    const overviewElements = xml.getElementsByTagNameNS(sdNS, 'sdOverviewList');
     const statements = [];
     for (let i = 0; i < overviewElements.length; i++) {
       const overview = /** @type {import('@xmldom/xmldom').Element} */ (overviewElements.item(i));
-      const ddsId = overview.getElementsByTagNameNS(commonNS, 'uuid').item(0)?.textContent;
-      if (!ddsId) {
-        return { error: 'Invalid response from TRACES: no ddsId' };
+      const sdId = overview.getElementsByTagNameNS(commonNS, 'uuid').item(0)?.textContent;
+      if (!sdId) {
+        return { error: 'Invalid response from TRACES: no sdId' };
       }
       const date = overview.getElementsByTagNameNS(commonNS, 'date').item(0)?.textContent;
       if (!date) {
         return { error: 'Invalid response from TRACES: no date' };
       }
       statements.push({
-        ddsId,
+        sdId,
         referenceNumber:
           overview.getElementsByTagNameNS(commonNS, 'referenceNumber').item(0)?.textContent ||
           undefined,
@@ -471,19 +455,19 @@ export async function retrieveDDSByInternalReference(internalReference) {
  * @param {string} verificationNumber
  * @returns {Promise<{commodities?: Array<CommodityDataWithKey>, geolocationVisible?: boolean, error?: string | undefined}>}
  */
-export async function retrieveDDSData(referenceNumber, verificationNumber) {
+export async function retrieveSdData(referenceNumber, verificationNumber) {
   const body = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
-    xmlns:dds="http://ec.europa.eu/tracesnt/certificate/eudr/due-diligence-statement/v3"
+    xmlns:sd="http://ec.europa.eu/tracesnt/certificate/eudr/simplified-declaration/v3"
     xmlns:eudrCommon="http://ec.europa.eu/tracesnt/certificate/eudr/common/v3"
     xmlns:v4="http://ec.europa.eu/sanco/tracesnt/base/v4">
         ${getHeader()}
         <soapenv:Body>
-            <dds:GetDdsByIdentifiersRequest>
-              <dds:referenceAndVerificationNumber>
+            <sd:GetSdByIdentifiersRequest>
+              <sd:referenceAndVerificationNumber>
                 <eudrCommon:referenceNumber>${referenceNumber}</eudrCommon:referenceNumber>
                 <eudrCommon:verificationNumber>${verificationNumber}</eudrCommon:verificationNumber>
-              </dds:referenceAndVerificationNumber>
-            </dds:GetDdsByIdentifiersRequest>
+              </sd:referenceAndVerificationNumber>
+            </sd:GetSdByIdentifiersRequest>
         </soapenv:Body>
     </soapenv:Envelope>`;
 
@@ -500,7 +484,7 @@ export async function retrieveDDSData(referenceNumber, verificationNumber) {
     headers: {
       'Content-Type': 'text/xml; charset=utf-8',
       'SOAPAction':
-        'http://ec.europa.eu/tracesnt/certificate/eudr/due-diligence-statement/getDdsByIdentifiers',
+        'http://ec.europa.eu/tracesnt/certificate/eudr/simplified-declaration/getSdByIdentifiers',
     },
   });
   const submitResponseXML = await submitResponse.text();
@@ -509,15 +493,15 @@ export async function retrieveDDSData(referenceNumber, verificationNumber) {
   const message = xml.getElementsByTagNameNS(errorNS, 'Message').item(0)?.textContent;
   const error = `${faultString ? faultString + ': ' : ''}${message || ''}`.trim();
   if (submitResponse.status >= 400) {
-    console.error('TRACES getDdsByIdentifiers error:', submitResponse.status, submitResponseXML);
+    console.error('TRACES getSdByIdentifiers error:', submitResponse.status, submitResponseXML);
     return {
       error: error || 'TRACES database currently unavailable, try again later',
     };
   }
-  const statementElement = xml.getElementsByTagNameNS(ddsNS, 'statement').item(0);
+  const statementElement = xml.getElementsByTagNameNS(sdNS, 'statement').item(0);
   if (!statementElement) {
     console.error(
-      'TRACES getDdsByIdentifiers: no statement element in response:',
+      'TRACES getSdByIdentifiers: no statement element in response:',
       submitResponseXML,
     );
     return {
@@ -525,18 +509,53 @@ export async function retrieveDDSData(referenceNumber, verificationNumber) {
     };
   }
 
-  const commoditiesElements = statementElement.getElementsByTagNameNS(ddsNS, 'commodities');
+  const commoditiesElements = statementElement.getElementsByTagNameNS(sdNS, 'commodities');
   /** @type {Array<CommodityDataWithKey>} */
   const commodities = [];
   for (let i = 0; i < commoditiesElements.length; i++) {
     const commodity = /** @type {import('@xmldom/xmldom').Element} */ (commoditiesElements.item(i));
     const hsCode = /** @type {import('~~/shared/utils/constants').HSCode} */ (
-      commodity.getElementsByTagNameNS(ddsNS, 'hsHeading').item(0)?.textContent
+      commodity.getElementsByTagNameNS(sdNS, 'hsHeading').item(0)?.textContent
     );
     const goodsMeasureElement = commodity.getElementsByTagNameNS(commonNS, 'goodsMeasure').item(0);
-    const geojsonText = commodity
-      .getElementsByTagNameNS(ddsNS, 'geometryGeojson')
+    const producerElement = commodity.getElementsByTagNameNS(sdNS, 'producers').item(0);
+    const producerLocationElement = producerElement
+      ?.getElementsByTagNameNS(sdNS, 'producerLocation')
+      .item(0);
+    const geojsonText = producerLocationElement
+      ?.getElementsByTagNameNS(sdNS, 'geometryGeojson')
       .item(0)?.textContent;
+    // A producer location is either a GeoJSON geometry or a postal address
+    // (§4.2.3 SdProducerLocationType). Parse whichever the statement carries so
+    // that confidential (address-only) declarations still show their location.
+    const postalAddressElement = producerLocationElement
+      ?.getElementsByTagNameNS(sdNS, 'postalAddress')
+      .item(0);
+    /** @type {import('~/composables/useStatement').Address} */
+    const address = postalAddressElement
+      ? {
+          street:
+            postalAddressElement.getElementsByTagNameNS(sdNS, 'producerStreet').item(0)
+              ?.textContent ?? '',
+          postalCode:
+            postalAddressElement.getElementsByTagNameNS(sdNS, 'producerPostalCode').item(0)
+              ?.textContent ?? '',
+          city:
+            postalAddressElement.getElementsByTagNameNS(sdNS, 'producerCity').item(0)
+              ?.textContent ?? '',
+        }
+      : null;
+    // Guard the decode: a single malformed geometry must not abort retrieval of
+    // the whole statement (which would surface as "details cannot be retrieved").
+    /** @type {*} */
+    let geojson = null;
+    if (geojsonText) {
+      try {
+        geojson = JSON.parse(atob(geojsonText));
+      } catch (e) {
+        console.error('TRACES getSdByIdentifiers: failed to parse geometryGeojson', e);
+      }
+    }
     const key = /** @type {import('~~/shared/utils/constants').Commodity} */ (
       Object.keys(COMMODITIES).find((key) => {
         return COMMODITIES[
@@ -545,41 +564,48 @@ export async function retrieveDDSData(referenceNumber, verificationNumber) {
       })
     );
     const quantity = {
+      // Prefer the supplementary unit (m³ for wood, head count for cattle) when
+      // present. netWeight is always sent in V3 — for those commodities it is only
+      // an estimate (density/average weight), so dividing it by 1000 would yield a
+      // wrong amount. Soja has no supplementary unit and falls back to netWeight (t).
       [hsCode]:
-        Number(
-          goodsMeasureElement?.getElementsByTagNameNS(commonNS, 'netWeight').item(0)?.textContent, // kg, convert to t
-        ) / 1000 ||
         Number(
           goodsMeasureElement?.getElementsByTagNameNS(commonNS, 'supplementaryUnit').item(0)
             ?.textContent,
-        ),
+        ) ||
+        Number(
+          goodsMeasureElement?.getElementsByTagNameNS(commonNS, 'netWeight').item(0)?.textContent, // kg, convert to t
+        ) / 1000,
     };
     const existing = commodities.find((c) => c.key === key);
     if (existing) {
       existing.quantity = { ...existing.quantity, ...quantity };
+      existing.geojson = unref(existing.geojson) ?? geojson;
+      existing.address = unref(existing.address) ?? address;
     } else {
       commodities.push({
         key,
         quantity,
-        geojson: geojsonText ? JSON.parse(atob(geojsonText)) : null,
+        geojson,
+        address,
       });
     }
   }
 
   const geoLocationConfidential = statementElement
-    .getElementsByTagNameNS(ddsNS, 'geoLocationConfidential')
+    .getElementsByTagNameNS(sdNS, 'geoLocationConfidential')
     .item(0)?.textContent;
   const geolocationVisible = geoLocationConfidential !== 'true';
 
   if (geolocationVisible && commodities.some((c) => !c.geojson)) {
     console.error(
-      'TRACES getDdsByIdentifiers: geoLocationConfidential=false but no geometryGeojson found.' +
+      'TRACES getSdByIdentifiers: geoLocationConfidential=false but no geometryGeojson found.' +
         ' producers count per commodity:',
       Array.from(
-        { length: statementElement.getElementsByTagNameNS(ddsNS, 'commodities').length },
+        { length: statementElement.getElementsByTagNameNS(sdNS, 'commodities').length },
         (_, i) => {
-          const c = statementElement.getElementsByTagNameNS(ddsNS, 'commodities').item(i);
-          return c?.getElementsByTagNameNS(ddsNS, 'producers').length ?? 0;
+          const c = statementElement.getElementsByTagNameNS(sdNS, 'commodities').item(i);
+          return c?.getElementsByTagNameNS(sdNS, 'producers').length ?? 0;
         },
       ),
     );

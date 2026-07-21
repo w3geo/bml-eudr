@@ -78,15 +78,15 @@ export default defineEventHandler(async (event) => {
     return (quantity['010221'] || 0) + (quantity['010229'] || 0) + sum;
   }, 0);
 
-  const { ddsId, error } = await submitDDS(commodities, statement.geolocationVisible, user);
+  const { sdId, error } = await submitSD(commodities, statement.geolocationVisible, user);
   if (error) {
     throw createError({ status: 500, statusMessage: 'Internal Server Error', message: error });
   }
-  if (!ddsId) {
+  if (!sdId) {
     throw createError({
       status: 500,
       statusMessage: 'Internal Server Error',
-      message: 'No ddsId returned',
+      message: 'No sdId returned',
     });
   }
 
@@ -95,7 +95,7 @@ export default defineEventHandler(async (event) => {
   if (onBehalfOfUser) {
     promises.push(
       db.insert(statements).values({
-        ddsId,
+        sdId,
         userId: onBehalfOfUser.id,
         authorName: /** @type {string} */ (session.secure?.name),
         authorAddress: /** @type {string} */ (session.secure?.address),
@@ -106,7 +106,7 @@ export default defineEventHandler(async (event) => {
   if (!onBehalfOfUser && cattleCount && session.loginProvider === 'AMA') {
     promises.push(
       db.insert(amaCattle).values({
-        ddsId,
+        sdId,
         lfbis: userId,
         count: cattleCount,
       }),
@@ -120,7 +120,7 @@ export default defineEventHandler(async (event) => {
       loggedInAt: session.loggedInAt,
       commodities: {
         ...(session.commodities ?? {}),
-        [ddsId]: commodities.map((c) => ({
+        [sdId]: commodities.map((c) => ({
           key: c.key,
           quantity: c.quantity,
           geojson: {

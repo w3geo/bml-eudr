@@ -10,7 +10,7 @@ const showDisclaimer = ref(!loggedIn.value);
 
         <div class="text-body-1 mb-2">
           herzlichen Dank, dass Sie das Tool zur EUDR Meldung (in der Folge „Tool“) des BMLUK
-          verwenden. Dieses dient der einfacheren Abgabe Ihrer Sorgfaltserklärung im Rahmen der
+          verwenden. Dieses dient der einfacheren Abgabe Ihrer Vereinfachten Erklärung im Rahmen der
           EU-Entwaldungsverordnung [Verordnung (EU) 2023/1115].
         </div>
 

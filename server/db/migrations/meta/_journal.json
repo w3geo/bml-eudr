@@ -141,6 +141,13 @@
       "when": 1759419959916,
       "tag": "0019_ama_cattle-remove-users-join",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1768914000000,
+      "tag": "0020_rename-ddsId-to-sdId",
+      "breakpoints": true
     }
   ]
 }
