@@ -1,4 +1,6 @@
 <script setup>
+import { mdiHelpCircleOutline } from '@mdi/js';
+
 const props = defineProps({
   commodity: {
     type: /** @type {import('vue').PropType<import('~~/shared/utils/constants.js').Commodity>} */ (
@@ -82,17 +84,19 @@ watch(yieldPerHectare, (value) => {
             :label="HS_HEADING[hs]"
             :suffix="COMMODITIES[commodity]?.units"
           ></v-text-field>
-          <v-text-field
-            v-if="yieldPerHectare !== undefined"
-            v-model.number="yieldPerHectare"
-            class="yield-field"
-            label="Ertrag/ha"
-            :suffix="COMMODITIES[commodity]?.units"
-            density="compact"
-            variant="plain"
-            type="number"
-            hide-details
-          ></v-text-field>
+          <v-tooltip v-if="commodityData.hint" max-width="300" open-on-click location="top" pa-0>
+            <template #activator="{ props: activatorProps }">
+              <v-btn
+                class="flex-grow-0 flex-shrink-0"
+                :class="xs ? 'ms-n2' : 'ms-n4'"
+                flat
+                :icon="mdiHelpCircleOutline"
+                size="x-small"
+                v-bind="activatorProps"
+              ></v-btn>
+            </template>
+            <div>{{ commodityData.hint }}</div>
+          </v-tooltip>
           <v-select
             v-model="geolocation"
             class="select-field"
@@ -105,6 +109,17 @@ watch(yieldPerHectare, (value) => {
             variant="outlined"
             hide-details
           />
+          <v-text-field
+            v-if="geolocation && yieldPerHectare !== undefined"
+            v-model.number="yieldPerHectare"
+            class="yield-field"
+            label="Ertrag/ha"
+            :suffix="COMMODITIES[commodity]?.units"
+            density="compact"
+            variant="plain"
+            type="number"
+            hide-details
+          ></v-text-field>
           <v-sheet v-if="geolocation" class="stats text-no-wrap text-caption">
             {{ geojson.features.length }} Ort{{ geojson.features.length === 1 ? '' : 'e' }}<br />{{
               area.toLocaleString('de-AT')
@@ -154,25 +169,26 @@ watch(yieldPerHectare, (value) => {
 </template>
 
 <style scoped>
-/* Quantity inputs share the leftover width evenly and are allowed to shrink
-   below their intrinsic size (min-width: 0) so the row never wraps, but keep a
-   floor wide enough to show their label. */
+/* Quantity inputs keep a comfortable width instead of growing to fill the
+   row, and are allowed to shrink below their intrinsic size so the row never
+   wraps, but keep a floor wide enough to show their label. */
 .quantity-field {
-  flex: 1 1 0;
+  flex: 0 1 140px;
   min-width: 110px;
 }
 
-/* The select needs to stay readable, so give it more of the free space and a
-   larger floor than the quantity fields. */
+/* The select doesn't need to grow with the row; keep it at a comfortable
+   reading width so it doesn't consume the entire remaining space on large
+   screens, while still able to shrink on narrow ones. */
 .select-field {
-  flex: 2 1 0;
+  flex: 0 1 220px;
   min-width: 150px;
 }
 
 /* The yield field is auxiliary; keep it narrow and non-growing. */
 .yield-field {
   flex: 0 0 auto;
-  width: 80px;
+  width: 60px;
 }
 
 /* Statistics keep their natural size; the flexible fields absorb the rest. */
@@ -185,15 +201,15 @@ watch(yieldPerHectare, (value) => {
    whole line — statistics included — still fits. */
 @media (max-width: 480px) {
   .quantity-field {
-    min-width: 64px;
+    min-width: 56px;
   }
 
   .select-field {
-    min-width: 96px;
+    min-width: 88px;
   }
 
   .yield-field {
-    width: 60px;
+    width: 56px;
   }
 }
 </style>

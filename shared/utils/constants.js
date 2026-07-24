@@ -9,6 +9,7 @@ import { mdiCow, mdiForestOutline, mdiSprout } from '@mdi/js';
  * @property {'t' | 'Stk.' | 'm³'} units
  * @property {number} [yieldPerHectare]
  * @property {Array<HSCode>} hsHeadings
+ * @property {string} [hint]
  */
 
 export const HS_HEADING = {
@@ -29,6 +30,7 @@ export const COMMODITIES = {
     units: 't',
     yieldPerHectare: 4,
     hsHeadings: ['1201'],
+    hint: 'Bitte geben Sie hier Ihre durchschnittliche jährliche Sojaproduktion an',
   },
   rind: {
     title: 'Rinder',
@@ -41,6 +43,7 @@ export const COMMODITIES = {
     icon: mdiForestOutline,
     units: 'm³',
     hsHeadings: ['4403', '4401'],
+    hint: 'Bitte geben Sie hier Ihre durchschnittliche jährliche Holzproduktion an',
   },
 };
 
