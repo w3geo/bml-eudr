@@ -5,11 +5,26 @@ import Map from 'ol/Map.js';
 import 'ol/ol.css';
 import VectorSource from 'ol/source/Vector.js';
 import { View } from 'ol';
+import { fromLonLat, transformExtent } from 'ol/proj';
+
+/** Fallback extent (Austria) used when there is no geolocation to fit to. */
+const austriaExtent = [...fromLonLat([9.530952, 46.372276]), ...fromLonLat([17.160776, 49.020608])];
 
 const props = defineProps({
   geojson: {
     type: /** @type {import('vue').PropType<import('geojson').FeatureCollection<import('geojson').Geometry|null>>} */ (
       Object
+    ),
+    default: null,
+  },
+  /**
+   * Fallback extent (`[minX, minY, maxX, maxY]` in EPSG:4326) used to fit the
+   * map when `geojson` has no features, e.g. a precomputed bounding box for
+   * a set of fields. Ignored once `geojson` provides an extent of its own.
+   */
+  extent: {
+    type: /** @type {import('vue').PropType<[number, number, number, number]>} */ (
+      /** @type {unknown} */ (Array)
     ),
     default: null,
   },
@@ -27,6 +42,7 @@ const mapContainer = ref(null);
 
 const fields = (await useFetch('/api/lfbis?layer=fields')).data.value;
 const farms = (await useFetch('/api/lfbis?layer=farms')).data.value;
+const fieldsExtent = (await useFetch('/api/lfbis-extent')).data.value;
 
 const geojsonFormat = new GeoJSON({ featureProjection: 'EPSG:3857' });
 const geolocationSource = new VectorSource();
@@ -74,9 +90,18 @@ async function fitMap() {
   if (mapContainer.value) {
     map.setTarget(mapContainer.value);
     map.updateSize();
-    const extent = geolocationSource.getExtent();
-    if (extent && Number.isFinite(extent[0])) {
-      map.getView().fit(extent, { padding: [20, 20, 20, 20], maxZoom: 18 });
+    const geojsonExtent = geolocationSource.getExtent();
+    const hasGeojsonExtent = geojsonExtent && Number.isFinite(geojsonExtent[0]);
+    const fallbackExtent = props.extent ?? fieldsExtent;
+    if (hasGeojsonExtent) {
+      map.getView().fit(geojsonExtent, { padding: [20, 20, 20, 20], maxZoom: 18 });
+    } else if (fallbackExtent) {
+      map.getView().fit(transformExtent(fallbackExtent, 'EPSG:4326', 'EPSG:3857'), {
+        padding: [20, 20, 20, 20],
+        maxZoom: 16,
+      });
+    } else {
+      map.getView().fit(austriaExtent, { padding: [20, 20, 20, 20], maxZoom: 10 });
     }
   }
 }
