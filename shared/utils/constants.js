@@ -47,10 +47,14 @@ export const COMMODITIES = {
   },
 };
 
-/** @type {Object<string, string>} */
-export const SNAR_SUBSTRING = {
-  rind: 'WEIDE',
-  reinrassigesZuchtrind: 'WEIDE',
+/**
+ * Feldstücknutzungsart (`fnar_code`) superset that schläge of each commodity belong to.
+ * @type {Object<string, string>}
+ */
+export const FNAR = {
+  sojabohnen: 'A',
+  rind: 'G',
+  reinrassigesZuchtrind: 'G',
 };
 
 export const EMPTY_GEOJSON = Object.freeze({
