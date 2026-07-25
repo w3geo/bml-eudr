@@ -75,19 +75,23 @@ function restoreSnapshot(snapshot, quantity, geojson, address, geolocation) {
  * @param {Ref<import('geojson').FeatureCollection>} geojson
  * @param {Ref<Address>} address
  * @param {Ref<boolean>} geolocation
+ * @param {boolean} defaultGeolocation
  */
-function clear(quantity, geojson, address, geolocation) {
+function clear(quantity, geojson, address, geolocation, defaultGeolocation) {
   quantity.value = {};
   geojson.value = structuredClone(EMPTY_GEOJSON);
   address.value = null;
-  geolocation.value = false;
+  geolocation.value = defaultGeolocation;
 }
 
 /**
  * @param {import('~~/shared/utils/constants').Commodity} commodity
+ * @param {boolean} [isAma] Whether the logged in user has an AMA (eAMA) login.
  * @returns {UseStatement}
  */
-export function useStatement(commodity) {
+export function useStatement(commodity, isAma = false) {
+  const defaultGeolocation = !(isAma && commodity === 'sojabohnen');
+
   /** @type {import('vue').Ref<import('ol/format/GeoJSON').GeoJSONFeatureCollection>} */
   const geojson = useState(`geojson-${commodity}`, () =>
     shallowRef(structuredClone(EMPTY_GEOJSON)),
@@ -105,7 +109,7 @@ export function useStatement(commodity) {
    * false). Governs which of the two is submitted to TRACES.
    * @type {import('vue').Ref<boolean>}
    */
-  const geolocation = useState(`geolocation-${commodity}`, () => false);
+  const geolocation = useState(`geolocation-${commodity}`, () => defaultGeolocation);
 
   /** @type {Snapshot} */
   const snapshot = useState(`snapshot-${commodity}`, () => null);
@@ -140,6 +144,6 @@ export function useStatement(commodity) {
     modifiedSinceSnapshot,
     createSnapshot: () => createSnapshot(snapshot, quantity, geojson, address, geolocation),
     restoreSnapshot: () => restoreSnapshot(snapshot, quantity, geojson, address, geolocation),
-    clear: () => clear(quantity, geojson, address, geolocation),
+    clear: () => clear(quantity, geojson, address, geolocation, defaultGeolocation),
   };
 }

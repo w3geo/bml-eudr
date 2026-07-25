@@ -8,7 +8,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 401, statusMessage: 'Unauthorized' });
   }
   if (session.loginProvider !== 'AMA') {
-    //throw createError({ statusCode: 403, statusMessage: 'Forbidden' });
+    throw createError({ statusCode: 403, statusMessage: 'Forbidden' });
   }
 
   const query = getQuery(event);

@@ -68,6 +68,13 @@ const savedOnBehalfOf = ref(false);
 /** @type {import('vue').Ref<boolean>} */
 const confirm = ref(false);
 
+const isAma = computed(() => {
+  const loginProvider = onBehalfOfUser?.value
+    ? onBehalfOfUser.value.loginProvider
+    : user.value?.loginProvider;
+  return loginProvider === 'AMA';
+});
+
 /**
  * Per-commodity statement state, created once here rather than by re-invoking
  * `useStatement()` inside computeds and handlers. The composable registers a
@@ -76,7 +83,7 @@ const confirm = ref(false);
  */
 const statements =
   /** @type {Record<import('~~/shared/utils/constants').Commodity, ReturnType<typeof useStatement>>} */ (
-    Object.fromEntries(COMMODITY_KEYS.map((key) => [key, useStatement(key)]))
+    Object.fromEntries(COMMODITY_KEYS.map((key) => [key, useStatement(key, isAma.value)]))
   );
 
 /**
@@ -279,7 +286,7 @@ async function validate() {
 
         <v-btn :icon="mdiCheck" :commodity="editCommodity" @click="validate"></v-btn>
       </v-toolbar>
-      <places-form ref="placesFormRef" :commodity="editCommodity" />
+      <places-form ref="placesFormRef" :commodity="editCommodity" :is-ama="isAma" />
       <places-map
         v-if="showMapEditor"
         style="flex: 1 1 0; min-height: 0"
@@ -321,12 +328,7 @@ async function validate() {
                 <CommodityCard :item="item" @open-editor="openEditor" />
               </v-col>
             </v-row>
-            <v-checkbox
-              v-model="geolocationVisible"
-              class="mt-4 checkbox-align-start"
-              hide-details
-              density="compact"
-            >
+            <v-checkbox v-model="geolocationVisible" class="mt-4" hide-details density="compact">
               <template #label>
                 <div class="ml-1 text-body-2">
                   Erzeugungsorte für nachfolgende Marktteilnehmer freigeben
