@@ -49,7 +49,6 @@ export const COMMODITIES = {
 
 /** @type {Object<string, string>} */
 export const SNAR_SUBSTRING = {
-  sojabohnen: 'SOJABOHNEN',
   rind: 'WEIDE',
   reinrassigesZuchtrind: 'WEIDE',
 };

@@ -29,6 +29,18 @@ export function createBackgroundKatasterLayer() {
 }
 
 /**
+ * Mapbox GL expression that's true for schläge belonging to the given commodity.
+ * @param {import('~~/shared/utils/constants').Commodity} commodity
+ * @returns {Array<*>}
+ */
+function commodityMatchExpression(commodity) {
+  if (commodity === 'sojabohnen') {
+    return ['==', ['get', 'fnar'], 'A'];
+  }
+  return ['in', SNAR_SUBSTRING[commodity], ['get', 'snar_bezeichnung']];
+}
+
+/**
  * @param {import('~~/shared/utils/constants').Commodity} commodity
  * @param {Array<string>} [farms]
  * @param {Array<string>} [fields]
@@ -53,7 +65,7 @@ function createAgraratlasLayer(commodity, farms = [], fields = []) {
         filter: [
           'all',
           ['!', ['in', ['get', 'localID'], ['literal', fields]]],
-          ['!', ['in', SNAR_SUBSTRING[commodity], ['get', 'snar_bezeichnung']]],
+          ['!', commodityMatchExpression(commodity)],
         ],
       },
       'invekos_schlaege_polygon-fill',
@@ -66,7 +78,7 @@ function createAgraratlasLayer(commodity, farms = [], fields = []) {
         filter: [
           'all',
           ['in', ['get', 'localID'], ['literal', fields]],
-          ['!', ['in', SNAR_SUBSTRING[commodity], ['get', 'snar_bezeichnung']]],
+          ['!', commodityMatchExpression(commodity)],
         ],
         paint: {
           ...schlaege.paint,
@@ -83,7 +95,7 @@ function createAgraratlasLayer(commodity, farms = [], fields = []) {
         filter: [
           'all',
           ['!', ['in', ['get', 'localID'], ['literal', fields]]],
-          ['in', SNAR_SUBSTRING[commodity], ['get', 'snar_bezeichnung']],
+          commodityMatchExpression(commodity),
         ],
         paint: {
           ...schlaege.paint,
@@ -100,7 +112,7 @@ function createAgraratlasLayer(commodity, farms = [], fields = []) {
         filter: [
           'all',
           ['in', ['get', 'localID'], ['literal', fields]],
-          ['in', SNAR_SUBSTRING[commodity], ['get', 'snar_bezeichnung']],
+          commodityMatchExpression(commodity),
         ],
         paint: {
           ...schlaege.paint,
