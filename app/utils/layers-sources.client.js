@@ -35,7 +35,7 @@ export function createBackgroundKatasterLayer() {
  */
 function commodityMatchExpression(commodity) {
   if (commodity === 'sojabohnen') {
-    return ['==', ['get', 'fnar'], 'A'];
+    return ['==', ['get', 'fnar_code'], 'A'];
   }
   return ['in', SNAR_SUBSTRING[commodity], ['get', 'snar_bezeichnung']];
 }
