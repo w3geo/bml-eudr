@@ -76,7 +76,7 @@ watch(
       map.removeLayer(geolocationLayer);
     }
     if (newValue) {
-      const { layerGroup } = createCommodityLayerset(newValue, farms, fields);
+      const { layerGroup } = createCommodityLayerset(newValue, farms, fields, { ownOnly: true });
       commodityLayer.value = layerGroup;
       map.addLayer(commodityLayer.value);
       map.addLayer(geolocationLayer);
