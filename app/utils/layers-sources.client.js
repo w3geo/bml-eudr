@@ -32,9 +32,22 @@ export function createBackgroundKatasterLayer() {
  * @param {import('~~/shared/utils/constants').Commodity} commodity
  * @param {Array<string>} [farms]
  * @param {Array<string>} [fields]
+ * @param {Object} [options]
+ * @param {boolean} [options.ownOnly] Render only the user's own schläge of the
+ *   commodity's Feldstücknutzungsart (and, for `rind`, only their own
+ *   Hofstellen), hiding every other schlag including its outline. For the
+ *   read-only preview, where nothing is selectable and the surrounding fields
+ *   are noise rather than context.
  * @returns {LayerGroup}
  */
-function createAgraratlasLayer(commodity, farms = [], fields = []) {
+function createAgraratlasLayer(commodity, farms = [], fields = [], { ownOnly = false } = {}) {
+  /** Own schläge that the commodity is grown on — the only ones `ownOnly` keeps. */
+  const ownCommodityFilter = [
+    'all',
+    ['in', ['get', 'localID'], ['literal', fields]],
+    ['==', ['get', 'fnar_code'], FNAR[commodity]],
+  ];
+
   const agraratlas = new LayerGroup();
   apply(agraratlas, 'https://agraratlas.inspire.gv.at/map/style-pmtiles.json', {
     transformRequest: (url) => pmtilesFetch?.(url),
@@ -45,63 +58,61 @@ function createAgraratlasLayer(commodity, farms = [], fields = []) {
       maxzoom: 17,
     });
     const schlaege = getMapboxLayer(agraratlas, 'invekos_schlaege_polygon-fill');
-    addMapboxLayer(
-      agraratlas,
-      {
-        ...schlaege,
-        id: 'invekos_schlaege_polygon-not-commodity-fill',
-        filter: [
-          'all',
-          ['!', ['in', ['get', 'localID'], ['literal', fields]]],
-          ['!=', ['get', 'fnar_code'], FNAR[commodity]],
-        ],
-      },
-      'invekos_schlaege_polygon-fill',
-    );
-    addMapboxLayer(
-      agraratlas,
-      {
-        ...schlaege,
-        id: 'invekos_schlaege_polygon-not-commodity-my-field-fill',
-        filter: [
-          'all',
-          ['in', ['get', 'localID'], ['literal', fields]],
-          ['!=', ['get', 'fnar_code'], FNAR[commodity]],
-        ],
-        paint: {
-          ...schlaege.paint,
-          'fill-color': 'rgba(255, 255, 255, 0.1)',
+    if (!ownOnly) {
+      addMapboxLayer(
+        agraratlas,
+        {
+          ...schlaege,
+          id: 'invekos_schlaege_polygon-not-commodity-fill',
+          filter: [
+            'all',
+            ['!', ['in', ['get', 'localID'], ['literal', fields]]],
+            ['!=', ['get', 'fnar_code'], FNAR[commodity]],
+          ],
         },
-      },
-      'invekos_schlaege_polygon-fill',
-    );
-    addMapboxLayer(
-      agraratlas,
-      {
-        ...schlaege,
-        id: 'invekos_schlaege_polygon-commodity-fill',
-        filter: [
-          'all',
-          ['!', ['in', ['get', 'localID'], ['literal', fields]]],
-          ['==', ['get', 'fnar_code'], FNAR[commodity]],
-        ],
-        paint: {
-          ...schlaege.paint,
-          'fill-color': 'rgba(255, 255, 0, 0.5)',
+        'invekos_schlaege_polygon-fill',
+      );
+      addMapboxLayer(
+        agraratlas,
+        {
+          ...schlaege,
+          id: 'invekos_schlaege_polygon-not-commodity-my-field-fill',
+          filter: [
+            'all',
+            ['in', ['get', 'localID'], ['literal', fields]],
+            ['!=', ['get', 'fnar_code'], FNAR[commodity]],
+          ],
+          paint: {
+            ...schlaege.paint,
+            'fill-color': 'rgba(255, 255, 255, 0.1)',
+          },
         },
-      },
-      'invekos_schlaege_polygon-fill',
-    );
+        'invekos_schlaege_polygon-fill',
+      );
+      addMapboxLayer(
+        agraratlas,
+        {
+          ...schlaege,
+          id: 'invekos_schlaege_polygon-commodity-fill',
+          filter: [
+            'all',
+            ['!', ['in', ['get', 'localID'], ['literal', fields]]],
+            ['==', ['get', 'fnar_code'], FNAR[commodity]],
+          ],
+          paint: {
+            ...schlaege.paint,
+            'fill-color': 'rgba(255, 255, 0, 0.5)',
+          },
+        },
+        'invekos_schlaege_polygon-fill',
+      );
+    }
     addMapboxLayer(
       agraratlas,
       {
         ...schlaege,
         id: 'invekos_schlaege_polygon-commodity-my-field-fill',
-        filter: [
-          'all',
-          ['in', ['get', 'localID'], ['literal', fields]],
-          ['==', ['get', 'fnar_code'], FNAR[commodity]],
-        ],
+        filter: ownCommodityFilter,
         paint: {
           ...schlaege.paint,
           'fill-color': 'rgba(255, 138, 0, 0.5)',
@@ -111,20 +122,32 @@ function createAgraratlasLayer(commodity, farms = [], fields = []) {
     );
 
     removeMapboxLayer(agraratlas, 'invekos_schlaege_polygon-fill');
-    if (commodity === 'rind') {
-      addMapboxLayer(agraratlas, {
-        'id': 'invekos_hofstelle-point',
-        'type': 'circle',
-        'source': 'agrargis',
-        'source-layer': 'invekos_hofstellen',
-        'filter': ['!', ['in', ['get', 'localID'], ['literal', farms]]],
-        'paint': {
-          'circle-radius': 7,
-          'circle-color': 'rgba(255, 255, 0, 0.5)',
-          'circle-stroke-color': 'rgb(238, 90, 78)',
-          'circle-stroke-width': 2,
-        },
+    if (ownOnly) {
+      /* The style outlines every schlag, so the outline needs the same filter as
+       * the fill. The selection outline is dead weight without selectable
+       * features. */
+      updateMapboxLayer(agraratlas, {
+        ...getMapboxLayer(agraratlas, 'invekos_schlaege_polygon-line'),
+        filter: ownCommodityFilter,
       });
+      removeMapboxLayer(agraratlas, 'invekos_schlaege_polygon-line-selected');
+    }
+    if (commodity === 'rind') {
+      if (!ownOnly) {
+        addMapboxLayer(agraratlas, {
+          'id': 'invekos_hofstelle-point',
+          'type': 'circle',
+          'source': 'agrargis',
+          'source-layer': 'invekos_hofstellen',
+          'filter': ['!', ['in', ['get', 'localID'], ['literal', farms]]],
+          'paint': {
+            'circle-radius': 7,
+            'circle-color': 'rgba(255, 255, 0, 0.5)',
+            'circle-stroke-color': 'rgb(238, 90, 78)',
+            'circle-stroke-width': 2,
+          },
+        });
+      }
       addMapboxLayer(agraratlas, {
         'id': 'invekos_hofstelle-point-my-farm',
         'type': 'circle',
@@ -211,17 +234,30 @@ function createKatasterLayer() {
  * @param {import('~~/shared/utils/constants').Commodity} commodity
  * @param {Array<string>} [farms]
  * @param {Array<string>} [fields]
+ * @param {Object} [options]
+ * @param {boolean} [options.ownOnly] Show only the user's own schläge of this
+ *   commodity, hiding all others. Meant for read-only previews; `holz` has no
+ *   notion of own fields, so the option does not apply there.
  * @returns {CommodityLayerset}
  */
-export function createCommodityLayerset(commodity, farms = [], fields = []) {
+export function createCommodityLayerset(
+  commodity,
+  farms = [],
+  fields = [],
+  { ownOnly = false } = {},
+) {
   const layerGroup =
-    commodity === 'holz' ? createKatasterLayer() : createAgraratlasLayer(commodity, farms, fields);
+    commodity === 'holz'
+      ? createKatasterLayer()
+      : createAgraratlasLayer(commodity, farms, fields, { ownOnly });
   const getFeatureAtPixel =
     commodity === 'holz'
       ? createGetFeatureAtPixel(layerGroup, 'Wald', (feature) => feature.getId(), 16)
       : createGetFeatureAtPixel(
           layerGroup,
-          'invekos_schlaege_polygon-commodity-fill',
+          ownOnly
+            ? 'invekos_schlaege_polygon-commodity-my-field-fill'
+            : 'invekos_schlaege_polygon-commodity-fill',
           (feature) => feature.get('localID'),
           15,
         );
