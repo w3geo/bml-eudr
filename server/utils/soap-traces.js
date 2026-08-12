@@ -108,7 +108,7 @@ function getHeader() {
           <wsu:Created>${created}</wsu:Created>
         </wsse:UsernameToken>
       </wsse:Security>
-      <v4:WebServiceClientId>eudr-test</v4:WebServiceClientId>
+      <v4:WebServiceClientId>${process.env.TRACES_WS_CLIENT_ID}</v4:WebServiceClientId>
     </soapenv:Header>`;
 }
 
