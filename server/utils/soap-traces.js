@@ -42,8 +42,7 @@ import { parseAddress } from '~~/shared/utils/utils.js';
 const errorNS = 'http://ec.europa.eu/sanco/tracesnt/error/v01';
 const sdNS = 'http://ec.europa.eu/tracesnt/certificate/eudr/simplified-declaration/v3';
 const commonNS = 'http://ec.europa.eu/tracesnt/certificate/eudr/common/v3';
-const tracesV3Endpoint =
-  'https://acceptance.eudr.webcloud.ec.europa.eu/tracesnt/ws/EUDRSimplifiedDeclarationServiceV3';
+const tracesV3Endpoint = `${process.env.TRACES_WS_URL}EUDRSimplifiedDeclarationServiceV3`;
 
 /** Generate Nonce
  * @returns {string}
