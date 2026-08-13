@@ -15,8 +15,11 @@
       "request": "launch",
       "name": "server: nuxt",
       "outputCapture": "std",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["-y", "@dotenvx/dotenvx", "run", "--", "node"],
       "program": "${workspaceFolder}/node_modules/nuxi/bin/nuxi.mjs",
-      "args": ["dev"]
+      "args": ["dev"],
+      "autoAttachChildProcesses": true
     }
   ],
   "compounds": [
