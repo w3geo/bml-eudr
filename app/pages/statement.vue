@@ -330,17 +330,18 @@ async function validate() {
             </v-row>
             <v-checkbox v-model="geolocationVisible" class="mt-4" hide-details density="compact">
               <template #label>
-                <div class="ml-1 text-body-2">
-                  Erzeugungsorte für nachfolgende Marktteilnehmer freigeben
-                </div>
+                <div class="ml-1 text-body-2">Einsicht in die Erzeugungsorte erlauben</div>
                 <v-tooltip max-width="400" open-on-click>
                   <template #activator="{ props }">
                     <v-btn flat :icon="mdiHelpCircleOutline" size="x-small" v-bind="props"></v-btn>
                   </template>
                   <div>
-                    Wenn aktiviert, sind die Erzeugungsorte für nachfolgende Marktteilnehmer
-                    sichtbar. Wenn nicht aktiviert, werden die Erzeugungsorte als vertraulich
-                    behandelt, sind jedoch auch von Ihnen selbst nicht mehr einsehbar.
+                    Wenn aktiviert, können alle, die die Referenz- und Verifizierungsnummer dieser
+                    Erklärung kennen, die Erzeugungsorte im EU-Informationssystem einsehen. Das sind
+                    üblicherweise Ihre Abnehmer; diese können die Nummern jedoch weitergeben. Wenn
+                    nicht aktiviert, werden die Erzeugungsorte als vertraulich behandelt und nicht
+                    weitergegeben. Auf die übrigen Angaben der Erklärung und auf die Einsicht durch
+                    die Behörden hat diese Einstellung keinen Einfluss.
                   </div>
                 </v-tooltip>
               </template>

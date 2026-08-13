@@ -42,6 +42,10 @@ import { parseAddress } from '~~/shared/utils/utils.js';
 const errorNS = 'http://ec.europa.eu/sanco/tracesnt/error/v01';
 const sdNS = 'http://ec.europa.eu/tracesnt/certificate/eudr/simplified-declaration/v3';
 const commonNS = 'http://ec.europa.eu/tracesnt/certificate/eudr/common/v3';
+// WSDL quirk: submitSd/updateSd/withdrawSd carry a SOAPAction in the simplified-declaration
+// namespace, but the getSd* operations carry one in the due-diligence-statement namespace.
+// Verified against the published EUDRSimplifiedDeclarationServiceV3 WSDL.
+const ddsNS = 'http://ec.europa.eu/tracesnt/certificate/eudr/due-diligence-statement/v3';
 const tracesV3Endpoint = `${process.env.TRACES_WS_URL}EUDRSimplifiedDeclarationServiceV3`;
 
 /** Generate Nonce
@@ -295,7 +299,7 @@ export async function submitSD(commodities, geolocationVisible, user) {
     body,
     headers: {
       'Content-Type': 'text/xml; charset=utf-8',
-      'SOAPAction': 'http://ec.europa.eu/tracesnt/certificate/eudr/simplified-declaration/submitSd',
+      'SOAPAction': `${sdNS}/submitSd`,
     },
   });
   const submitResponseXML = await submitResponse.text();
@@ -334,7 +338,7 @@ export async function retrieveSd(sdIds) {
     body: retrieveXML,
     headers: {
       'Content-Type': 'text/xml; charset=utf-8',
-      'SOAPAction': 'http://ec.europa.eu/tracesnt/certificate/eudr/simplified-declaration/getSd',
+      'SOAPAction': `${ddsNS}/getSd`,
     },
   });
   const retrieveResponseXML = await retrieveResponse.text();
@@ -398,8 +402,7 @@ export async function retrieveSdByInternalReference(internalReference) {
       body,
       headers: {
         'Content-Type': 'text/xml; charset=utf-8',
-        'SOAPAction':
-          'http://ec.europa.eu/tracesnt/certificate/eudr/simplified-declaration/getSdByInternalReference',
+        'SOAPAction': `${ddsNS}/getSdByInternalReference`,
       },
     });
     const submitResponseXML = await submitResponse.text();
@@ -482,8 +485,7 @@ export async function retrieveSdData(referenceNumber, verificationNumber) {
     body,
     headers: {
       'Content-Type': 'text/xml; charset=utf-8',
-      'SOAPAction':
-        'http://ec.europa.eu/tracesnt/certificate/eudr/simplified-declaration/getSdByIdentifiers',
+      'SOAPAction': `${ddsNS}/getSdByIdentifiers`,
     },
   });
   const submitResponseXML = await submitResponse.text();
