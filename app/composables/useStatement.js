@@ -18,7 +18,7 @@
  */
 
 /**
- * Postal address of the production place, submitted to TRACES when "Postadresse"
+ * Postal address of the production place, submitted to TRACES when "Postanschrift"
  * is selected as the production location (i.e. `geolocation` is false). `null`
  * means "use the logged in user's address".
  * @typedef {{ street: string, postalCode: string, city: string } | null} Address
@@ -105,7 +105,7 @@ export function useStatement(commodity, isAma = false) {
 
   /**
    * Whether the production location is given as a drawn geolocation
-   * ("Geolokalisation", true) rather than a postal address ("Postadresse",
+   * ("Geolokalisation", true) rather than a postal address ("Postanschrift",
    * false). Governs which of the two is submitted to TRACES.
    * @type {import('vue').Ref<boolean>}
    */

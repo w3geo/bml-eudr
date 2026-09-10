@@ -23,7 +23,7 @@ const mfaConfirmed = ref(false);
 const showFieldsMap = ref(false);
 
 /**
- * Validate the visible fields (the postal address is required when "Postadresse"
+ * Validate the visible fields (the postal address is required when "Postanschrift"
  * is selected). Exposed so the editor's confirm action can block on it.
  * @returns {Promise<boolean>}
  */
@@ -108,7 +108,7 @@ watch(yieldPerHectare, (value) => {
             v-model="geolocation"
             class="select-field"
             :items="[
-              { title: 'Postadresse', value: false },
+              { title: 'Postanschrift', value: false },
               { title: 'Geolokalisation', value: true },
             ]"
             label="Erzeugungsort"
@@ -174,7 +174,7 @@ watch(yieldPerHectare, (value) => {
           >
             Flächen anzeigen
           </v-btn>
-          <div class="text-subtitle-2 mb-4">Postadresse des Erzeugungsorts</div>
+          <div class="text-subtitle-2 mb-4">Postanschrift des Erzeugungsorts</div>
           <v-row>
             <v-col cols="12">
               <v-text-field

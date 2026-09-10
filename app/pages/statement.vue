@@ -88,7 +88,7 @@ const statements =
 
 /**
  * Whether the map editor is shown for the commodity currently being edited:
- * true when "Geolokalisation" is selected, false for "Postadresse". Mirrors the
+ * true when "Geolokalisation" is selected, false for "Postanschrift". Mirrors the
  * commodity's persisted `geolocation` flag, which the dropdown in PlacesForm
  * writes directly.
  * @type {import('vue').ComputedRef<boolean>}
@@ -244,7 +244,7 @@ async function validate() {
       'Zumindest für ein(en) Rohstoff/Erzeugnis muss eine Menge angegeben werden.';
     return;
   }
-  // In "Postadresse" mode the postal fields are required; block until they are
+  // In "Postanschrift" mode the postal fields are required; block until they are
   // complete. (In "Geolokalisation" mode those fields are not rendered, so the
   // form validates as valid.)
   if (placesFormRef.value && !(await placesFormRef.value.validate())) {
