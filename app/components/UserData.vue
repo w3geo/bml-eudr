@@ -125,7 +125,7 @@ const idItems = [
           Nicht editierbare Felder wurden vom Anmeldedienst übernommen.
         </v-alert>
         Mit dem Klicken auf "Speichern" stimme ich zu, dass meine Daten zum Zweck der Erstellung von
-        Vereinfachte Erklärungen gespeichert und verarbeitet werden.
+        Vereinfachten Erklärungen gespeichert und verarbeitet werden.
       </v-col>
     </v-row>
     <v-snackbar v-if="props.editable && canSave" v-model="snackbar" timeout="2000">

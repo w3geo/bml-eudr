@@ -6,6 +6,7 @@ import 'ol/ol.css';
 import VectorSource from 'ol/source/Vector.js';
 import { View } from 'ol';
 import { fromLonLat, transformExtent } from 'ol/proj';
+import { mdiClose } from '@mdi/js';
 
 /** Fallback extent (Austria) used when there is no geolocation to fit to. */
 const austriaExtent = [...fromLonLat([9.530952, 46.372276]), ...fromLonLat([17.160776, 49.020608])];
@@ -115,14 +116,21 @@ async function fitMap() {
     @after-enter="fitMap"
   >
     <v-card>
-      <v-card-title>Erzeugungsorte</v-card-title>
+      <v-card-title>
+        <v-toolbar color="transparent" flat density="compact">
+          Erzeugungsorte
+          <v-spacer />
+          <v-btn
+            :icon="mdiClose"
+            variant="text"
+            size="small"
+            @click="emit('update:modelValue', false)"
+          />
+        </v-toolbar>
+      </v-card-title>
       <v-card-text class="pa-0">
         <div ref="mapContainer" style="height: 500px" />
       </v-card-text>
-      <v-card-actions>
-        <v-spacer />
-        <v-btn @click="emit('update:modelValue', false)">Schließen</v-btn>
-      </v-card-actions>
     </v-card>
   </v-dialog>
 </template>

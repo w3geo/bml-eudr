@@ -22,7 +22,6 @@ export default defineEventHandler(async (event) => {
   }
 
   if (!data?.code) {
-    const { sendMail } = useNodeMailer();
     const code = generate(6, {
       upperCaseAlphabets: false,
       lowerCaseAlphabets: false,

@@ -14,12 +14,20 @@ export default defineNuxtConfig({
     '@nuxt/eslint',
     'nuxt-auth-utils',
     'vuetify-nuxt-module',
-    'nuxt-nodemailer',
     '@eschricht/nuxt-color-mode',
   ],
   runtimeConfig: {
     // See server/utils/database.js and server/plugins/storage.js
     pgliteDataDir: join('.data', 'pglite'),
+    // See server/utils/nodemailer.js
+    smtp: {
+      from: '',
+      host: '',
+      port: 587,
+      secure: false,
+      user: '',
+      pass: '',
+    },
   },
   app: {
     head: {
@@ -40,16 +48,7 @@ export default defineNuxtConfig({
       '*/5 * * * *': ['ama-cattle'],
     },
   },
-  nodemailer: {
-    from: '',
-    host: '',
-    port: 587,
-    secure: false,
-    auth: {
-      user: '',
-      pass: '',
-    },
-  },
+
   vite: {
     optimizeDeps: {
       include: ['@mdi/js', '@vue/devtools-core', '@vue/devtools-kit'],
@@ -79,6 +78,7 @@ export default defineNuxtConfig({
           useBrowserThemeOnly: true,
         },
       },
+      prefixComposables: ['useLayout'],
     },
   },
 });

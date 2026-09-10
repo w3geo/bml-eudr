@@ -1,6 +1,5 @@
 import { randomBytes, createHash } from 'crypto';
 import { DOMParser } from '@xmldom/xmldom';
-import { Agent } from 'undici';
 import { unref } from 'vue';
 import { COMMODITIES, HS_HEADING } from '~~/shared/utils/constants.js';
 import { parseAddress } from '~~/shared/utils/utils.js';
@@ -288,13 +287,6 @@ export async function submitSD(commodities, geolocationVisible, user) {
   }
   const body = getSubmitSdXML(commodities, geolocationVisible, user);
   const submitResponse = await fetch(tracesV3Endpoint, {
-    // Work around self-signed certificate on acceptance server
-    //@ts-ignore
-    dispatcher: new Agent({
-      connect: {
-        rejectUnauthorized: process.env.FETCH_TRACES_REJECT_UNAUTHORIZED !== 'false',
-      },
-    }),
     method: 'POST',
     body,
     headers: {
@@ -327,13 +319,6 @@ export async function submitSD(commodities, geolocationVisible, user) {
 export async function retrieveSd(sdIds) {
   const retrieveXML = getRetrieveSdXML(sdIds);
   const retrieveResponse = await fetch(tracesV3Endpoint, {
-    // Work around self-signed certificate on acceptance server
-    //@ts-ignore
-    dispatcher: new Agent({
-      connect: {
-        rejectUnauthorized: process.env.FETCH_TRACES_REJECT_UNAUTHORIZED !== 'false',
-      },
-    }),
     method: 'POST',
     body: retrieveXML,
     headers: {
@@ -391,13 +376,6 @@ export async function retrieveSdByInternalReference(internalReference) {
 
   try {
     const submitResponse = await fetch(tracesV3Endpoint, {
-      // Work around self-signed certificate on acceptance server
-      //@ts-ignore
-      dispatcher: new Agent({
-        connect: {
-          rejectUnauthorized: process.env.FETCH_TRACES_REJECT_UNAUTHORIZED !== 'false',
-        },
-      }),
       method: 'POST',
       body,
       headers: {
@@ -481,13 +459,6 @@ export async function retrieveSdData(referenceNumber, verificationNumber) {
     </soapenv:Envelope>`;
 
   const submitResponse = await fetch(tracesV3Endpoint, {
-    // Work around self-signed certificate on acceptance server
-    //@ts-ignore
-    dispatcher: new Agent({
-      connect: {
-        rejectUnauthorized: process.env.FETCH_TRACES_REJECT_UNAUTHORIZED !== 'false',
-      },
-    }),
     method: 'POST',
     body,
     headers: {
