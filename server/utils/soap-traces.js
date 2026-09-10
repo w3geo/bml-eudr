@@ -33,7 +33,7 @@ import { parseAddress } from '~~/shared/utils/utils.js';
  * @property {import('~/composables/useStatement').Quantity|import('vue').Ref<import('~/composables/useStatement').Quantity>} quantity
  * @property {import('geojson').FeatureCollection<import('geojson').Geometry | null>|import('vue').Ref<import('geojson').FeatureCollection<import('geojson').Geometry | null>>} geojson
  * @property {import('~/composables/useStatement').Address|import('vue').Ref<import('~/composables/useStatement').Address>} [address] Override for the producer postal address; defaults to the user's address.
- * @property {boolean|import('vue').Ref<boolean>} [geolocation] Whether the drawn geolocation ("Geolokalisation") is submitted as the producer location instead of the postal address ("Postadresse").
+ * @property {boolean|import('vue').Ref<boolean>} [geolocation] Whether the drawn geolocation ("Geolokalisation") is submitted as the producer location instead of the postal address ("Postanschrift").
  */
 
 /**
@@ -410,6 +410,13 @@ export async function retrieveSdByInternalReference(internalReference) {
     const faultString = xml.getElementsByTagName('faultstring').item(0)?.textContent;
     const message = xml.getElementsByTagNameNS(errorNS, 'Message').item(0)?.textContent;
     const error = `${faultString ? faultString + ': ' : ''}${message || ''}`.trim();
+    // TRACES answers a query without any matching statements with an HTTP 500 SOAP
+    // fault ("Declaration not found.") carrying a NotFoundException detail. That is
+    // not an error for us - the user simply has no statements yet, so report an
+    // empty list instead of a server error.
+    if (xml.getElementsByTagNameNS(sdNS, 'NotFoundException').length > 0) {
+      return { statements: [] };
+    }
     if (submitResponse.status >= 500) {
       return {
         error: error || 'TRACES database currently unavailable, try again later',
