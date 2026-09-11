@@ -32,6 +32,9 @@ function openMapDialog(geojson, commodity) {
 
 const { data: statements, error: statementsError } = await useFetch('/api/statements');
 const { data: userData } = await useFetch('/api/users/me');
+const statementsErrorMessage = computed(
+  () => /** @type {{ message?: string }|undefined} */ (statementsError.value?.data)?.message,
+);
 
 statementCount.value = statements.value?.length || 0;
 
@@ -263,7 +266,7 @@ const copyToClipboard = async (statement) => {
   </v-row>
   <v-row v-else>
     <v-col v-if="statementsError">
-      Fehler beim Laden: {{ statementsError.data.message }}. Versuchen Sie es später erneut.
+      Fehler beim Laden: {{ statementsErrorMessage }}. Versuchen Sie es später erneut.
     </v-col>
     <v-col v-else>
       Noch keine vorhanden. Erstellen Sie eine

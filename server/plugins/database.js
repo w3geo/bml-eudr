@@ -32,7 +32,7 @@ export default defineNitroPlugin(async () => {
       const dataDir = useRuntimeConfig().pgliteDataDir;
       mkdirSync(dataDir, { recursive: true });
       const client = new PGliteClient(dataDir);
-      const db = pgliteDrizzle(client);
+      const db = pgliteDrizzle({ client });
       await pgliteMigrate(db, { migrationsFolder });
       setDatabase(db);
     }

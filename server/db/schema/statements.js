@@ -1,7 +1,6 @@
 import { pgTable, timestamp, uniqueIndex, uuid, varchar } from 'drizzle-orm/pg-core';
-import users from './users';
+import users from './users.js';
 
-// Table for statements created on behalf of another user
 const statements = pgTable(
   'statements',
   {
@@ -9,8 +8,6 @@ const statements = pgTable(
     userId: varchar({ length: 127 })
       .notNull()
       .references(() => users.id),
-    authorName: varchar({ length: 127 }).notNull(),
-    authorAddress: varchar({ length: 255 }).notNull(),
     date: timestamp().notNull(),
   },
   (table) => [uniqueIndex('statements_ddsId').on(table.sdId)],
