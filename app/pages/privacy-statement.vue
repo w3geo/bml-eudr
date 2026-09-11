@@ -56,17 +56,6 @@ useSeoMeta({
                   oder Steuernummer) zum Zweck der Erstellung und Verwaltung von Vereinfachten
                   Erklärungen gespeichert.
                 </li>
-                <li class="mb-1">
-                  Sofern Sie für jemand anderen eine Vereinfachte Erklärung erstellen, werden Name
-                  und Adresse Ihres Betriebes gespeichert, um Sie als Ersteller der Vereinfachten
-                  Erklärung zuordnen zu können.
-                </li>
-                <li class="mb-1">
-                  Sofern Sie von jemand anderem eine Vereinfachte Erklärung erstellen lassen, wird
-                  die interne ID der Vereinfachten Erklärung, die von der TRACES Datenbank der
-                  EU-Kommission vergeben wird gespeichert, um die Vereinfachte Erklärung dem Konto
-                  des Erstellers zuordnen zu können.
-                </li>
               </ul>
             </div>
             <div class="text-body-1 mb-2">
@@ -77,9 +66,10 @@ useSeoMeta({
             </div>
             <div class="text-body-1 mb-2">
               Bei Klicken der Schaltfläche „Bestätigen und Übermitteln" auf der Seite „Vereinfachte
-              Erklärung“ wird zum Zweck der Verknüpfung mit dieser Applikation Ihre Benutzer-ID
-              (LFBIS-Nummer bei eAMA Login, KUR bei USP Login, bPK bei ID Austria Login, e-mail
-              Adresse bei E-Mail Login) als interne Referenz an die TRACES-Datenbank übermittelt.
+              Erklärung“ wird zum Zweck der Verknüpfung mit dieser Applikation ein aus Ihrer
+              Benutzer-ID (LFBIS-Nummer bei eAMA Login, KUR bei USP Login, bPK bei ID Austria Login,
+              e-mail Adresse bei E-Mail Login) errechneter, nicht umkehrbarer Hash-Wert als interne
+              Referenz an die TRACES-Datenbank übermittelt.
             </div>
             <div class="text-body-1 mb-2">
               Bei Klicken der Schaltfläche „Bestätigen und Übermitteln“ auf der Seite „Vereinfachte

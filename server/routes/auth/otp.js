@@ -70,7 +70,6 @@ export default defineEventHandler(async (event) => {
     .update(users)
     .set({
       otp: null, // Clear the OTP after successful login
-      statementToken: user.statementToken || generate(20, { specialChars: false }), // and make sure the user has a statement token
     })
     .where(eq(users.id, user.id));
 

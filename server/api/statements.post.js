@@ -1,76 +1,35 @@
-import users from '../db/schema/users';
-import { and, eq } from 'drizzle-orm';
-import statements from '../db/schema/statements';
 import amaCattle from '../db/schema/ama_cattle';
 import { unref } from 'vue';
 
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event);
-  let userId = session.user.login;
+  const userId = session.user.login;
   if (!userId) {
     throw createError({ status: 401, statusMessage: 'Unauthorized' });
   }
-  /** @type {import('~~/server/utils/soap-traces').StatementData & { onBehalfOf?: string, token?: string }} */
-  const { onBehalfOf, token, ...statement } = await readBody(event);
+  /** @type {import('~~/server/utils/soap-traces').StatementData} */
+  const statement = await readBody(event);
 
   const db = useDb();
 
-  let onBehalfOfUser;
-  if (onBehalfOf && token) {
-    [onBehalfOfUser] = await db
-      .select()
-      .from(users)
-      .where(and(eq(users.id, String(onBehalfOf)), eq(users.statementToken, String(token))));
-    if (!onBehalfOfUser) {
-      throw createError({ status: 403, statusMessage: 'Forbidden' });
-    }
-    await db.update(users).set({ statementToken: null }).where(eq(users.id, onBehalfOfUser.id));
+  const secure = session.secure;
+  if (
+    !secure ||
+    !secure.name ||
+    !secure.address ||
+    !secure.identifierType ||
+    !secure.identifierValue
+  ) {
+    throw createError({ status: 400, statusMessage: 'User is missing required fields' });
   }
-
   /** @type {import('~~/server/utils/soap-traces').User} */
-  let user;
-  if (onBehalfOfUser) {
-    const [userFromDb] = await db.select().from(users).where(eq(users.id, onBehalfOfUser.id));
-    if (!userFromDb) {
-      throw createError({ status: 404, statusMessage: 'On-behalf-of user not found' });
-    }
-    if (
-      !userFromDb.name ||
-      !userFromDb.address ||
-      !userFromDb.identifierType ||
-      !userFromDb.identifierValue
-    ) {
-      throw createError({
-        status: 400,
-        statusMessage: 'On-behalf-of user is missing required fields',
-      });
-    }
-    user = {
-      id: userFromDb.id,
-      name: userFromDb.name,
-      address: userFromDb.address,
-      identifierType: userFromDb.identifierType,
-      identifierValue: userFromDb.identifierValue,
-    };
-  } else {
-    const secure = session.secure;
-    if (
-      !secure ||
-      !secure.name ||
-      !secure.address ||
-      !secure.identifierType ||
-      !secure.identifierValue
-    ) {
-      throw createError({ status: 400, statusMessage: 'User is missing required fields' });
-    }
-    user = {
-      id: session.user.login,
-      name: secure.name,
-      address: secure.address,
-      identifierType: secure.identifierType,
-      identifierValue: secure.identifierValue,
-    };
-  }
+  const user = {
+    id: userId,
+    name: secure.name,
+    address: secure.address,
+    identifierType: secure.identifierType,
+    identifierValue: secure.identifierValue,
+  };
 
   const commodities = statement.commodities;
   const cattleCount = commodities.reduce((sum, c) => {
@@ -90,51 +49,34 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  /** @type {Array<Promise<*>>} */
-  const promises = [];
-  if (onBehalfOfUser) {
-    promises.push(
-      db.insert(statements).values({
-        sdId,
-        userId: onBehalfOfUser.id,
-        authorName: /** @type {string} */ (session.secure?.name),
-        authorAddress: /** @type {string} */ (session.secure?.address),
-        date: new Date(),
-      }),
-    );
-  }
-  if (!onBehalfOfUser && cattleCount && session.loginProvider === 'AMA') {
-    promises.push(
-      db.insert(amaCattle).values({
-        sdId,
-        lfbis: userId,
-        count: cattleCount,
-      }),
-    );
-  }
-  await Promise.all(promises);
-  if (!onBehalfOfUser) {
-    await setUserSession(event, {
-      user: session.user,
-      loginProvider: session.loginProvider,
-      loggedInAt: session.loggedInAt,
-      commodities: {
-        ...(session.commodities ?? {}),
-        [sdId]: commodities.map((c) => ({
-          key: c.key,
-          quantity: c.quantity,
-          geojson: {
-            type: 'FeatureCollection',
-            features: unref(c.geojson).features.map((f) => ({
-              type: 'Feature',
-              properties: { Area: f.properties?.Area },
-              geometry: null,
-            })),
-          },
-        })),
-      },
+  if (cattleCount && session.loginProvider === 'AMA') {
+    await db.insert(amaCattle).values({
+      sdId,
+      lfbis: userId,
+      count: cattleCount,
     });
   }
+
+  await setUserSession(event, {
+    user: session.user,
+    loginProvider: session.loginProvider,
+    loggedInAt: session.loggedInAt,
+    commodities: {
+      ...(session.commodities ?? {}),
+      [sdId]: commodities.map((c) => ({
+        key: c.key,
+        quantity: c.quantity,
+        geojson: {
+          type: 'FeatureCollection',
+          features: unref(c.geojson).features.map((f) => ({
+            type: 'Feature',
+            properties: { Area: f.properties?.Area },
+            geometry: null,
+          })),
+        },
+      })),
+    },
+  });
 
   return sendNoContent(event, 201);
 });

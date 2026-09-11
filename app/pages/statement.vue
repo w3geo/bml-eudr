@@ -4,12 +4,9 @@ import {
   mdiCheck,
   mdiCheckDecagram,
   mdiClose,
-  mdiEmailFastOutline,
   mdiHelpCircleOutline,
-  mdiMessageTextOutline,
 } from '@mdi/js';
 import { FetchError } from 'ofetch';
-import useOnBehalfOf from '~/composables/useOnBehalfOf';
 
 definePageMeta({
   middleware: ['authenticated-only'],
@@ -17,17 +14,11 @@ definePageMeta({
   sort: 20,
 });
 
-const { query } = useRoute();
 const { mdAndUp, xs } = useDisplay();
 const { start, finish, clear } = useLoadingIndicator();
 const { errorMessage } = useErrorMessage();
 /** @type {import('vue').Ref<import('~/components/UserData.vue').default|null>} */
 const userDataComplete = ref(null);
-
-const { user: onBehalfOfUser, reset: resetOnBehalfOf } = useOnBehalfOf(
-  query.onBehalfOf,
-  query.token,
-);
 
 const { data: user, refresh: refetchUserData } = await useFetch('/api/users/me');
 const incomplete = computed(() => {
@@ -38,11 +29,6 @@ const incomplete = computed(() => {
     user.value?.identifierValue
   );
 });
-
-const statementTokenUrl =
-  user.value?.loginProvider === 'OTP'
-    ? `${useRequestURL().origin}/statement?onBehalfOf=${user.value?.id}&token=${user.value?.statementToken}`
-    : '';
 
 /** @type {import('vue').Ref<import('~/components/UserData.vue').default|null>} */
 const userDataSubmit = ref(null);
@@ -63,18 +49,9 @@ const editCommodity = ref(null);
 const placesFormRef = ref(null);
 
 /** @type {import('vue').Ref<boolean>} */
-const savedOnBehalfOf = ref(false);
-
-/** @type {import('vue').Ref<boolean>} */
 const confirm = ref(false);
 
-const isAma = computed(() => {
-  const loginProvider = onBehalfOfUser?.value
-    ? onBehalfOfUser.value.loginProvider
-    : user.value?.loginProvider;
-  return loginProvider === 'AMA';
-});
-
+const isAma = computed(() => user.value?.loginProvider === 'AMA');
 /**
  * Per-commodity statement state, created once here rather than by re-invoking
  * `useStatement()` inside computeds and handlers. The composable registers a
@@ -136,14 +113,16 @@ function openEditor(commodity) {
   }
   editCommodity.value = commodity;
   const { address, createSnapshot } = statements[commodity];
-  // Pre-fill the producer address with the (on-behalf-of) user's address so the
-  // commodity always carries a complete address; the postal form lets the user
-  // override it. The snapshot taken right after captures the pre-fill as the
-  // editing baseline, so opening the editor is not treated as an unsaved change.
+  // Pre-fill the producer address with the user's own address so the commodity
+  // always carries a complete address; the postal form lets the user override
+  // it. The snapshot taken right after captures the pre-fill as the editing
+  // baseline, so opening the editor is not treated as an unsaved change.
   if (!address.value) {
-    address.value = parseAddress(
-      (onBehalfOfUser?.value ? onBehalfOfUser.value.address : user.value?.address) || '',
-    ) ?? { street: '', postalCode: '', city: '' };
+    address.value = parseAddress(user.value?.address || '') ?? {
+      street: '',
+      postalCode: '',
+      city: '',
+    };
   }
   createSnapshot();
 }
@@ -179,19 +158,15 @@ async function completeUserData() {
 }
 
 async function submit() {
-  if (!onBehalfOfUser?.value) {
-    if (!(await userDataSubmit.value?.validate())) {
-      return;
-    }
-    await userDataSubmit.value?.save();
+  if (!(await userDataSubmit.value?.validate())) {
+    return;
   }
+  await userDataSubmit.value?.save();
   try {
     start();
     await $fetch('/api/statements', {
       method: 'POST',
       body: JSON.stringify({
-        onBehalfOf: onBehalfOfUser?.value ? onBehalfOfUser.value.id : undefined,
-        token: onBehalfOfUser?.value ? onBehalfOfUser.value.statementToken : undefined,
         commodities: COMMODITY_KEYS.map((key) => ({
           key,
           quantity: statements[key].quantity.value,
@@ -206,18 +181,7 @@ async function submit() {
     for (const key of COMMODITY_KEYS) {
       statements[key].clear();
     }
-    if (onBehalfOfUser?.value) {
-      savedOnBehalfOf.value = true;
-      const unwatch = watch(savedOnBehalfOf, (value) => {
-        if (value === false) {
-          unwatch();
-          resetOnBehalfOf();
-          useRouter().push('/');
-        }
-      });
-    } else {
-      useRouter().push('/account');
-    }
+    useRouter().push('/account');
   } catch (error) {
     if (error instanceof FetchError) {
       errorMessage.value = error.data.message;
@@ -265,18 +229,6 @@ async function validate() {
     </v-card>
   </v-dialog>
 
-  <v-dialog v-model="savedOnBehalfOf" max-width="400">
-    <v-card>
-      <v-card-text>
-        Die Vereinfachte Erklärung für {{ onBehalfOfUser?.name }} wurde übermittelt. Sie können nun
-        wieder Vereinfachte Erklärungen für sich selbst erstellen.
-      </v-card-text>
-      <v-card-actions>
-        <v-btn @click="savedOnBehalfOf = false"> Ok </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
-
   <v-dialog v-model="map" fullscreen>
     <v-card v-if="editCommodity" class="h-100">
       <v-toolbar>
@@ -291,7 +243,7 @@ async function validate() {
         v-if="showMapEditor"
         style="flex: 1 1 0; min-height: 0"
         :commodity="editCommodity"
-        :address="(onBehalfOfUser ? onBehalfOfUser.address : user?.address) || undefined"
+        :address="user?.address || undefined"
       />
     </v-card>
   </v-dialog>
@@ -314,11 +266,9 @@ async function validate() {
           </v-card-actions>
         </v-card>
         <v-card v-if="!incomplete">
-          <v-card-title>
-            Vereinfachte Erklärung{{ onBehalfOfUser ? ' für ' + onBehalfOfUser.name : '' }}
-          </v-card-title>
+          <v-card-title>Vereinfachte Erklärung</v-card-title>
           <v-card-text v-if="canSend">
-            <UserData v-if="!onBehalfOfUser" ref="userDataSubmit" />
+            <UserData ref="userDataSubmit" />
             <v-row>
               <v-col
                 v-for="item in commoditiesInStatement"
@@ -347,28 +297,19 @@ async function validate() {
               </template>
             </v-checkbox>
             <div class="text-body-1 mt-4">
-              Hiermit beauftrag{{ onBehalfOfUser ? 't ' + onBehalfOfUser.name : 'e ich' }} das
-              Bundesministerium für Land- und Forstwirtschaft, Klima- und Umweltschutz, Regionen und
-              Wasserwirtschaft (BMLUK), für {{ onBehalfOfUser ? onBehalfOfUser.name : 'mich' }} als
-              Bevollmächtiger im Sinne von Artikel 2 Ziffer 22 der Verordnung (EU) 2023/1115
-              aufzutreten und die
-              {{ onBehalfOfUser ? 'für ' + onBehalfOfUser.name : 'von mir' }} erstellte Vereinfachte
-              Erklärung an das Informationssystem gemäß Artikel 33 dieser Verordnung zu übermitteln.
-              {{ onBehalfOfUser ? onBehalfOfUser.name + ' bestätigt' : 'Ich bestätige' }}, die
-              alleinige Verantwortung für den Inhalt der Vereinfachten Erklärung zu übernehmen.
+              Hiermit beauftrage ich das Bundesministerium für Land- und Forstwirtschaft, Klima- und
+              Umweltschutz, Regionen und Wasserwirtschaft (BMLUK), für mich als Bevollmächtiger im
+              Sinne von Artikel 2 Ziffer 22 der Verordnung (EU) 2023/1115 aufzutreten und die von
+              mir erstellte Vereinfachte Erklärung an das Informationssystem gemäß Artikel 33 dieser
+              Verordnung zu übermitteln. Ich bestätige, die alleinige Verantwortung für den Inhalt
+              der Vereinfachten Erklärung zu übernehmen.
             </div>
             <div class="text-body-1 mt-4">
-              Durch Übermittlung dieser Vereinfachten Erklärung bestätig{{
-                onBehalfOfUser ? 't ' + onBehalfOfUser.name : 'e ich'
-              }}, die Sorgfaltspflicht gemäß der Verordnung (EU) 2023/1115 durchgeführt zu haben,
-              und dass kein oder lediglich ein vernachlässigbares Risiko dahingehend festgestellt
-              wurde, dass die relevanten Erzeugnisse gegen Artikel 3 Buchstaben a oder b dieser
-              Verordnung verstoßen.
-            </div>
-            <div v-if="onBehalfOfUser" class="text-body-1 mt-4">
-              Ich stimme zu, dass Name und Adresse meines Betriebes gespeichert werden, um mich als
-              Ersteller dieser Vereinfachten Erklärung für {{ onBehalfOfUser.name }} zuordnen zu
-              können.
+              Durch Übermittlung dieser Vereinfachten Erklärung bestätige ich, die Sorgfaltspflicht
+              gemäß der Verordnung (EU) 2023/1115 durchgeführt zu haben, und dass kein oder
+              lediglich ein vernachlässigbares Risiko dahingehend festgestellt wurde, dass die
+              relevanten Erzeugnisse gegen Artikel 3 Buchstaben a oder b dieser Verordnung
+              verstoßen.
             </div>
           </v-card-text>
           <v-card-actions v-if="canSend">
@@ -378,46 +319,9 @@ async function validate() {
           </v-card-actions>
         </v-card>
       </v-col>
-      <template v-if="!incomplete && user?.loginProvider !== 'OTP'">
+      <template v-if="!incomplete">
         <v-col v-for="item in commoditiesToAdd" :key="item.key" :cols="mdAndUp ? 4 : xs ? 12 : 6">
           <CommodityCard :item="item" @open-editor="openEditor" />
-        </v-col>
-      </template>
-      <template v-if="!incomplete && user?.loginProvider === 'OTP'">
-        <v-col cols="12">
-          <v-card>
-            <v-card-title>Jemand anders beauftragen</v-card-title>
-            <v-card-text>
-              <div class="text-body-1 mb-2">
-                Sie können jetzt einen Link zur Erstellung einer Vereinfachten Erklärung
-                verschicken.
-                <b>Bitte beachten Sie:</b> Nur Personen, die über ein eAMA oder ID Austria Login
-                verfügen, können Vereinfachte Erklärungen erstellen.
-              </div>
-              <div class="text-body-1 mb-2">
-                Mit der Weitergabe des Links per E-Mail, SMS oder QR-Code nehme ich zur Kenntnis,
-                dass die volle Verantwortung für die Richtigkeit der Angaben einer von einer anderen
-                Person für mich erstellten Vereinfachten Erklärung bei mir liegt. Weiters nehme ich
-                zur Kenntnis, dass die interne TRACES Datenbank ID der Vereinfachten Erklärung
-                gespeichert wird, um diese dem Ersteller zuordnen zu können.
-              </div>
-            </v-card-text>
-            <v-card-actions>
-              <v-btn
-                text="E-Mail"
-                :prepend-icon="mdiEmailFastOutline"
-                color="primary"
-                :href="`mailto:?subject=EUDR Vereinfachte Erklärung für ${user.name}&body=${encodeURIComponent(`Bitte erstellen Sie eine EUDR Vereinfachte Erklärung für ${user.name}: ${statementTokenUrl}`)}`"
-              ></v-btn>
-              <v-btn
-                text="SMS"
-                :prepend-icon="mdiMessageTextOutline"
-                color="primary"
-                :href="`sms:?body=${encodeURIComponent(`Bitte erstellen Sie für ${user.name} eine EUDR Vereinfachte Erklärung: ${statementTokenUrl}`)}`"
-              ></v-btn>
-              <qr-code-button color="primary" :payload="statementTokenUrl"></qr-code-button>
-            </v-card-actions>
-          </v-card>
         </v-col>
       </template>
     </v-row>

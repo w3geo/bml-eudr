@@ -55,6 +55,17 @@ function generateNonce() {
 }
 
 /**
+ * Get a hash representing the unique login id, because TRACES' internal reference numbers
+ * are limited to 14 characters.
+ * @param {string} id
+ * @returns {string}
+ */
+function getInternalReferenceHash(id) {
+  const hash = createHash('sha256').update(id).digest('hex');
+  return BigInt(`0x${hash}`).toString(36).slice(0, 14);
+}
+
+/**
  * Get current timestamp in UTC format
  * @returns {string}
  */
@@ -237,7 +248,7 @@ function getSubmitSdXML(commodities, geolocationVisible, user) {
         <sd:SubmitSdRequest>
           <sd:operatorRole>REPRESENTATIVE_MSPO</sd:operatorRole>
           <sd:statement>
-            <sd:internalReferenceNumber>${user.id}</sd:internalReferenceNumber>
+            <sd:internalReferenceNumber>${getInternalReferenceHash(user.id)}</sd:internalReferenceNumber>
             <sd:activityType>DOMESTIC</sd:activityType>
             ${representedOperatorXML}
             <sd:countryOfActivity>AT</sd:countryOfActivity>
@@ -369,7 +380,7 @@ export async function retrieveSdByInternalReference(internalReference) {
         ${getHeader()}
         <soapenv:Body>
             <sd:GetSdByInternalReferenceRequest>
-                <sd:internalReference>${internalReference}</sd:internalReference>
+                <sd:internalReference>${getInternalReferenceHash(internalReference)}</sd:internalReference>
             </sd:GetSdByInternalReferenceRequest>
         </soapenv:Body>
     </soapenv:Envelope>`;
