@@ -61,7 +61,7 @@ function generateNonce() {
  * @returns {string}
  */
 function getInternalReferenceHash(id) {
-  const hash = createHash('sha256').update(id).digest('hex');
+  const hash = createHash('sha256').update(String(id)).digest('hex');
   return BigInt(`0x${hash}`).toString(36).slice(0, 14);
 }
 
