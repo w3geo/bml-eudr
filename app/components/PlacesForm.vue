@@ -174,7 +174,7 @@ watch(yieldPerHectare, (value) => {
           >
             Flächen anzeigen
           </v-btn>
-          <div class="text-subtitle-2 mb-4">Postanschrift des Erzeugungsorts</div>
+          <div class="text-subtitle-2 mb-4">Postanschrift</div>
           <v-row>
             <v-col cols="12">
               <v-text-field

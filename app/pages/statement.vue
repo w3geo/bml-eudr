@@ -91,6 +91,15 @@ const commoditiesInStatement = computed(() =>
   ),
 );
 
+/**
+ * The confidentiality checkbox only concerns drawn geolocations, not postal
+ * addresses, so it's only relevant while at least one commodity in the
+ * statement actually uses "Geolokalisation".
+ */
+const hasGeolocationCommodity = computed(() =>
+  commoditiesInStatement.value.some((commodity) => unref(commodity.geolocation)),
+);
+
 /** @type {ComputedRef<Array<import('~~/server/utils/soap-traces.js').CommodityDataWithKey>>} */
 const commoditiesToAdd = computed(() =>
   COMMODITY_KEYS.map((key) => ({ key, ...statements[key] })).filter(
@@ -174,7 +183,7 @@ async function submit() {
           address: statements[key].address.value,
           geolocation: statements[key].geolocation.value,
         })).filter((commodity) => Object.values(commodity.quantity).some((v) => v > 0)),
-        geolocationVisible: geolocationVisible.value,
+        geolocationVisible: hasGeolocationCommodity.value ? geolocationVisible.value : false,
       }),
     });
     await new Promise((r) => setTimeout(r, 1000));
@@ -278,7 +287,13 @@ async function validate() {
                 <CommodityCard :item="item" @open-editor="openEditor" />
               </v-col>
             </v-row>
-            <v-checkbox v-model="geolocationVisible" class="mt-4" hide-details density="compact">
+            <v-checkbox
+              v-if="hasGeolocationCommodity"
+              v-model="geolocationVisible"
+              class="mt-4"
+              hide-details
+              density="compact"
+            >
               <template #label>
                 <div class="ml-1 text-body-2">Einsicht in die Erzeugungsorte erlauben</div>
                 <v-tooltip max-width="400" open-on-click>
