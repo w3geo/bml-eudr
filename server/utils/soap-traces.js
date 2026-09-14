@@ -587,9 +587,11 @@ export async function retrieveSdData(referenceNumber, verificationNumber) {
     .item(0)?.textContent;
   const geolocationVisible = geoLocationConfidential !== 'true';
 
-  if (geolocationVisible && commodities.some((c) => !c.geojson)) {
+  // A commodity legitimately has no geojson when a postal address was submitted
+  // instead of a drawn geolocation; only missing both is an actual inconsistency.
+  if (geolocationVisible && commodities.some((c) => !c.geojson && !c.address)) {
     console.error(
-      'TRACES getSdByIdentifiers: geoLocationConfidential=false but no geometryGeojson found.' +
+      'TRACES getSdByIdentifiers: geoLocationConfidential=false but no geometryGeojson or address found.' +
         ' producers count per commodity:',
       Array.from(
         { length: statementElement.getElementsByTagNameNS(sdNS, 'commodities').length },
