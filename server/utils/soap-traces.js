@@ -1,7 +1,7 @@
 import { randomBytes, createHash } from 'crypto';
 import { DOMParser } from '@xmldom/xmldom';
 import { unref } from 'vue';
-import { COMMODITIES, HS_HEADING } from '~~/shared/utils/constants.js';
+import { COMMODITIES, HS_HEADING, LEGACY_HS_HEADING } from '~~/shared/utils/constants.js';
 import { parseAddress } from '~~/shared/utils/utils.js';
 
 /** @typedef {'AVAILABLE' | 'SUBMITTED' | 'REJECTED' | 'WITHDRAWN' | 'ARCHIVED' | 'SUSPENDED' | 'UPDATED' | 'GROUPED' | 'OBSOLETE' | 'UNKNOWN'} TracesStatus */
@@ -516,8 +516,10 @@ export async function retrieveSdData(referenceNumber, verificationNumber) {
   const commodities = [];
   for (let i = 0; i < commoditiesElements.length; i++) {
     const commodity = /** @type {import('@xmldom/xmldom').Element} */ (commoditiesElements.item(i));
+    const submittedHsCode =
+      commodity.getElementsByTagNameNS(sdNS, 'hsHeading').item(0)?.textContent ?? '';
     const hsCode = /** @type {import('~~/shared/utils/constants').HSCode} */ (
-      commodity.getElementsByTagNameNS(sdNS, 'hsHeading').item(0)?.textContent
+      LEGACY_HS_HEADING[submittedHsCode] ?? submittedHsCode
     );
     const goodsMeasureElement = commodity.getElementsByTagNameNS(commonNS, 'goodsMeasure').item(0);
     const producerElement = commodity.getElementsByTagNameNS(sdNS, 'producers').item(0);
@@ -581,7 +583,12 @@ export async function retrieveSdData(referenceNumber, verificationNumber) {
     };
     const existing = commodities.find((c) => c.key === key);
     if (existing) {
-      existing.quantity = { ...existing.quantity, ...quantity };
+      const existingQuantity = unref(existing.quantity);
+      // Legacy cattle statements carry two headings that now map to one; add them up.
+      existing.quantity = {
+        ...existingQuantity,
+        [hsCode]: (existingQuantity[hsCode] || 0) + (quantity[hsCode] || 0),
+      };
       existing.geojson = unref(existing.geojson) ?? geojson;
       existing.address = unref(existing.address) ?? address;
     } else {
