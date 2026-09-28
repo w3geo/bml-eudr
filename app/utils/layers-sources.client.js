@@ -311,7 +311,9 @@ export function createGeolocationSource(geojson) {
   function updateGeolocation() {
     const features = geolocationSource.getFeatures();
     updatingGeolocation = true;
-    geojson.value = geojsonFormat.writeFeaturesObject(features);
+    // TRACES truncates coordinates to 6 decimals; more precision can create
+    // duplicate vertices and turn valid polygons into invalid ones.
+    geojson.value = geojsonFormat.writeFeaturesObject(features, { decimals: 6 });
     nextTick(() => {
       updatingGeolocation = false;
     });

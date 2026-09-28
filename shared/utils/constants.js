@@ -13,14 +13,23 @@ import { mdiCow, mdiForestOutline, mdiSprout } from '@mdi/js';
  */
 
 export const HS_HEADING = {
-  '010229': 'Rinder',
-  '010221': 'Zuchtrinder',
+  '0102': 'Rinder',
   '1201': 'Sojabohnen',
   '4403': 'Rohholz',
   '4401': 'Brennholz',
 };
 
 /** @typedef {keyof HS_HEADING} HSCode */
+
+/**
+ * HS codes of previously submitted statements that TRACES no longer offers, mapped
+ * to the heading that replaces them.
+ * @type {Record<string, HSCode>}
+ */
+export const LEGACY_HS_HEADING = {
+  '010229': '0102', // Rinder
+  '010221': '0102', // Zuchtrinder
+};
 
 /** @type {Record<Commodity, CommodityMetadata>} */
 export const COMMODITIES = {
@@ -36,7 +45,7 @@ export const COMMODITIES = {
     title: 'Rinder',
     icon: mdiCow,
     units: 'Stk.',
-    hsHeadings: ['010229', '010221'],
+    hsHeadings: ['0102'],
   },
   holz: {
     title: 'Holz',
@@ -54,7 +63,6 @@ export const COMMODITIES = {
 export const FNAR = {
   sojabohnen: 'A',
   rind: 'G',
-  reinrassigesZuchtrind: 'G',
 };
 
 export const EMPTY_GEOJSON = Object.freeze({

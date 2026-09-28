@@ -34,7 +34,7 @@ export default defineEventHandler(async (event) => {
   const commodities = statement.commodities;
   const cattleCount = commodities.reduce((sum, c) => {
     const quantity = unref(c.quantity);
-    return (quantity['010221'] || 0) + (quantity['010229'] || 0) + sum;
+    return (quantity['0102'] || 0) + sum;
   }, 0);
 
   const { sdId, error } = await submitSD(commodities, statement.geolocationVisible, user);

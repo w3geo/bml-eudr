@@ -179,10 +179,11 @@ watch(yieldPerHectare, (value) => {
             <v-col cols="12">
               <v-text-field
                 v-model="address.street"
-                label="Straße und Hausnummer (optional)"
+                label="Straße und Hausnummer"
                 density="compact"
                 variant="outlined"
                 hide-details="auto"
+                :rules="[(v) => !!v?.trim() || 'Straße und Hausnummer ist erforderlich']"
               ></v-text-field>
             </v-col>
             <v-col cols="4">
