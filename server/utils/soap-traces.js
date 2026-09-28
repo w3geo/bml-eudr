@@ -4,7 +4,7 @@ import { unref } from 'vue';
 import { COMMODITIES, HS_HEADING } from '~~/shared/utils/constants.js';
 import { parseAddress } from '~~/shared/utils/utils.js';
 
-/** @typedef {'AVAILABLE' | 'SUBMITTED' | 'REJECTED' | 'WITHDRAWN' | 'ARCHIVED' | 'GROUPED' | 'OBSOLETE'} TracesStatus */
+/** @typedef {'AVAILABLE' | 'SUBMITTED' | 'REJECTED' | 'WITHDRAWN' | 'ARCHIVED' | 'SUSPENDED' | 'UPDATED' | 'GROUPED' | 'OBSOLETE' | 'UNKNOWN'} TracesStatus */
 
 /** @typedef {{id: string, name: string, address: string, identifierType: import('~/utils/utils').IdentifierType, identifierValue: string}} User */
 
@@ -46,6 +46,20 @@ const commonNS = 'http://ec.europa.eu/tracesnt/certificate/eudr/common/v3';
 // Verified against the published EUDRSimplifiedDeclarationServiceV3 WSDL.
 const ddsNS = 'http://ec.europa.eu/tracesnt/certificate/eudr/due-diligence-statement/v3';
 const tracesV3Endpoint = `${process.env.TRACES_WS_URL}EUDRSimplifiedDeclarationServiceV3`;
+
+/**
+ * Escape a value for use as XML text content.
+ * @param {string|number} value
+ * @returns {string}
+ */
+function escapeXml(value) {
+  return String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
 
 /** Generate Nonce
  * @returns {string}
@@ -149,11 +163,11 @@ function getCommoditiesXML(commodities) {
 
       /** @type {string} */
       let quantityInfo;
+      // netWeight is only mandatory for IMPORT/EXPORT; for DOMESTIC a supplementary
+      // unit alone is a valid quantity.
       switch (quantityUnits) {
         case 'm³':
-          // V3 requires netWeight; estimate from volume using average wood density 600 kg/m³
           quantityInfo = `
-          <eudrCommon:netWeight>${Math.round(quantity * 600)}</eudrCommon:netWeight>
           <eudrCommon:supplementaryUnit>${quantity}</eudrCommon:supplementaryUnit>
           <eudrCommon:supplementaryUnitQualifier>MTQ</eudrCommon:supplementaryUnitQualifier>
         `;
@@ -162,9 +176,7 @@ function getCommoditiesXML(commodities) {
           quantityInfo = `<eudrCommon:netWeight>${quantity * 1000}</eudrCommon:netWeight>`; // kg, converted from t
           break;
         case 'Stk.': // NAR - number of articles
-          // V3 requires netWeight; estimate from head count using average cattle weight 500 kg/head
           quantityInfo = `
-          <eudrCommon:netWeight>${Math.round(quantity * 500)}</eudrCommon:netWeight>
           <eudrCommon:supplementaryUnit>${quantity}</eudrCommon:supplementaryUnit>
           <eudrCommon:supplementaryUnitQualifier>NAR</eudrCommon:supplementaryUnitQualifier>
         `;
@@ -191,9 +203,9 @@ function getCommoditiesXML(commodities) {
         : producerAddress
           ? `<sd:producerLocation>
               <sd:postalAddress>
-                ${producerAddress.street ? `<sd:producerStreet>${producerAddress.street}</sd:producerStreet>` : ''}
-                <sd:producerPostalCode>${producerAddress.postalCode}</sd:producerPostalCode>
-                <sd:producerCity>${producerAddress.city}</sd:producerCity>
+                <sd:producerStreet>${escapeXml(producerAddress.street)}</sd:producerStreet>
+                <sd:producerPostalCode>${escapeXml(producerAddress.postalCode)}</sd:producerPostalCode>
+                <sd:producerCity>${escapeXml(producerAddress.city)}</sd:producerCity>
               </sd:postalAddress>
             </sd:producerLocation>`
           : '';
@@ -224,18 +236,18 @@ function getSubmitSdXML(commodities, geolocationVisible, user) {
   const operatorAddress = parsedAddress
     ? `<eudrCommon:operatorAddress>
                 <eudrCommon:country>AT</eudrCommon:country>
-                <eudrCommon:street>${parsedAddress.street}</eudrCommon:street>
-                <eudrCommon:postalCode>${parsedAddress.postalCode}</eudrCommon:postalCode>
-                <eudrCommon:city>${parsedAddress.city}</eudrCommon:city>
+                <eudrCommon:street>${escapeXml(parsedAddress.street)}</eudrCommon:street>
+                <eudrCommon:postalCode>${escapeXml(parsedAddress.postalCode)}</eudrCommon:postalCode>
+                <eudrCommon:city>${escapeXml(parsedAddress.city)}</eudrCommon:city>
               </eudrCommon:operatorAddress>`
     : '';
   const representedOperatorXML = `<sd:representedOperator>
               <eudrCommon:operatorReferenceNumber>
-                <eudrCommon:identifierType>${user.identifierType?.toLowerCase()}</eudrCommon:identifierType>
-                <eudrCommon:identifierValue>${user.identifierValue}</eudrCommon:identifierValue>
+                <eudrCommon:identifierType>${escapeXml(user.identifierType?.toLowerCase())}</eudrCommon:identifierType>
+                <eudrCommon:identifierValue>${escapeXml(user.identifierValue)}</eudrCommon:identifierValue>
               </eudrCommon:operatorReferenceNumber>
               ${operatorAddress}
-              <eudrCommon:operatorName>${user.name}</eudrCommon:operatorName>
+              <eudrCommon:operatorName>${escapeXml(user.name)}</eudrCommon:operatorName>
             </sd:representedOperator>`;
 
   return `<?xml version="1.0" encoding="UTF-8"?>
@@ -268,7 +280,7 @@ function getRetrieveSdXML(sdIds) {
   const uuidListXML = sdIds
     .map(
       (id) =>
-        `<sd:uuidAndVersionNumberList><eudrCommon:uuid>${id}</eudrCommon:uuid></sd:uuidAndVersionNumberList>`,
+        `<sd:uuidAndVersionNumberList><eudrCommon:uuid>${escapeXml(id)}</eudrCommon:uuid></sd:uuidAndVersionNumberList>`,
     )
     .join('\n');
 
@@ -462,8 +474,8 @@ export async function retrieveSdData(referenceNumber, verificationNumber) {
         <soapenv:Body>
             <sd:GetSdByIdentifiersRequest>
               <sd:referenceAndVerificationNumber>
-                <eudrCommon:referenceNumber>${referenceNumber}</eudrCommon:referenceNumber>
-                <eudrCommon:verificationNumber>${verificationNumber}</eudrCommon:verificationNumber>
+                <eudrCommon:referenceNumber>${escapeXml(referenceNumber)}</eudrCommon:referenceNumber>
+                <eudrCommon:verificationNumber>${escapeXml(verificationNumber)}</eudrCommon:verificationNumber>
               </sd:referenceAndVerificationNumber>
             </sd:GetSdByIdentifiersRequest>
         </soapenv:Body>
@@ -555,9 +567,9 @@ export async function retrieveSdData(referenceNumber, verificationNumber) {
     );
     const quantity = {
       // Prefer the supplementary unit (m³ for wood, head count for cattle) when
-      // present. netWeight is always sent in V3 — for those commodities it is only
-      // an estimate (density/average weight), so dividing it by 1000 would yield a
-      // wrong amount. Soja has no supplementary unit and falls back to netWeight (t).
+      // present. Older statements also carry an estimated netWeight for those
+      // commodities, so dividing it by 1000 would yield a wrong amount. Soja has
+      // no supplementary unit and falls back to netWeight (t).
       [hsCode]:
         Number(
           goodsMeasureElement?.getElementsByTagNameNS(commonNS, 'supplementaryUnit').item(0)
