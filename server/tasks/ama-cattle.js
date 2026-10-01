@@ -65,6 +65,7 @@ export default defineTask({
               resolve(responseBody ?? JSON.parse(responseBody));
             });
           });
+          req.on('error', reject);
           req.write(requestBody);
           req.end();
         });
