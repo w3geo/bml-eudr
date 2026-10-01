@@ -1,6 +1,11 @@
 <script setup>
 import { DevOnly } from '#components';
-import { mdiEmailFastOutline, mdiUnfoldLessHorizontal, mdiUnfoldMoreHorizontal } from '@mdi/js';
+import {
+  mdiEmailFastOutline,
+  mdiStar,
+  mdiUnfoldLessHorizontal,
+  mdiUnfoldMoreHorizontal,
+} from '@mdi/js';
 
 definePageMeta({
   title: 'Mein Konto',
@@ -14,6 +19,33 @@ const { loggedIn } = useUserSession();
 const theme = useColorMode();
 const { xs } = useDisplay();
 const { errorMessage } = useErrorMessage();
+
+/** @type {Record<'legend'|'usp'|'idaustria'|'email',Array<{ text: string, type: 'pro'|'effort'|'con' }>>} */
+const features = {
+  legend: [
+    { text: 'übernommen', type: 'pro' },
+    { text: 'manuell', type: 'effort' },
+    { text: 'nicht möglich', type: 'con' },
+  ],
+  usp: [
+    { text: 'Name/Anschrift', type: 'pro' },
+    { text: 'Betrieb', type: 'pro' },
+    { text: 'Flächen', type: 'effort' },
+    { text: 'Rinder', type: 'con' },
+  ],
+  idaustria: [
+    { text: 'Name/Anschrift', type: 'pro' },
+    { text: 'Betrieb', type: 'effort' },
+    { text: 'Flächen', type: 'effort' },
+    { text: 'Rinder', type: 'con' },
+  ],
+  email: [
+    { text: 'Name/Anschrift', type: 'effort' },
+    { text: 'Betrieb', type: 'effort' },
+    { text: 'Flächen', type: 'effort' },
+    { text: 'Rinder', type: 'con' },
+  ],
+};
 
 const email = ref();
 const otp = ref();
@@ -107,8 +139,8 @@ if (!statementsError.value) {
           <v-card-title>Nicht angemeldet</v-card-title>
         </v-card>
       </v-col>
-      <v-col cols="12">
-        <v-card v-if="loggedIn">
+      <v-col v-if="loggedIn" cols="12">
+        <v-card>
           <v-card-title class="mt-2 mb-2">Meine Identifikationsnummern</v-card-title>
           <v-card-text>
             <StatementList />
@@ -117,48 +149,75 @@ if (!statementsError.value) {
       </v-col>
     </v-row>
     <v-row v-if="!loggedIn">
-      <v-col :cols="xs ? 12 : 6">
-        <v-card class="fill-height" href="./auth/ama">
-          <v-card-title class="text-center"> Anmelden mit </v-card-title>
-          <v-card-actions class="d-flex justify-center">
-            <v-img alt="eAMA" height="50" :src="`./logo_eama_${theme.value}.png`" />
+      <v-col cols="12">
+        <v-card href="./auth/ama" variant="tonal" color="primary" elevation="1">
+          <v-chip
+            class="recommended"
+            color="primary"
+            variant="flat"
+            size="small"
+            :prepend-icon="xs ? undefined : mdiStar"
+            :title="xs ? 'Empfohlen' : undefined"
+          >
+            <v-icon v-if="xs" :icon="mdiStar" aria-label="Empfohlen" />
+            <template v-else>Empfohlen</template>
+          </v-chip>
+          <v-card-title class="text-center text-high-emphasis pt-4"> Anmelden mit </v-card-title>
+          <v-card-actions class="d-flex justify-center pb-6">
+            <v-img alt="eAMA" height="80" :src="`./logo_eama_${theme.value}.png`" />
           </v-card-actions>
-          <v-card-text class="text-center">
-            Nutzung bestehender Verwaltungsdaten zur einfacheren Zuordnung der Bewirtschafter zu
-            ihren Flächen bzw. Rindern
-          </v-card-text>
         </v-card>
       </v-col>
-      <v-col :cols="xs ? 12 : 6">
-        <v-card class="fill-height" href="./auth/usp">
+      <v-col cols="12" class="d-flex align-center mt-2">
+        <v-divider />
+        <span class="divider-label mx-4 text-medium-emphasis text-center">
+          Kein eAMA Login? Weitere Anmeldemöglichkeiten:
+        </span>
+        <v-divider />
+      </v-col>
+      <v-col cols="12" class="pt-0 text-body-2 text-medium-emphasis text-center">
+        <p class="mb-2">
+          Je nach Anmeldeart müssen Sie Daten selbst eingeben, oder es stehen nicht alle Funktionen
+          zur Verfügung:
+        </p>
+        <LoginFeatures :features="features.legend" />
+      </v-col>
+      <v-col cols="12" sm="6" md="4">
+        <v-card
+          class="fill-height d-flex flex-column justify-center"
+          min-height="180"
+          href="./auth/usp"
+        >
           <v-card-title class="text-center"> Anmelden über </v-card-title>
           <v-card-actions class="d-flex justify-center">
             <v-img
               alt="Unternehmensserviceportal"
-              height="50"
+              height="36"
               :src="`./USP_Logo_${theme.value}.png`"
             />
           </v-card-actions>
-          <v-card-text class="text-center">
-            Für land-/forstwirtschaftliche Betriebe, die über kein eAMA Login verfügen (keine
-            Zuordnung der Bewirtschafter zu ihren Flächen)
+          <v-card-text>
+            <LoginFeatures :features="features.usp" />
           </v-card-text>
         </v-card>
       </v-col>
-      <v-col :cols="xs ? 12 : 6">
-        <v-card class="fill-height" href="./auth/idaustria">
+      <v-col cols="12" sm="6" md="4">
+        <v-card
+          class="fill-height d-flex flex-column justify-center"
+          min-height="180"
+          href="./auth/idaustria"
+        >
           <v-card-title class="text-center"> Anmelden mit </v-card-title>
           <v-card-actions class="d-flex justify-center">
-            <v-img alt="ID Austria" height="50" :src="`./id-austria-logo-${theme.value}.png`" />
+            <v-img alt="ID Austria" height="36" :src="`./id-austria-logo-${theme.value}.png`" />
           </v-card-actions>
-          <v-card-text class="text-center">
-            Für private Bewirtschafter, die über kein eAMA Login verfügen (keine Zuordnung der
-            Bewirtschafter zu ihren Flächen)
+          <v-card-text>
+            <LoginFeatures :features="features.idaustria" />
           </v-card-text>
         </v-card>
       </v-col>
-      <v-col :cols="xs ? 12 : 6">
-        <v-card class="fill-height">
+      <v-col cols="12" sm="6" md="4">
+        <v-card class="fill-height d-flex flex-column justify-center" min-height="180">
           <v-card-title v-if="!emailSubmitted" class="text-center"> Anmelden mit </v-card-title>
           <v-card-title v-else class="text-center"> Einmalcode eingeben </v-card-title>
           <v-card-actions class="d-flex justify-center">
@@ -187,9 +246,8 @@ if (!statementsError.value) {
               <v-otp-input v-model="otp" autofocus length="6" @finish="submitOtp" />
             </v-form>
           </v-card-actions>
-          <v-card-text v-if="!emailSubmitted" class="text-center">
-            Wenn jemand anderes die Vereinfachte Erklärung erstellen soll (keine Zuordnung der
-            Bewirtschafter zu ihren Flächen)
+          <v-card-text v-if="!emailSubmitted">
+            <LoginFeatures :features="features.email" />
           </v-card-text>
           <v-card-text v-else class="text-center">
             Bitte geben Sie den per E-Mail erhaltenen Code ein.
@@ -197,8 +255,12 @@ if (!statementsError.value) {
         </v-card>
       </v-col>
       <DevOnly>
-        <v-col :cols="xs ? 12 : 6">
-          <v-card class="fill-height" href="./auth/development">
+        <v-col cols="12" sm="6" md="4">
+          <v-card
+            class="fill-height d-flex flex-column justify-center"
+            min-height="180"
+            href="./auth/development"
+          >
             <v-card-title class="text-center"> Entwickler </v-card-title>
           </v-card>
         </v-col>
@@ -210,5 +272,14 @@ if (!statementsError.value) {
 <style scoped>
 .fill-width {
   width: 100%;
+}
+.divider-label {
+  flex-shrink: 0;
+  max-width: 70%;
+}
+.recommended {
+  position: absolute;
+  top: 12px;
+  right: 12px;
 }
 </style>
