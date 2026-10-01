@@ -1,6 +1,10 @@
 import { join } from 'node:path';
 import { defineNuxtConfig } from 'nuxt/config';
 
+if (!process.env.AMA_CATTLE_PATH) {
+  console.log('AMA_CATTLE_PATH not set, not scheduling ama-cattle task');
+}
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
@@ -44,9 +48,7 @@ export default defineNuxtConfig({
     experimental: {
       tasks: true,
     },
-    scheduledTasks: {
-      '*/5 * * * *': ['ama-cattle'],
-    },
+    scheduledTasks: process.env.AMA_CATTLE_PATH ? { '*/5 * * * *': ['ama-cattle'] } : {},
   },
 
   vite: {

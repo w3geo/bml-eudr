@@ -49,7 +49,7 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  if (cattleCount && session.loginProvider === 'AMA') {
+  if (cattleCount && session.loginProvider === 'AMA' && process.env.AMA_CATTLE_PATH) {
     await db.insert(amaCattle).values({
       sdId,
       lfbis: userId,

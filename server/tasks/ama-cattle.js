@@ -48,35 +48,23 @@ export default defineTask({
             null,
             2,
           );
-          const req = request(
-            {
-              ...options,
-              method: 'PUT',
-              path: '/api/webservices/v1/stage/entwaldungs-vo',
-              headers: {
-                ...options.headers,
-                'x-xsrf-token': 'cmon-ama-you-really-should-not-require-this',
-                'cookie': 'XSRF-TOKEN=cmon-ama-you-really-should-not-require-this',
-              },
-            },
-            (res) => {
-              /** @type {Array<Buffer>} */
-              const chunks = [];
-              res.on('data', function (d) {
-                chunks.push(d);
-              });
-              res.on('end', () => {
-                const responseBody = Buffer.concat(chunks).toString();
-                if (res.statusCode !== 200) {
-                  console.error(`AMA Rinder request failed: ${requestBody}`);
-                  return reject(
-                    new Error(`Request failed with status code ${res.statusCode}: ${responseBody}`),
-                  );
-                }
-                resolve(responseBody ?? JSON.parse(responseBody));
-              });
-            },
-          );
+          const req = request(options, (res) => {
+            /** @type {Array<Buffer>} */
+            const chunks = [];
+            res.on('data', function (d) {
+              chunks.push(d);
+            });
+            res.on('end', () => {
+              const responseBody = Buffer.concat(chunks).toString();
+              if (res.statusCode !== 200) {
+                console.error(`AMA Rinder request failed: ${requestBody}`);
+                return reject(
+                  new Error(`Request failed with status code ${res.statusCode}: ${responseBody}`),
+                );
+              }
+              resolve(responseBody ?? JSON.parse(responseBody));
+            });
+          });
           req.write(requestBody);
           req.end();
         });
