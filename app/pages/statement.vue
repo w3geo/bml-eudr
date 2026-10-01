@@ -100,11 +100,15 @@ const hasGeolocationCommodity = computed(() =>
   commoditiesInStatement.value.some((commodity) => unref(commodity.geolocation)),
 );
 
-/** @type {ComputedRef<Array<import('~~/server/utils/soap-traces.js').CommodityDataWithKey>>} */
+/**
+ * Cattle can only be recorded with an eAMA login (RinderNET link), so the
+ * "Rinder" card is not offered to users of other login providers.
+ * @type {ComputedRef<Array<import('~~/server/utils/soap-traces.js').CommodityDataWithKey>>}
+ */
 const commoditiesToAdd = computed(() =>
-  COMMODITY_KEYS.map((key) => ({ key, ...statements[key] })).filter(
-    (commodity) => !Object.values(commodity.quantity.value).some((v) => v > 0),
-  ),
+  COMMODITY_KEYS.filter((key) => key !== 'rind' || isAma.value)
+    .map((key) => ({ key, ...statements[key] }))
+    .filter((commodity) => !Object.values(commodity.quantity.value).some((v) => v > 0)),
 );
 
 const canSend = computed(() =>
@@ -115,11 +119,6 @@ const canSend = computed(() =>
  * @param {import('~~/shared/utils/constants.js').Commodity} commodity
  */
 function openEditor(commodity) {
-  if (commodity === 'rind' && user.value?.loginProvider !== 'AMA') {
-    errorMessage.value =
-      'RinderNET Verknüpfung erforderlich - Die Erfassung von Rindern ist nur mit einem eAMA Login möglich. Bitte melden Sie sich mit Ihrem eAMA Account an, um Rinder zu erfassen.';
-    return;
-  }
   editCommodity.value = commodity;
   const { address, createSnapshot } = statements[commodity];
   // Pre-fill the producer address with the user's own address so the commodity

@@ -36,6 +36,13 @@ export default defineEventHandler(async (event) => {
     const quantity = unref(c.quantity);
     return (quantity['0102'] || 0) + sum;
   }, 0);
+  if (cattleCount && session.loginProvider !== 'AMA') {
+    throw createError({
+      status: 403,
+      statusMessage: 'Forbidden',
+      message: 'Die Erfassung von Rindern ist nur mit einem eAMA Login möglich.',
+    });
+  }
 
   const { sdId, error } = await submitSD(commodities, statement.geolocationVisible, user);
   if (error) {
@@ -49,7 +56,7 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  if (cattleCount && session.loginProvider === 'AMA' && process.env.AMA_CATTLE_PATH) {
+  if (cattleCount && process.env.AMA_CATTLE_PATH) {
     await db.insert(amaCattle).values({
       sdId,
       lfbis: userId,
