@@ -42,7 +42,13 @@ const logout = () => {
           <v-btn v-bind="props" variant="plain" :icon="mdiAccountCircle" />
         </template>
         <v-list density="compact">
-          <v-list-item :subtitle="userData?.name" />
+          <v-list-item
+            :subtitle="
+              userData?.loginProvider === 'AMA'
+                ? `${userData.name} · ${userData.id}`
+                : userData?.name
+            "
+          />
           <v-divider />
           <v-list-item class="text-medium-emphasis" link to="/account">Meine Konto</v-list-item>
           <v-list-item :append-icon="mdiLogout" class="text-medium-emphasis" @click="logout"
