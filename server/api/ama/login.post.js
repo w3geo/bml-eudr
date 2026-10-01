@@ -88,10 +88,13 @@ export default defineEventHandler(async (event) => {
       expires: new Date(Date.now() + 10000),
       secure: true,
     });
-    throw createError({
-      status: 500,
-      statusMessage: 'Internal Server Error',
-      message: /** @type {Error} */ (error).message || 'AMA login failed. Please try again.',
-    });
+    const message = /** @type {Error} */ (error).message;
+    if (message) {
+      setCookie(event, 'login-error', message, {
+        expires: new Date(Date.now() + 10000),
+        secure: true,
+      });
+    }
+    return sendRedirect(event, '/account');
   }
 });
