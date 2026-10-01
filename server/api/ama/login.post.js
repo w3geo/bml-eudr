@@ -3,6 +3,13 @@ import { request } from 'https';
 export default defineEventHandler(async (event) => {
   try {
     const body = await readBody(event);
+    const forwardOrigin = getAmaForwardOrigin(body.cid);
+    if (forwardOrigin && forwardOrigin !== getPublicOrigin(event)) {
+      // Login started on another instance (e.g. staging or local dev). Forward the callback
+      // with its body (307 keeps the POST), but only to an allowed origin. The target
+      // instance checks the cid.
+      return sendRedirect(event, `${forwardOrigin}/api/ama/login`, 307);
+    }
     if (!body.cid || body.cid !== getCookie(event, 'eama-cid')) {
       setCookie(event, 'login-retry', 'true', {
         expires: new Date(Date.now() + 10000),

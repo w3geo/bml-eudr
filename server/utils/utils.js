@@ -1,7 +1,46 @@
+import { randomUUID } from 'crypto';
 import { getRequestURL } from 'h3';
 import { FetchError } from 'ofetch';
 import { snakeCase, upperFirst } from 'scule';
 import { createError } from '#imports';
+
+/**
+ * Origin of this instance, as seen by the browser.
+ * @param {import('h3').H3Event} event
+ * @returns {string}
+ */
+export function getPublicOrigin(event) {
+  return getRequestURL(event, { xForwardedHost: true, xForwardedProto: true }).origin;
+}
+
+/**
+ * Creates an eAMA login `cid` that carries the origin of the instance the login started on.
+ * eAMA only calls back production, which uses the origin to forward the callback.
+ * @param {string} origin
+ * @returns {string}
+ */
+export function createAmaCid(origin) {
+  return `${Buffer.from(origin).toString('base64url')}.${randomUUID()}`;
+}
+
+/**
+ * Returns the origin that the eAMA login callback with the given `cid` has to be forwarded
+ * to, if it is one of the origins listed in `AMA_LOGIN_FORWARD_ORIGINS` (comma-separated).
+ * @param {string|undefined} cid
+ * @returns {string|undefined}
+ */
+export function getAmaForwardOrigin(cid) {
+  const encoded = cid?.split('.')[0];
+  if (!encoded) {
+    return undefined;
+  }
+  const origin = Buffer.from(encoded, 'base64url').toString();
+  const allowed = (process.env.AMA_LOGIN_FORWARD_ORIGINS ?? '')
+    .split(',')
+    .map((entry) => entry.trim().replace(/\/+$/, ''))
+    .filter(Boolean);
+  return allowed.find((entry) => entry === origin);
+}
 
 /**
  *
