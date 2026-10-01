@@ -47,14 +47,15 @@ useSeoMeta({
               <ul class="pl-4 mt-2">
                 <li class="mb-1">
                   Bei Anmeldung mit ID Austria wird auf der Seite "Mein Konto" unter "Angaben zum
-                  Betrieb" die Identifikationsnummer (GLN, UID oder Steuernummer) zum Zweck der
-                  Erstellung von Vereinfachten Erklärungen gespeichert.
+                  Betrieb" der Identifikationstyp (GLN, UID oder Steuernummer) sowie die
+                  dazugehörige Nummer zum Zweck der Erstellung von Vereinfachten Erklärungen
+                  gespeichert.
                 </li>
                 <li class="mb-1">
                   Bei Anmeldung mit E-Mail werden auf der Seite "Mein Konto" unter "Angaben zum
-                  Betrieb" die E-Mail Adresse, Name, Adresse und Identifikationsnummer (GLN, UID
-                  oder Steuernummer) zum Zweck der Erstellung und Verwaltung von Vereinfachten
-                  Erklärungen gespeichert.
+                  Betrieb" die E-Mail Adresse, Name, Adresse und Identifikationstyp (GLN, UID oder
+                  Steuernummer) sowie die dazugehörige Nummer zum Zweck der Erstellung und
+                  Verwaltung von Vereinfachten Erklärungen gespeichert.
                 </li>
               </ul>
             </div>
@@ -73,10 +74,11 @@ useSeoMeta({
             </div>
             <div class="text-body-1 mb-2">
               Bei Klicken der Schaltfläche „Bestätigen und Übermitteln“ auf der Seite „Vereinfachte
-              Erklärung“ werden Name und Adresse des Betriebes, die Identifikationsnummer (GLN, UID
-              oder Steuernummer), sowie die für die Vereinfachte Erklärung erfassten Flächen- bzw.
-              Punktdaten, Erzeugnisse, und deren Mengen an die TRACES-Datenbank übermittelt, da
-              diese Angaben für die Vereinfachte Erklärung verpflichtend sind.
+              Erklärung“ werden Name und Adresse des Betriebes, der Identifikationstyp (GLN, UID
+              oder Steuernummer) und die dazugehörige Nummer, sowie die für die Vereinfachte
+              Erklärung erfasste Lokalisierung (Postanschrift bzw. Flächen- und Punktdaten),
+              Erzeugnisse, und deren Mengen an die TRACES-Datenbank übermittelt, da diese Angaben
+              für die Vereinfachte Erklärung verpflichtend sind.
             </div>
           </v-card-text>
         </v-card>
