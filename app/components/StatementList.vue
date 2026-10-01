@@ -127,7 +127,7 @@ const sendEmail = async (statement) => {
   }
   createAndClickLink(
     `mailto:?subject=EUDR Vereinfachte Erklärung von ${userData.value?.name}&body=${encodeURIComponent(
-      `Ersteller: ${userData.value?.name}\nReferenznummer: ${statement.referenceNumber}\nVerifikationsnummer: ${statement.verificationNumber}\nErklärungsdatum: ${new Date(statement.date).toLocaleString('sv-SE')}\n${getCommoditiesSummary(
+      `Ersteller: ${userData.value?.name}\nIdentifikationsnummer: ${statement.referenceNumber}\nVerifikationsnummer: ${statement.verificationNumber}\nErklärungsdatum: ${new Date(statement.date).toLocaleString('sv-SE')}\n${getCommoditiesSummary(
         commodities,
       )}`,
     )}`,
@@ -145,7 +145,7 @@ const sendTextMessage = async (statement) => {
   }
   createAndClickLink(
     `sms:?body=${encodeURIComponent(
-      `EUDR Vereinfachte Erklärung\n\nErsteller: ${userData.value?.name}\nReferenznummer: ${statement.referenceNumber}\nVerifikationsnummer: ${statement.verificationNumber}\nErklärungsdatum: ${new Date(statement.date).toLocaleString('sv-SE')}\n${getCommoditiesSummary(
+      `EUDR Vereinfachte Erklärung\n\nErsteller: ${userData.value?.name}\nIdentifikationsnummer: ${statement.referenceNumber}\nVerifikationsnummer: ${statement.verificationNumber}\nErklärungsdatum: ${new Date(statement.date).toLocaleString('sv-SE')}\n${getCommoditiesSummary(
         commodities,
       )}`,
     )}`,
@@ -164,7 +164,7 @@ const copyToClipboard = async (statement) => {
   }
   try {
     await navigator.clipboard.writeText(
-      `EUDR Vereinfachte Erklärung\n\nErsteller: ${userData.value?.name}\nReferenznummer: ${statement.referenceNumber}\nVerifikationsnummer: ${statement.verificationNumber}\nErklärungsdatum: ${new Date(statement.date).toLocaleString('sv-SE')}\n${getCommoditiesSummary(
+      `EUDR Vereinfachte Erklärung\n\nErsteller: ${userData.value?.name}\nIdentifikationsnummer: ${statement.referenceNumber}\nVerifikationsnummer: ${statement.verificationNumber}\nErklärungsdatum: ${new Date(statement.date).toLocaleString('sv-SE')}\n${getCommoditiesSummary(
         commodities,
       )}`,
     );

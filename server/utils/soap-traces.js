@@ -45,6 +45,10 @@ const commonNS = 'http://ec.europa.eu/tracesnt/certificate/eudr/common/v3';
 // namespace, but the getSd* operations carry one in the due-diligence-statement namespace.
 // Verified against the published EUDRSimplifiedDeclarationServiceV3 WSDL.
 const ddsNS = 'http://ec.europa.eu/tracesnt/certificate/eudr/due-diligence-statement/v3';
+// WSDL (drop "acceptance." for production):
+// https://acceptance.eudr.webcloud.ec.europa.eu/tracesnt/ws/EUDRSimplifiedDeclarationServiceV3?wsdl
+// In the schema, `referenceNumber` is the "declaration identifier" (Identifikationsnummer) of a
+// simplified declaration; `uuid`/`sdIdentifier` is the technical TRACES id.
 const tracesV3Endpoint = `${process.env.TRACES_WS_URL}EUDRSimplifiedDeclarationServiceV3`;
 
 /**

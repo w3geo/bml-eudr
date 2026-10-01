@@ -114,10 +114,10 @@ const idItems = [
           density="compact"
           hide-details="auto"
           variant="outlined"
-          label="Identifikationsnummer"
+          label="Nummer"
           :readonly="!props.editable || loginProvidedFields.includes('identifierValue')"
           :disabled="!props.editable || loginProvidedFields.includes('identifierValue')"
-          :rules="[(v) => !!v || 'Identifikationsnummer ist erforderlich']"
+          :rules="[(v) => !!v || 'Nummer ist erforderlich']"
         ></v-text-field>
       </v-col>
       <v-col v-if="props.editable && canSave" cols="12" class="text-body-1 mb-2">
