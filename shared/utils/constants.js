@@ -14,7 +14,7 @@ import { mdiCow, mdiForestOutline, mdiSprout } from '@mdi/js';
 
 export const HS_HEADING = {
   '0102': 'Rinder',
-  '1201': 'Sojabohnen',
+  '120190': 'Sojabohnen',
   '4403': 'Rohholz',
   '4401': 'Brennholz',
 };
@@ -29,6 +29,7 @@ export const HS_HEADING = {
 export const LEGACY_HS_HEADING = {
   '010229': '0102', // Rinder
   '010221': '0102', // Zuchtrinder
+  '1201': '120190', // Sojabohnen
 };
 
 /** @type {Record<Commodity, CommodityMetadata>} */
@@ -38,7 +39,7 @@ export const COMMODITIES = {
     icon: mdiSprout,
     units: 't',
     yieldPerHectare: 4,
-    hsHeadings: ['1201'],
+    hsHeadings: ['120190'],
     hint: 'Bitte geben Sie hier Ihre durchschnittliche jährliche Sojaproduktion an',
   },
   rind: {
