@@ -1,5 +1,5 @@
 <script setup>
-import { mdiFileSign, mdiLightbulbOn, mdiMapMarker } from '@mdi/js';
+import { mdiFileSign, mdiLightbulbOn } from '@mdi/js';
 
 definePageMeta({
   title: 'Startseite',
@@ -57,20 +57,6 @@ useSeoMeta({
           </v-card-text>
           <v-card-actions class="justify-center">
             <v-btn to="/statement" :prepend-icon="mdiFileSign" color="primary"> Auswählen </v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-col>
-
-      <v-col>
-        <v-card>
-          <v-card-title>Nur Erzeugungsort erfassen</v-card-title>
-          <v-card-text>
-            Erfassung des Erezugungsorts hier in der Applikation. Download der Geolokalisation,
-            Weiterleitung zur TRACES-NT Datenbank der Europäischen Union. Die Erstellung der
-            Vereinfachte Erklärung und Verwaltung der Referenznummern erfolgt dort.
-          </v-card-text>
-          <v-card-actions class="justify-center">
-            <v-btn to="/locate" :prepend-icon="mdiMapMarker" color="primary"> Auswählen </v-btn>
           </v-card-actions>
         </v-card>
       </v-col>
