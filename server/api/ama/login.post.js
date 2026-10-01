@@ -45,8 +45,11 @@ export default defineEventHandler(async (event) => {
           chunks.push(d);
         });
         res.on('end', () => {
-          const json = JSON.parse(Buffer.concat(chunks).toString());
-          resolve(json);
+          try {
+            resolve(JSON.parse(Buffer.concat(chunks).toString()));
+          } catch (e) {
+            reject(e);
+          }
           // {
           //   partnerseitenDaten: {
           //     betriebsnummern: 1234567,
@@ -57,6 +60,7 @@ export default defineEventHandler(async (event) => {
           // };
         });
       });
+      req.on('error', reject);
       req.write(
         JSON.stringify({
           tokenKey: body.token,
