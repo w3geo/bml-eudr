@@ -301,12 +301,12 @@ async function validate() {
                     <v-btn flat :icon="mdiHelpCircleOutline" size="x-small" v-bind="props"></v-btn>
                   </template>
                   <div>
-                    Wenn aktiviert, können alle, die die Referenz- und Verifizierungsnummer dieser
-                    Erklärung kennen, die Erzeugungsorte im EU-Informationssystem einsehen. Das sind
-                    üblicherweise Ihre Abnehmer; diese können die Nummern jedoch weitergeben. Wenn
-                    nicht aktiviert, werden die Erzeugungsorte als vertraulich behandelt und nicht
-                    weitergegeben. Auf die übrigen Angaben der Erklärung und auf die Einsicht durch
-                    die Behörden hat diese Einstellung keinen Einfluss.
+                    Wenn aktiviert, können alle, die die Identifikations- und Verifizierungsnummer
+                    dieser Erklärung kennen, die Erzeugungsorte im EU-Informationssystem einsehen.
+                    Das sind üblicherweise Ihre Abnehmer; diese können die Nummern jedoch
+                    weitergeben. Wenn nicht aktiviert, werden die Erzeugungsorte als vertraulich
+                    behandelt und nicht weitergegeben. Auf die übrigen Angaben der Erklärung und auf
+                    die Einsicht durch die Behörden hat diese Einstellung keinen Einfluss.
                   </div>
                 </v-tooltip>
               </template>

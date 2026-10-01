@@ -118,7 +118,7 @@ async function fitMap() {
     <v-card>
       <v-card-title>
         <v-toolbar color="transparent" flat density="compact">
-          Erzeugungsorte
+          Lokalisierungen
           <v-spacer />
           <v-btn
             :icon="mdiClose"

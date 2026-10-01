@@ -111,7 +111,7 @@ watch(yieldPerHectare, (value) => {
               { title: 'Postanschrift', value: false },
               { title: 'Geolokalisation', value: true },
             ]"
-            label="Erzeugungsort"
+            label="Lokalisierung"
             density="compact"
             variant="outlined"
             hide-details
