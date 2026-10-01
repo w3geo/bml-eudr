@@ -63,6 +63,19 @@ const idItems = [
 </script>
 <template>
   <v-form v-if="editableUserData" ref="form" validate-on="submit lazy" @submit.prevent="save">
+    <v-row v-if="userData?.loginProvider === 'AMA'">
+      <v-col :cols="mdAndUp ? 4 : 12">
+        <v-text-field
+          :model-value="userData.id"
+          density="compact"
+          hide-details
+          variant="outlined"
+          label="Betriebsnummer"
+          readonly
+          disabled
+        ></v-text-field>
+      </v-col>
+    </v-row>
     <v-row>
       <v-col :cols="mdAndUp ? 4 : 12">
         <v-text-field

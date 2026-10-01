@@ -162,10 +162,13 @@ if (!statementsError.value) {
             <v-icon v-if="xs" :icon="mdiStar" aria-label="Empfohlen" />
             <template v-else>Empfohlen</template>
           </v-chip>
-          <v-card-title class="text-center text-high-emphasis pt-4"> Anmelden mit </v-card-title>
-          <v-card-actions class="d-flex justify-center pb-6">
+          <v-card-title class="text-center text-high-emphasis pt-4"> Anmelden über </v-card-title>
+          <v-card-actions class="d-flex justify-center">
             <v-img alt="eAMA" height="80" :src="`./logo_eama_${theme.value}.png`" />
           </v-card-actions>
+          <v-card-text class="text-center text-medium-emphasis pt-0 pb-6">
+            mit ID Austria oder Betriebsnummer/Passwort
+          </v-card-text>
         </v-card>
       </v-col>
       <v-col cols="12" class="d-flex align-center mt-2">
