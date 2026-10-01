@@ -51,9 +51,9 @@ useSeoMeta({
         <v-card>
           <v-card-title>Vereinfachte Erklärung</v-card-title>
           <v-card-text>
-            Erstellung der Vereinfachten Erklärung und Referenznummernverwaltung direkt hier in der
-            Applikation. Erfordert Anmeldung über eAMA Login oder ID Austria. Mit eAMA Login können
-            Sie direkt die Ihrem Betrieb zugeordneten Flächen auswählen.
+            Erstellung der Vereinfachten Erklärung und Identifikationsnummernverwaltung direkt hier
+            in der Applikation. Erfordert Anmeldung über eAMA Login oder ID Austria. Mit eAMA Login
+            können Sie direkt die Ihrem Betrieb zugeordneten Flächen auswählen.
           </v-card-text>
           <v-card-actions class="justify-center">
             <v-btn to="/statement" :prepend-icon="mdiFileSign" color="primary"> Auswählen </v-btn>

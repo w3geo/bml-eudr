@@ -109,7 +109,7 @@ if (!statementsError.value) {
       </v-col>
       <v-col cols="12">
         <v-card v-if="loggedIn">
-          <v-card-title class="mt-2 mb-2">Meine Referenznummern</v-card-title>
+          <v-card-title class="mt-2 mb-2">Meine Identifikationsnummern</v-card-title>
           <v-card-text>
             <StatementList />
           </v-card-text>
