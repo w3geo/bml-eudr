@@ -55,6 +55,123 @@ const ddsNS = 'http://ec.europa.eu/tracesnt/certificate/eudr/due-diligence-state
 // In the schema, `referenceNumber` is the "declaration identifier" (Identifikationsnummer) of a
 // simplified declaration; `uuid`/`sdIdentifier` is the technical TRACES id.
 const tracesV3Endpoint = `${process.env.TRACES_WS_URL}EUDRSimplifiedDeclarationServiceV3`;
+const soapEnvNS = 'http://schemas.xmlsoap.org/soap/envelope/';
+
+// TRACES limits: 5 calls/s per IP, 10,000 calls/min globally (Operator API Reference v1.2, §2.3).
+// Experiments showed bursts beyond that being slowed down rather than rejected, and the spec
+// does not document a throttled response, so anything that looks like an overloaded or
+// unreachable service is treated as "busy".
+const READ_TIMEOUT = 10000;
+const SUBMIT_TIMEOUT = 30000;
+const READ_ATTEMPTS = 3;
+const MAX_RETRY_DELAY = 5000;
+const BUSY_MESSAGE =
+  'EU TRACES ist derzeit überlastet oder nicht erreichbar. Bitte versuchen Sie es in ein paar Minuten erneut.';
+const SUBMIT_UNCERTAIN_MESSAGE =
+  'EU TRACES hat nicht rechtzeitig geantwortet. Möglicherweise wurde die Vereinfachte Erklärung trotzdem erstellt. Bitte prüfen Sie unter "Mein Konto" — "Meine Identifikationsnummern", ob sie dort aufscheint, bevor Sie es erneut versuchen.';
+
+/**
+ * @param {string} text
+ * @returns {import('@xmldom/xmldom').Document | null} null if the text is not XML
+ */
+function parseXml(text) {
+  try {
+    return new DOMParser({ onError: () => {} }).parseFromString(text, 'text/xml');
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Error message from a SOAP fault, or an empty string if there is none.
+ * @param {import('@xmldom/xmldom').Document} xml
+ * @returns {string}
+ */
+function getFaultMessage(xml) {
+  const faultString = xml.getElementsByTagName('faultstring').item(0)?.textContent;
+  const message = xml.getElementsByTagNameNS(errorNS, 'Message').item(0)?.textContent;
+  return [faultString, message]
+    .map((s) => s?.trim())
+    .filter(Boolean)
+    .join(': ');
+}
+
+/**
+ * @param {number} attempt 1-based attempt that just failed
+ * @param {string | null} [retryAfter] Retry-After header value
+ * @returns {number} ms
+ */
+function getRetryDelay(attempt, retryAfter) {
+  const seconds = Number(retryAfter);
+  if (retryAfter && Number.isFinite(seconds)) {
+    return Math.min(seconds * 1000, MAX_RETRY_DELAY);
+  }
+  return Math.min(1000 * 2 ** (attempt - 1) + Math.random() * 500, MAX_RETRY_DELAY);
+}
+
+/**
+ * Send a SOAP request to TRACES.
+ *
+ * Throws a 503 error when TRACES is busy or unreachable: HTTP 429/502/503/504, a 5xx response
+ * without a SOAP envelope (e.g. from a proxy), a network error or a timeout. SOAP faults are
+ * not errors here - TRACES sends every fault with HTTP 500, and callers inspect them.
+ *
+ * Reads are retried with backoff, except after a timeout, because retrying would only add
+ * load to an already slow service. Submits are never retried, because a request that failed
+ * this way may still have been processed.
+ * @param {string} soapAction
+ * @param {() => string} getBody Called per attempt, so every attempt gets a fresh nonce and timestamp
+ * @param {{ submit?: boolean }} [options]
+ * @returns {Promise<{ status: number, text: string, xml: import('@xmldom/xmldom').Document | null }>}
+ */
+async function tracesRequest(soapAction, getBody, { submit = false } = {}) {
+  const attempts = submit ? 1 : READ_ATTEMPTS;
+  const action = soapAction.split('/').pop();
+  for (let attempt = 1; ; attempt++) {
+    /** @type {string} */
+    let reason;
+    /** @type {string | null} */
+    let retryAfter = null;
+    let timedOut = false;
+    // A 429 or 503 means the request was turned away; anything else may have been processed.
+    let rejected = false;
+    try {
+      const response = await fetch(tracesV3Endpoint, {
+        method: 'POST',
+        body: getBody(),
+        headers: {
+          'Content-Type': 'text/xml; charset=utf-8',
+          'SOAPAction': soapAction,
+        },
+        signal: AbortSignal.timeout(submit ? SUBMIT_TIMEOUT : READ_TIMEOUT),
+      });
+      const text = await response.text();
+      const xml = parseXml(text);
+      const isSoap = !!xml?.getElementsByTagNameNS(soapEnvNS, 'Envelope').length;
+      const busy =
+        [429, 502, 503, 504].includes(response.status) || (response.status >= 500 && !isSoap);
+      if (!busy) {
+        return { status: response.status, text, xml };
+      }
+      reason = `HTTP ${response.status}`;
+      retryAfter = response.headers.get('retry-after');
+      rejected = response.status === 429 || response.status === 503;
+    } catch (error) {
+      timedOut = error instanceof Error && error.name === 'TimeoutError';
+      reason = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+    }
+
+    console.error(`TRACES ${action} unavailable (attempt ${attempt}/${attempts}): ${reason}`);
+    if (attempt >= attempts || timedOut) {
+      throw createError({
+        status: 503,
+        statusMessage: 'Service Unavailable',
+        message: submit && !rejected ? SUBMIT_UNCERTAIN_MESSAGE : BUSY_MESSAGE,
+      });
+    }
+    await new Promise((resolve) => setTimeout(resolve, getRetryDelay(attempt, retryAfter)));
+  }
+}
 
 /**
  * Escape a value for use as XML text content.
@@ -318,24 +435,15 @@ export async function submitSD(commodities, geolocationVisible, user) {
     throw new Error('User is required for SD submission');
   }
   const body = getSubmitSdXML(commodities, geolocationVisible, user);
-  const submitResponse = await fetch(tracesV3Endpoint, {
-    method: 'POST',
-    body,
-    headers: {
-      'Content-Type': 'text/xml; charset=utf-8',
-      'SOAPAction': `${sdNS}/submitSd`,
-    },
+  const { status, text, xml } = await tracesRequest(`${sdNS}/submitSd`, () => body, {
+    submit: true,
   });
-  const submitResponseXML = await submitResponse.text();
-  const xml = new DOMParser().parseFromString(submitResponseXML, 'text/xml');
-  const faultString = xml.getElementsByTagName('faultstring').item(0)?.textContent;
-  const message = xml.getElementsByTagNameNS(errorNS, 'Message').item(0)?.textContent;
-  const error = `${faultString ? faultString + ': ' : ''}${message || ''}`.trim();
-  if (submitResponse.status >= 500) {
-    console.error('TRACES submit error:', submitResponseXML, 'body:', body);
+  const error = xml ? getFaultMessage(xml) : '';
+  if (status >= 400 || !xml) {
+    console.error('TRACES submit error:', text, 'body:', body);
     return {
       sdId: undefined,
-      error: error || 'TRACES database currently unavailable, try again later',
+      error: error || 'Unerwartete Antwort von EU TRACES.',
     };
   }
 
@@ -345,25 +453,25 @@ export async function submitSD(commodities, geolocationVisible, user) {
 }
 
 /**
- * @param {Array<string>} sdIds TRACES identifiers
- * @returns {Promise<Array<StatementInfo> | null>} SD info or null in case of an error
+ * @param {Array<string>} sdIds TRACES identifiers, at most 100 (TRACES limit per call)
+ * @returns {Promise<{statements?: Array<StatementInfo>, error?: string}>}
  */
 export async function retrieveSd(sdIds) {
-  const retrieveXML = getRetrieveSdXML(sdIds);
-  const retrieveResponse = await fetch(tracesV3Endpoint, {
-    method: 'POST',
-    body: retrieveXML,
-    headers: {
-      'Content-Type': 'text/xml; charset=utf-8',
-      'SOAPAction': `${ddsNS}/getSd`,
-    },
-  });
-  const retrieveResponseXML = await retrieveResponse.text();
-  const xml = new DOMParser().parseFromString(retrieveResponseXML, 'text/xml');
-  const overviewElements = xml.getElementsByTagNameNS(sdNS, 'sdOverviewList');
-  if (!overviewElements) {
-    return null;
+  const { status, text, xml } = await tracesRequest(`${ddsNS}/getSd`, () =>
+    getRetrieveSdXML(sdIds),
+  );
+  if (!xml) {
+    console.error('TRACES getSd: invalid response:', status, text);
+    return { error: 'Unerwartete Antwort von EU TRACES.' };
   }
+  if (xml.getElementsByTagNameNS(sdNS, 'NotFoundException').length > 0) {
+    return { statements: [] };
+  }
+  if (status >= 400) {
+    console.error('TRACES getSd error:', status, text);
+    return { error: getFaultMessage(xml) || 'Unerwartete Antwort von EU TRACES.' };
+  }
+  const overviewElements = xml.getElementsByTagNameNS(sdNS, 'sdOverviewList');
   const statementInfos = [];
   for (let i = 0, ii = overviewElements.length; i < ii; i++) {
     const overview = overviewElements.item(i);
@@ -391,7 +499,7 @@ export async function retrieveSd(sdIds) {
       date,
     });
   }
-  return statementInfos;
+  return { statements: statementInfos };
 }
 
 /**
@@ -399,7 +507,7 @@ export async function retrieveSd(sdIds) {
  * @returns {Promise<{statements?: Array<StatementInfo>, error?: string | undefined}>}
  */
 export async function retrieveSdByInternalReference(internalReference) {
-  const body = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+  const getBody = () => `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
     xmlns:sd="http://ec.europa.eu/tracesnt/certificate/eudr/simplified-declaration/v3"
     xmlns:v4="http://ec.europa.eu/sanco/tracesnt/base/v4">
         ${getHeader()}
@@ -410,67 +518,55 @@ export async function retrieveSdByInternalReference(internalReference) {
         </soapenv:Body>
     </soapenv:Envelope>`;
 
-  try {
-    const submitResponse = await fetch(tracesV3Endpoint, {
-      method: 'POST',
-      body,
-      headers: {
-        'Content-Type': 'text/xml; charset=utf-8',
-        'SOAPAction': `${ddsNS}/getSdByInternalReference`,
-      },
-    });
-    const submitResponseXML = await submitResponse.text();
-    const xml = new DOMParser().parseFromString(submitResponseXML, 'text/xml');
-    const faultString = xml.getElementsByTagName('faultstring').item(0)?.textContent;
-    const message = xml.getElementsByTagNameNS(errorNS, 'Message').item(0)?.textContent;
-    const error = `${faultString ? faultString + ': ' : ''}${message || ''}`.trim();
-    // TRACES answers a query without any matching statements with an HTTP 500 SOAP
-    // fault ("Declaration not found.") carrying a NotFoundException detail. That is
-    // not an error for us - the user simply has no statements yet, so report an
-    // empty list instead of a server error.
-    if (xml.getElementsByTagNameNS(sdNS, 'NotFoundException').length > 0) {
-      return { statements: [] };
-    }
-    if (submitResponse.status >= 500) {
-      return {
-        error: error || 'TRACES database currently unavailable, try again later',
-      };
-    }
-
-    const overviewElements = xml.getElementsByTagNameNS(sdNS, 'sdOverviewList');
-    const statements = [];
-    for (let i = 0; i < overviewElements.length; i++) {
-      const overview = /** @type {import('@xmldom/xmldom').Element} */ (overviewElements.item(i));
-      const sdId = overview.getElementsByTagNameNS(commonNS, 'uuid').item(0)?.textContent;
-      if (!sdId) {
-        return { error: 'Invalid response from TRACES: no sdId' };
-      }
-      const date = overview.getElementsByTagNameNS(commonNS, 'date').item(0)?.textContent;
-      if (!date) {
-        return { error: 'Invalid response from TRACES: no date' };
-      }
-      statements.push({
-        sdId,
-        referenceNumber:
-          overview.getElementsByTagNameNS(commonNS, 'referenceNumber').item(0)?.textContent ||
-          undefined,
-        verificationNumber:
-          overview.getElementsByTagNameNS(commonNS, 'verificationNumber').item(0)?.textContent ||
-          undefined,
-        status:
-          /** @type {TracesStatus} */ (
-            overview.getElementsByTagNameNS(commonNS, 'status').item(0)?.textContent
-          ) || 'UNKNOWN',
-        date,
-      });
-    }
-
-    return { statements, error };
-  } catch (error) {
+  const { status, text, xml } = await tracesRequest(`${ddsNS}/getSdByInternalReference`, getBody);
+  if (!xml) {
+    console.error('TRACES getSdByInternalReference: invalid response:', status, text);
+    return { error: 'Unerwartete Antwort von EU TRACES.' };
+  }
+  const error = getFaultMessage(xml);
+  // TRACES answers a query without any matching statements with an HTTP 500 SOAP
+  // fault ("Declaration not found.") carrying a NotFoundException detail. That is
+  // not an error for us - the user simply has no statements yet, so report an
+  // empty list instead of a server error.
+  if (xml.getElementsByTagNameNS(sdNS, 'NotFoundException').length > 0) {
+    return { statements: [] };
+  }
+  if (status >= 400) {
+    console.error('TRACES getSdByInternalReference error:', status, text);
     return {
-      error: error instanceof Error ? error.message || 'Unknown error' : 'Unknown error',
+      error: error || 'Unerwartete Antwort von EU TRACES.',
     };
   }
+
+  const overviewElements = xml.getElementsByTagNameNS(sdNS, 'sdOverviewList');
+  const statements = [];
+  for (let i = 0; i < overviewElements.length; i++) {
+    const overview = /** @type {import('@xmldom/xmldom').Element} */ (overviewElements.item(i));
+    const sdId = overview.getElementsByTagNameNS(commonNS, 'uuid').item(0)?.textContent;
+    if (!sdId) {
+      return { error: 'Invalid response from TRACES: no sdId' };
+    }
+    const date = overview.getElementsByTagNameNS(commonNS, 'date').item(0)?.textContent;
+    if (!date) {
+      return { error: 'Invalid response from TRACES: no date' };
+    }
+    statements.push({
+      sdId,
+      referenceNumber:
+        overview.getElementsByTagNameNS(commonNS, 'referenceNumber').item(0)?.textContent ||
+        undefined,
+      verificationNumber:
+        overview.getElementsByTagNameNS(commonNS, 'verificationNumber').item(0)?.textContent ||
+        undefined,
+      status:
+        /** @type {TracesStatus} */ (
+          overview.getElementsByTagNameNS(commonNS, 'status').item(0)?.textContent
+        ) || 'UNKNOWN',
+      date,
+    });
+  }
+
+  return { statements, error };
 }
 
 /**
@@ -479,7 +575,7 @@ export async function retrieveSdByInternalReference(internalReference) {
  * @returns {Promise<{commodities?: Array<CommodityDataWithKey>, geolocationVisible?: boolean, error?: string | undefined}>}
  */
 export async function retrieveSdData(referenceNumber, verificationNumber) {
-  const body = `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+  const getBody = () => `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
     xmlns:sd="http://ec.europa.eu/tracesnt/certificate/eudr/simplified-declaration/v3"
     xmlns:eudrCommon="http://ec.europa.eu/tracesnt/certificate/eudr/common/v3"
     xmlns:v4="http://ec.europa.eu/sanco/tracesnt/base/v4">
@@ -494,31 +590,21 @@ export async function retrieveSdData(referenceNumber, verificationNumber) {
         </soapenv:Body>
     </soapenv:Envelope>`;
 
-  const submitResponse = await fetch(tracesV3Endpoint, {
-    method: 'POST',
-    body,
-    headers: {
-      'Content-Type': 'text/xml; charset=utf-8',
-      'SOAPAction': `${ddsNS}/getSdByIdentifiers`,
-    },
-  });
-  const submitResponseXML = await submitResponse.text();
-  const xml = new DOMParser().parseFromString(submitResponseXML, 'text/xml');
-  const faultString = xml.getElementsByTagName('faultstring').item(0)?.textContent;
-  const message = xml.getElementsByTagNameNS(errorNS, 'Message').item(0)?.textContent;
-  const error = `${faultString ? faultString + ': ' : ''}${message || ''}`.trim();
-  if (submitResponse.status >= 400) {
-    console.error('TRACES getSdByIdentifiers error:', submitResponse.status, submitResponseXML);
+  const { status, text, xml } = await tracesRequest(`${ddsNS}/getSdByIdentifiers`, getBody);
+  if (!xml) {
+    console.error('TRACES getSdByIdentifiers: invalid response:', status, text);
+    return { error: 'Unerwartete Antwort von EU TRACES.' };
+  }
+  const error = getFaultMessage(xml);
+  if (status >= 400) {
+    console.error('TRACES getSdByIdentifiers error:', status, text);
     return {
-      error: error || 'TRACES database currently unavailable, try again later',
+      error: error || 'Unerwartete Antwort von EU TRACES.',
     };
   }
   const statementElement = xml.getElementsByTagNameNS(sdNS, 'statement').item(0);
   if (!statementElement) {
-    console.error(
-      'TRACES getSdByIdentifiers: no statement element in response:',
-      submitResponseXML,
-    );
+    console.error('TRACES getSdByIdentifiers: no statement element in response:', text);
     return {
       error: 'No statement found',
     };

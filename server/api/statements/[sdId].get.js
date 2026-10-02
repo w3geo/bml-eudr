@@ -8,7 +8,10 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 400, statusMessage: 'Bad Request' });
   }
 
-  const sdInfos = await retrieveSd([sdId]);
+  const { statements: sdInfos, error: sdError } = await retrieveSd([sdId]);
+  if (sdError) {
+    throw createError({ status: 500, statusMessage: 'Internal Server Error', message: sdError });
+  }
   const sdInfo = sdInfos?.[0];
   // TRACES returns any statement submitted through our account, so only hand out the user's own.
   if (!sdInfo || sdInfo.internalReferenceNumber !== getInternalReferenceHash(userId)) {

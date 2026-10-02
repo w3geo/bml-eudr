@@ -11,6 +11,7 @@ import {
   mdiShareVariant,
   mdiTableArrowDown,
 } from '@mdi/js';
+import { FetchError } from 'ofetch';
 
 const { mdAndUp } = useDisplay();
 const { start, finish, clear } = useLoadingIndicator();
@@ -41,19 +42,47 @@ const statementsErrorMessage = computed(
 
 statementCount.value = statements.value?.length || 0;
 
-const autoRefreshStatements = statements.value?.filter((s) => !s.referenceNumber);
+// TRACES issues reference numbers in batches every 5 minutes (around :00, :05, :10, ...), so
+// pending statements are checked once shortly after each batch, with a single request for all.
+const BATCH_INTERVAL = 5 * 60 * 1000;
+const BATCH_DELAY = 20 * 1000;
+/** @type {ReturnType<typeof setTimeout> | undefined} */
+let refreshTimeout;
 
-onNuxtReady(() => {
-  if (autoRefreshStatements && autoRefreshStatements.length > 0) {
-    const interval = setInterval(async () => {
-      for (const s of autoRefreshStatements) {
-        await toggleFullStatement(s.sdId);
-      }
-      if (statements.value?.every((s) => s.referenceNumber)) {
-        clearInterval(interval);
-      }
-    }, 30000);
+function scheduleRefresh() {
+  clearTimeout(refreshTimeout);
+  if (!statements.value?.some((s) => !s.referenceNumber)) {
+    return;
   }
+  const delay = BATCH_INTERVAL - ((Date.now() - BATCH_DELAY) % BATCH_INTERVAL);
+  refreshTimeout = setTimeout(refreshPending, delay);
+}
+
+async function refreshPending() {
+  if (document.hidden) {
+    document.addEventListener('visibilitychange', refreshPending, { once: true });
+    return;
+  }
+  try {
+    const fresh = await $fetch('/api/statements');
+    statements.value =
+      fresh?.map((s) => {
+        const current = statements.value?.find((c) => c.sdId === s.sdId);
+        // Keep details that were already loaded for completed statements.
+        return current?.referenceNumber && current.commodities
+          ? { ...s, commodities: current.commodities }
+          : s;
+      }) ?? statements.value;
+  } catch (error) {
+    console.error('Failed to refresh statements', error);
+  }
+  scheduleRefresh();
+}
+
+onNuxtReady(scheduleRefresh);
+onBeforeUnmount(() => {
+  clearTimeout(refreshTimeout);
+  document.removeEventListener('visibilitychange', refreshPending);
 });
 
 /**
@@ -85,6 +114,9 @@ async function toggleFullStatement(sdId) {
       clear();
       console.error('Failed to retrieve SD data', error.message);
     }
+    if (error instanceof FetchError && error.data?.message) {
+      errorMessage.value = error.data.message;
+    }
   } finally {
     finish();
     clear();
@@ -100,7 +132,8 @@ const getCommodities = async (statement) => {
     await toggleFullStatement(statement.sdId);
   }
   if (!statement.commodities) {
-    errorMessage.value =
+    // toggleFullStatement may already have shown a more specific message.
+    errorMessage.value ||=
       'Details zu dieser Vereinfachten Erklärung konnten nicht abgerufen werden. Versuchen Sie es später erneut.';
     return;
   }
