@@ -66,9 +66,17 @@ export default defineNuxtConfig({
         themes: {
           light: {
             dark: false,
+            colors: {
+              'primary': '#11785F',
+              'primary-darken-1': '#0D5946',
+            },
           },
           dark: {
             dark: true,
+            colors: {
+              'primary': '#66BDA7',
+              'primary-darken-1': '#43A38B',
+            },
           },
         },
       },
