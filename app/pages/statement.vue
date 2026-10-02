@@ -206,19 +206,8 @@ async function validate() {
   if (!editCommodity.value) {
     return true;
   }
-  const { quantity } = statements[editCommodity.value];
-  let sum = 0;
-  for (const q of /** @type {Array<keyof typeof quantity.value>} */ (Object.keys(quantity.value))) {
-    sum += quantity.value?.[q] || 0;
-  }
-  if (sum === 0) {
-    errorMessage.value =
-      'Zumindest für ein(en) Rohstoff/Erzeugnis muss eine Menge angegeben werden.';
-    return;
-  }
-  // In "Postanschrift" mode the postal fields are required; block until they are
-  // complete. (In "Geolokalisation" mode those fields are not rendered, so the
-  // form validates as valid.)
+  // PlacesForm shows its errors inline: a missing quantity, and in "Postanschrift"
+  // mode the postal fields and MFA confirmation.
   if (placesFormRef.value && !(await placesFormRef.value.validate())) {
     return;
   }

@@ -26,15 +26,20 @@ const isAmaRind = computed(() => props.isAma && props.commodity === 'rind');
 const form = ref();
 const mfaConfirmed = ref(false);
 const showFieldsMap = ref(false);
+/** Set on validation when no quantity was entered; cleared as soon as one changes. */
+const quantityMissing = ref(false);
+
+watch(quantity, () => (quantityMissing.value = false), { deep: true });
 
 /**
- * Validate the visible fields (the postal address is required when "Postanschrift"
- * is selected). Exposed so the editor's confirm action can block on it.
+ * Validate the visible fields (at least one quantity, and the postal address when
+ * "Postanschrift" is selected). Exposed so the editor's confirm action can block on it.
  * @returns {Promise<boolean>}
  */
 async function validate() {
+  quantityMissing.value = !Object.values(quantity.value).some((v) => v > 0);
   const { valid } = await form.value.validate();
-  return valid;
+  return valid && !quantityMissing.value;
 }
 
 defineExpose({ validate });
@@ -92,6 +97,7 @@ watch(yieldPerHectare, (value) => {
             density="compact"
             variant="outlined"
             hide-details
+            :error="quantityMissing"
             type="number"
             :label="HS_HEADING[hs]"
             :suffix="COMMODITIES[commodity]?.units"
@@ -140,6 +146,10 @@ watch(yieldPerHectare, (value) => {
           </v-sheet>
         </v-col>
       </v-row>
+      <!-- One message for all quantity fields (Holz has two), rather than one per field. -->
+      <div v-if="quantityMissing" class="text-error text-caption mt-1 px-4">
+        Zumindest für ein(en) Rohstoff/Erzeugnis muss eine Menge angegeben werden.
+      </div>
       <v-row v-if="!geolocation && address" no-gutters class="mt-8">
         <v-col cols="12" lg="6">
           <v-checkbox
