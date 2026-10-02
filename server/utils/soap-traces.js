@@ -38,6 +38,10 @@ import { parseAddress } from '~~/shared/utils/utils.js';
 /**
  * @typedef {{key: import('~~/shared/utils/constants.js').Commodity} & CommodityData} CommodityDataWithKey
  */
+
+// TRACES API Specification and documentation:
+// https://circabc.europa.eu/ui/group/34861680-e799-4d7c-bbad-da83c45da458/library/3819b9e2-b889-4714-9bb3-b4dde1ebe649
+
 const errorNS = 'http://ec.europa.eu/sanco/tracesnt/error/v01';
 const sdNS = 'http://ec.europa.eu/tracesnt/certificate/eudr/simplified-declaration/v3';
 const commonNS = 'http://ec.europa.eu/tracesnt/certificate/eudr/common/v3';
