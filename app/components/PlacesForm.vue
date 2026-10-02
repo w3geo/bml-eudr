@@ -14,9 +14,14 @@ const props = defineProps({
 const { xs } = useDisplay();
 const { geojson, quantity, address, geolocation } = useStatement(props.commodity, props.isAma);
 
-/** Soja producers with an AMA login register their fields via MFA, so they get
- * the "confirm all fields are in AMA/MFA" checkbox and the map preview button. */
-const isAmaSoja = computed(() => props.isAma && props.commodity === 'sojabohnen');
+/** Soja and cattle producers with an AMA login register their fields via MFA, so
+ * they get the "confirm all fields are in AMA/MFA" checkbox and the map preview
+ * button. */
+const isAmaFields = computed(
+  () => props.isAma && (props.commodity === 'sojabohnen' || props.commodity === 'rind'),
+);
+/** For cattle, the map preview only shows the fields of the main farm. */
+const isAmaRind = computed(() => props.isAma && props.commodity === 'rind');
 
 const form = ref();
 const mfaConfirmed = ref(false);
@@ -138,7 +143,7 @@ watch(yieldPerHectare, (value) => {
       <v-row v-if="!geolocation && address" no-gutters class="mt-8">
         <v-col cols="12" lg="6">
           <v-checkbox
-            v-if="isAmaSoja"
+            v-if="isAmaFields"
             v-model="mfaConfirmed"
             density="compact"
             hide-details="auto"
@@ -165,15 +170,22 @@ watch(yieldPerHectare, (value) => {
               </v-tooltip>
             </template>
           </v-checkbox>
-          <v-btn
-            v-if="isAmaSoja"
-            class="mb-6"
-            variant="outlined"
-            :prepend-icon="mdiEyeOutline"
-            @click="showFieldsMap = true"
-          >
-            Flächen anzeigen
-          </v-btn>
+          <div v-if="isAmaFields" class="d-flex align-center mb-6">
+            <v-btn variant="outlined" :prepend-icon="mdiEyeOutline" @click="showFieldsMap = true">
+              Flächen anzeigen
+            </v-btn>
+            <v-tooltip v-if="isAmaRind" max-width="400" open-on-click>
+              <template #activator="{ props: activatorProps }">
+                <v-btn
+                  flat
+                  :icon="mdiHelpCircleOutline"
+                  size="x-small"
+                  v-bind="activatorProps"
+                ></v-btn>
+              </template>
+              <div>Es werden nur die Flächen des Hauptbetriebs angezeigt.</div>
+            </v-tooltip>
+          </div>
           <div class="text-subtitle-2 mb-4">Postanschrift</div>
           <v-row>
             <v-col cols="12">

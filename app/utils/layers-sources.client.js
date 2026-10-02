@@ -41,12 +41,10 @@ export function createBackgroundKatasterLayer() {
  * @returns {LayerGroup}
  */
 function createAgraratlasLayer(commodity, farms = [], fields = [], { ownOnly = false } = {}) {
+  /** Whether a schlag's Feldstücknutzungsart matches the commodity. */
+  const isCommodity = ['in', ['get', 'fnar_code'], ['literal', FNAR[commodity]]];
   /** Own schläge that the commodity is grown on — the only ones `ownOnly` keeps. */
-  const ownCommodityFilter = [
-    'all',
-    ['in', ['get', 'localID'], ['literal', fields]],
-    ['==', ['get', 'fnar_code'], FNAR[commodity]],
-  ];
+  const ownCommodityFilter = ['all', ['in', ['get', 'localID'], ['literal', fields]], isCommodity];
 
   const agraratlas = new LayerGroup();
   apply(agraratlas, 'https://agraratlas.inspire.gv.at/map/style-pmtiles.json', {
@@ -67,7 +65,7 @@ function createAgraratlasLayer(commodity, farms = [], fields = [], { ownOnly = f
           filter: [
             'all',
             ['!', ['in', ['get', 'localID'], ['literal', fields]]],
-            ['!=', ['get', 'fnar_code'], FNAR[commodity]],
+            ['!', isCommodity],
           ],
         },
         'invekos_schlaege_polygon-fill',
@@ -77,11 +75,7 @@ function createAgraratlasLayer(commodity, farms = [], fields = [], { ownOnly = f
         {
           ...schlaege,
           id: 'invekos_schlaege_polygon-not-commodity-my-field-fill',
-          filter: [
-            'all',
-            ['in', ['get', 'localID'], ['literal', fields]],
-            ['!=', ['get', 'fnar_code'], FNAR[commodity]],
-          ],
+          filter: ['all', ['in', ['get', 'localID'], ['literal', fields]], ['!', isCommodity]],
           paint: {
             ...schlaege.paint,
             'fill-color': 'rgba(255, 255, 255, 0.1)',
@@ -94,11 +88,7 @@ function createAgraratlasLayer(commodity, farms = [], fields = [], { ownOnly = f
         {
           ...schlaege,
           id: 'invekos_schlaege_polygon-commodity-fill',
-          filter: [
-            'all',
-            ['!', ['in', ['get', 'localID'], ['literal', fields]]],
-            ['==', ['get', 'fnar_code'], FNAR[commodity]],
-          ],
+          filter: ['all', ['!', ['in', ['get', 'localID'], ['literal', fields]]], isCommodity],
           paint: {
             ...schlaege.paint,
             'fill-color': 'rgba(255, 255, 0, 0.5)',

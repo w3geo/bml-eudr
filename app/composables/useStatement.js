@@ -90,7 +90,12 @@ function clear(quantity, geojson, address, geolocation, defaultGeolocation) {
  * @returns {UseStatement}
  */
 export function useStatement(commodity, isAma = false) {
-  const defaultGeolocation = !(isAma && commodity === 'sojabohnen');
+  // Holz always defaults to "Postanschrift"; soja and cattle only for AMA users,
+  // whose fields are known from MFA.
+  const defaultGeolocation = !(
+    commodity === 'holz' ||
+    (isAma && (commodity === 'sojabohnen' || commodity === 'rind'))
+  );
 
   /** @type {import('vue').Ref<import('ol/format/GeoJSON').GeoJSONFeatureCollection>} */
   const geojson = useState(`geojson-${commodity}`, () =>
