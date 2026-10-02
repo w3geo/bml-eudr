@@ -24,6 +24,7 @@
     "@xmldom/xmldom": "^0.9.8",
     "db0": "^0.4.1",
     "drizzle-orm": "^1.0.0-rc.4",
+    "h3": "^1.15.11",
     "nodemailer": "^10.0.9",
     "nuxt": "^4.5.2",
     "nuxt-auth-utils": "^0.5.22",
