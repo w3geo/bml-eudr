@@ -11,6 +11,7 @@ import { parseAddress } from '~~/shared/utils/utils.js';
 /**
  * @typedef {Object} StatementInfo
  * @property {string} sdId
+ * @property {string} [internalReferenceNumber] Hash of the submitting user's login id, see getInternalReferenceHash()
  * @property {string} [referenceNumber]
  * @property {string} [verificationNumber]
  * @property {TracesStatus} status
@@ -82,7 +83,7 @@ function generateNonce() {
  * @param {string} id
  * @returns {string}
  */
-function getInternalReferenceHash(id) {
+export function getInternalReferenceHash(id) {
   const hash = createHash('sha256').update(String(id)).digest('hex');
   return BigInt(`0x${hash}`).toString(36).slice(0, 14);
 }
@@ -372,6 +373,9 @@ export async function retrieveSd(sdIds) {
     if (!sdId || !date || !status) {
       continue;
     }
+    const internalReferenceNumber =
+      overview.getElementsByTagNameNS(commonNS, 'internalReferenceNumber').item(0)?.textContent ||
+      undefined;
     const referenceNumber =
       overview.getElementsByTagNameNS(commonNS, 'referenceNumber').item(0)?.textContent ||
       undefined;
@@ -380,6 +384,7 @@ export async function retrieveSd(sdIds) {
       undefined;
     statementInfos.push({
       sdId,
+      internalReferenceNumber,
       referenceNumber,
       verificationNumber,
       status: /** @type {TracesStatus} */ (status),

@@ -12,6 +12,7 @@ const drawer = ref(false);
 const router = useRouter();
 const routes = router.getRoutes();
 const items = routes
+  .filter((route) => route.meta.title)
   .sort((a, b) => Number(a.meta.sort) - Number(b.meta.sort))
   .map((route) => ({ title: route.meta.title, to: route.path }));
 const { data: userData } = await useFetch('/api/users/me');
@@ -30,7 +31,7 @@ const logout = () => {
   <NuxtLoadingIndicator color="blue" :height="2" />
   <v-app :theme="theme.value">
     <DisclaimerDialog />
-    <v-app-bar color="green-darken-3" flat density="compact">
+    <v-app-bar class="d-print-none" color="green-darken-3" flat density="compact">
       <template #prepend>
         <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
       </template>
@@ -58,7 +59,7 @@ const logout = () => {
       </v-menu>
       <v-btn v-else variant="plain" to="/account" :icon="mdiAccountCircle" />
     </v-app-bar>
-    <v-navigation-drawer v-model="drawer" :permanent="mdAndUp">
+    <v-navigation-drawer v-model="drawer" class="d-print-none" :permanent="mdAndUp">
       <v-list nav slim density="compact">
         <v-list-item class="pl-0 pt-0">
           <NuxtLink to="https://bmluk.gv.at/" target="_blank">
@@ -94,5 +95,28 @@ const logout = () => {
 <style scoped>
 .inline-block {
   display: inline-block;
+}
+</style>
+
+<style>
+/* The scrollable v-main clips printouts to one viewport, and the hidden app bar and
+   drawer still reserve space; let the content flow across pages at full width instead. */
+@media print {
+  html,
+  body,
+  .v-application {
+    background: #fff !important;
+  }
+  .v-application__wrap {
+    min-height: 0 !important;
+  }
+  .v-main,
+  .v-main__scroller {
+    position: static !important;
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+    padding: 0 !important;
+  }
 }
 </style>

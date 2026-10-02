@@ -10,12 +10,14 @@ export default defineEventHandler(async (event) => {
 
   const sdInfos = await retrieveSd([sdId]);
   const sdInfo = sdInfos?.[0];
-  if (!sdInfo) {
+  // TRACES returns any statement submitted through our account, so only hand out the user's own.
+  if (!sdInfo || sdInfo.internalReferenceNumber !== getInternalReferenceHash(userId)) {
     throw createError({
       status: 404,
       statusMessage: 'Not found',
     });
   }
+  delete sdInfo.internalReferenceNumber;
 
   if (!sdInfo.referenceNumber || !sdInfo.verificationNumber) {
     const session = await requireUserSession(event);

@@ -4,8 +4,11 @@ import {
   mdiContentCopy,
   mdiEmailFastOutline,
   mdiMap,
+  mdiMenuDown,
   mdiMessageTextOutline,
+  mdiPrinter,
   mdiRefreshCircle,
+  mdiShareVariant,
   mdiTableArrowDown,
 } from '@mdi/js';
 
@@ -209,7 +212,7 @@ const copyToClipboard = async (statement) => {
               </tr>
               <tr>
                 <td>Status</td>
-                <td>{{ item.status }}</td>
+                <td>{{ STATUS_LABELS[item.status] ?? item.status }}</td>
               </tr>
             </tbody>
           </v-table>
@@ -257,9 +260,25 @@ const copyToClipboard = async (statement) => {
           </v-table>
         </v-card-text>
         <v-card-actions v-if="item.referenceNumber">
-          <v-btn :prepend-icon="mdiContentCopy" @click="copyToClipboard(item)">Kopieren</v-btn>
-          <v-btn :prepend-icon="mdiEmailFastOutline" @click="sendEmail(item)">E-Mail</v-btn>
-          <v-btn :prepend-icon="mdiMessageTextOutline" @click="sendTextMessage(item)">SMS</v-btn>
+          <v-menu>
+            <template #activator="{ props }">
+              <v-btn v-bind="props" :prepend-icon="mdiShareVariant" :append-icon="mdiMenuDown">
+                Teilen
+              </v-btn>
+            </template>
+            <v-list density="compact">
+              <v-list-item :prepend-icon="mdiContentCopy" @click="copyToClipboard(item)">
+                Kopieren
+              </v-list-item>
+              <v-list-item :prepend-icon="mdiEmailFastOutline" @click="sendEmail(item)">
+                E-Mail
+              </v-list-item>
+              <v-list-item :prepend-icon="mdiMessageTextOutline" @click="sendTextMessage(item)">
+                SMS
+              </v-list-item>
+            </v-list>
+          </v-menu>
+          <v-btn :prepend-icon="mdiPrinter" :to="`/print/${item.sdId}`">Drucken</v-btn>
         </v-card-actions>
       </v-card>
     </v-col>

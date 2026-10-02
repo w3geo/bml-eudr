@@ -22,6 +22,23 @@ export const HS_HEADING = {
 /** @typedef {keyof HS_HEADING} HSCode */
 
 /**
+ * German labels for the TRACES statement status.
+ * @type {Record<import('~~/server/utils/soap-traces').TracesStatus, string>}
+ */
+export const STATUS_LABELS = {
+  AVAILABLE: 'Verfügbar',
+  SUBMITTED: 'Übermittelt',
+  REJECTED: 'Abgelehnt',
+  WITHDRAWN: 'Zurückgezogen',
+  ARCHIVED: 'Archiviert',
+  SUSPENDED: 'Ausgesetzt',
+  UPDATED: 'Aktualisiert',
+  GROUPED: 'Gruppiert',
+  OBSOLETE: 'Veraltet',
+  UNKNOWN: 'Unbekannt',
+};
+
+/**
  * HS codes of previously submitted statements that TRACES no longer offers, mapped
  * to the heading that replaces them.
  * @type {Record<string, HSCode>}
