@@ -367,10 +367,13 @@ function getSubmitSdXML(commodities, geolocationVisible, user) {
                 <eudrCommon:city>${escapeXml(parsedAddress.city)}</eudrCommon:city>
               </eudrCommon:operatorAddress>`
     : '';
+  // TIN may have been entered with blanks or slashes (e.g. "12 345/6789"), TRACES wants digits only
+  const identifierValue =
+    user.identifierType === 'TIN' ? user.identifierValue?.replace(/\D/g, '') : user.identifierValue;
   const representedOperatorXML = `<sd:representedOperator>
               <eudrCommon:operatorReferenceNumber>
                 <eudrCommon:identifierType>${escapeXml(user.identifierType?.toLowerCase())}</eudrCommon:identifierType>
-                <eudrCommon:identifierValue>${escapeXml(user.identifierValue)}</eudrCommon:identifierValue>
+                <eudrCommon:identifierValue>${escapeXml(identifierValue)}</eudrCommon:identifierValue>
               </eudrCommon:operatorReferenceNumber>
               ${operatorAddress}
               <eudrCommon:operatorName>${escapeXml(user.name)}</eudrCommon:operatorName>
