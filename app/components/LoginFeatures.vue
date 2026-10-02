@@ -10,11 +10,11 @@ defineProps({
   },
 });
 
-/** @type {Record<FeatureType, { icon: string, color: string|undefined }>} */
+/** @type {Record<FeatureType, { icon: string, color: string|undefined, label: string }>} */
 const icons = {
-  pro: { icon: mdiCheck, color: 'primary' },
-  effort: { icon: mdiPencilOutline, color: undefined },
-  con: { icon: mdiClose, color: 'error' },
+  pro: { icon: mdiCheck, color: 'primary', label: 'übernommen' },
+  effort: { icon: mdiPencilOutline, color: undefined, label: 'manuell' },
+  con: { icon: mdiClose, color: 'error', label: 'nicht möglich' },
 };
 </script>
 
@@ -29,6 +29,9 @@ const icons = {
       size="small"
     >
       {{ feature.text }}
+      <span v-if="feature.text !== icons[feature.type].label" class="d-sr-only">
+        : {{ icons[feature.type].label }}
+      </span>
     </v-chip>
   </div>
 </template>

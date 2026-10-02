@@ -20,12 +20,18 @@ const theme = useColorMode();
 const { xs } = useDisplay();
 const { errorMessage } = useErrorMessage();
 
-/** @type {Record<'legend'|'usp'|'idaustria'|'email',Array<{ text: string, type: 'pro'|'effort'|'con' }>>} */
+/** @type {Record<'legend'|'eama'|'usp'|'idaustria'|'email',Array<{ text: string, type: 'pro'|'effort'|'con' }>>} */
 const features = {
   legend: [
     { text: 'übernommen', type: 'pro' },
     { text: 'manuell', type: 'effort' },
     { text: 'nicht möglich', type: 'con' },
+  ],
+  eama: [
+    { text: 'Name/Anschrift', type: 'pro' },
+    { text: 'Betrieb', type: 'pro' },
+    { text: 'Flächen', type: 'pro' },
+    { text: 'Rinder', type: 'pro' },
   ],
   usp: [
     { text: 'Name/Anschrift', type: 'pro' },
@@ -166,8 +172,11 @@ if (!statementsError.value) {
           <v-card-actions class="d-flex justify-center">
             <v-img alt="eAMA" height="80" :src="`./logo_eama_${theme.value}.png`" />
           </v-card-actions>
-          <v-card-text class="text-center text-medium-emphasis pt-0 pb-6">
-            mit ID Austria oder Betriebsnummer/Passwort
+          <v-card-text class="text-center text-medium-emphasis pt-0">
+            mit ID Austria oder Betriebsnummer/Passwort – alle Daten werden übernommen:
+          </v-card-text>
+          <v-card-text class="pt-0 pb-6">
+            <LoginFeatures :features="features.eama" />
           </v-card-text>
         </v-card>
       </v-col>
