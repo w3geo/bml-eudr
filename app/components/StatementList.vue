@@ -134,7 +134,7 @@ const getCommodities = async (statement) => {
   if (!statement.commodities) {
     // toggleFullStatement may already have shown a more specific message.
     errorMessage.value ||=
-      'Details zu dieser Vereinfachten Erklärung konnten nicht abgerufen werden. Versuchen Sie es später erneut.';
+      'Details zu dieser Vereinfachten Erklärung konnten nicht abgerufen werden. Bitte versuchen Sie es später erneut.';
     return;
   }
   return statement.commodities;
@@ -318,7 +318,10 @@ const copyToClipboard = async (statement) => {
   </v-row>
   <v-row v-else>
     <v-col v-if="statementsError">
-      Fehler beim Laden: {{ statementsErrorMessage }}. Versuchen Sie es später erneut.
+      {{
+        statementsErrorMessage ||
+        'Die Vereinfachten Erklärungen konnten nicht geladen werden. Bitte versuchen Sie es später erneut.'
+      }}
     </v-col>
     <v-col v-else>
       Noch keine vorhanden. Erstellen Sie eine

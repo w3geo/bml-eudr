@@ -52,7 +52,7 @@ export default defineEventHandler(async (event) => {
     throw createError({
       status: 500,
       statusMessage: 'Internal Server Error',
-      message: 'No sdId returned',
+      message: UNEXPECTED_MESSAGE,
     });
   }
 
