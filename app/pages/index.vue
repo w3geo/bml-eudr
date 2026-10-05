@@ -26,6 +26,17 @@ useSeoMeta({
               einfach abzugeben.
             </div>
           </v-card-text>
+          <v-card-actions class="justify-center">
+            <v-btn
+              to="/statement"
+              :prepend-icon="mdiFileSign"
+              color="primary"
+              variant="flat"
+              size="large"
+            >
+              Erklärung erstellen
+            </v-btn>
+          </v-card-actions>
           <v-card-text class="d-flex flex-column align-center">
             <v-img
               alt="Ablauf Vereinfachte Erklärung"
@@ -40,23 +51,11 @@ useSeoMeta({
               target="_blank"
               href="https://environment.ec.europa.eu/topics/forests/deforestation/regulation-deforestation-free-products_en?prefLang=de&etrans=de"
               color="primary"
+              variant="outlined"
               :prepend-icon="mdiLightbulbOn"
             >
               Weitere Informationen
             </v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-col>
-      <v-col>
-        <v-card>
-          <v-card-title>Vereinfachte Erklärung</v-card-title>
-          <v-card-text>
-            Erstellung der Vereinfachten Erklärung und Identifikationsnummernverwaltung direkt hier
-            in der Applikation. Erfordert Anmeldung über eAMA Login oder ID Austria. Mit eAMA Login
-            können Sie direkt die Ihrem Betrieb zugeordneten Flächen auswählen.
-          </v-card-text>
-          <v-card-actions class="justify-center">
-            <v-btn to="/statement" :prepend-icon="mdiFileSign" color="primary"> Auswählen </v-btn>
           </v-card-actions>
         </v-card>
       </v-col>
