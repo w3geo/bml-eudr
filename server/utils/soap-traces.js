@@ -118,7 +118,7 @@ function getRetryDelay(attempt, retryAfter) {
 /**
  * Send a SOAP request to TRACES.
  *
- * Throws a 503 error when TRACES is busy or unreachable: HTTP 429/502/503/504, a 5xx response
+ * Throws a 500 error with a user-facing message when TRACES is busy or unreachable: HTTP 429/502/503/504, a 5xx response
  * without a SOAP envelope (e.g. from a proxy), a network error or a timeout. SOAP faults are
  * not errors here - TRACES sends every fault with HTTP 500, and callers inspect them.
  *
@@ -169,9 +169,11 @@ async function tracesRequest(soapAction, getBody, { submit = false } = {}) {
 
     console.error(`TRACES ${action} unavailable (attempt ${attempt}/${attempts}): ${reason}`);
     if (attempt >= attempts || timedOut) {
+      // Not 503: DigitalOcean App Platform replaces an app's 503 response with its own error page
+      // (and status 504), so the message would never reach the user.
       throw createError({
-        status: 503,
-        statusMessage: 'Service Unavailable',
+        status: 500,
+        statusMessage: 'TRACES Unavailable',
         message: submit && !rejected ? SUBMIT_UNCERTAIN_MESSAGE : BUSY_MESSAGE,
       });
     }
