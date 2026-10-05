@@ -85,6 +85,9 @@ onBeforeUnmount(() => {
   document.removeEventListener('visibilitychange', refreshPending);
 });
 
+const DETAILS_ERROR_MESSAGE =
+  'Details zu dieser Erklärung konnten nicht abgerufen werden. Bitte versuchen Sie es später erneut.';
+
 /**
  * @param {string} sdId
  */
@@ -114,9 +117,8 @@ async function toggleFullStatement(sdId) {
       clear();
       console.error('Failed to retrieve SD data', error.message);
     }
-    if (error instanceof FetchError && error.data?.message) {
-      errorMessage.value = error.data.message;
-    }
+    errorMessage.value =
+      (error instanceof FetchError && error.data?.message) || DETAILS_ERROR_MESSAGE;
   } finally {
     finish();
     clear();
@@ -133,8 +135,7 @@ const getCommodities = async (statement) => {
   }
   if (!statement.commodities) {
     // toggleFullStatement may already have shown a more specific message.
-    errorMessage.value ||=
-      'Details zu dieser Erklärung konnten nicht abgerufen werden. Bitte versuchen Sie es später erneut.';
+    errorMessage.value ||= DETAILS_ERROR_MESSAGE;
     return;
   }
   return statement.commodities;

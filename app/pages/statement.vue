@@ -191,11 +191,12 @@ async function submit() {
     }
     useRouter().push('/account');
   } catch (error) {
-    if (error instanceof FetchError) {
-      errorMessage.value = error.data.message;
-    } else if (error instanceof Error) {
-      errorMessage.value = error.message;
-    }
+    console.error('Failed to submit statement', error);
+    // Without a message from our server (e.g. a gateway timeout), the submission may still be
+    // in progress or may have succeeded.
+    errorMessage.value =
+      (error instanceof FetchError && error.data?.message) ||
+      'Die Erklärung konnte nicht übermittelt werden. Möglicherweise wurde sie trotzdem erstellt. Bitte prüfen Sie unter "Mein Konto" — "Meine Identifikationsnummern", ob sie dort aufscheint, bevor Sie es erneut versuchen.';
   } finally {
     finish();
     clear();

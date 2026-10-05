@@ -48,7 +48,7 @@ function createAgraratlasLayer(commodity, farms = [], fields = [], { ownOnly = f
 
   const agraratlas = new LayerGroup();
   apply(agraratlas, 'https://agraratlas.inspire.gv.at/map/style-pmtiles.json', {
-    transformRequest: (url) => pmtilesFetch?.(url),
+    transformRequest: (url) => (url.startsWith('pmtiles://') ? pmtilesFetch?.(url) : undefined),
   }).then(() => {
     const basemap = getMapboxLayer(agraratlas, 'basemap.at');
     updateMapboxLayer(agraratlas, {
