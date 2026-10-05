@@ -134,7 +134,7 @@ const getCommodities = async (statement) => {
   if (!statement.commodities) {
     // toggleFullStatement may already have shown a more specific message.
     errorMessage.value ||=
-      'Details zu dieser Vereinfachten Erklärung konnten nicht abgerufen werden. Bitte versuchen Sie es später erneut.';
+      'Details zu dieser Erklärung konnten nicht abgerufen werden. Bitte versuchen Sie es später erneut.';
     return;
   }
   return statement.commodities;
@@ -206,7 +206,7 @@ const copyToClipboard = async (statement) => {
     );
   } catch {
     errorMessage.value =
-      'Die Vereinfachte Erklärung konnte nicht in die Zwischenablage kopiert werden. Bitte klicken Sie erneut auf "Kopieren".';
+      'Die Erklärung konnte nicht in die Zwischenablage kopiert werden. Bitte klicken Sie erneut auf "Kopieren".';
   }
 };
 </script>
@@ -320,7 +320,7 @@ const copyToClipboard = async (statement) => {
     <v-col v-if="statementsError">
       {{
         statementsErrorMessage ||
-        'Die Vereinfachten Erklärungen konnten nicht geladen werden. Bitte versuchen Sie es später erneut.'
+        'Die Erklärungen konnten nicht geladen werden. Bitte versuchen Sie es später erneut.'
       }}
     </v-col>
     <v-col v-else>
