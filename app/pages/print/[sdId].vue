@@ -107,8 +107,7 @@ onMounted(() => {
       </div>
 
       <v-alert v-if="error" type="warning" class="d-print-none">
-        Die Vereinfachte Erklärung konnte nicht abgerufen werden. Bitte versuchen Sie es später
-        erneut.
+        Die Erklärung konnte nicht abgerufen werden. Bitte versuchen Sie es später erneut.
       </v-alert>
 
       <template v-else-if="statement">

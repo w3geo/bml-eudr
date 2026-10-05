@@ -65,14 +65,15 @@ const READ_TIMEOUT = 10000;
 const SUBMIT_TIMEOUT = 30000;
 const READ_ATTEMPTS = 3;
 const MAX_RETRY_DELAY = 5000;
-const BUSY_MESSAGE =
-  'EU TRACES ist derzeit überlastet oder nicht erreichbar. Bitte versuchen Sie es in ein paar Minuten erneut.';
-const SUBMIT_UNCERTAIN_MESSAGE =
-  'EU TRACES hat nicht rechtzeitig geantwortet. Möglicherweise wurde die Vereinfachte Erklärung trotzdem erstellt. Bitte prüfen Sie unter "Mein Konto" — "Meine Identifikationsnummern", ob sie dort aufscheint, bevor Sie es erneut versuchen.';
 // Messages returned as `error` or thrown by this module are complete sentences shown to the user
-// as they are, including advice on what to do next.
+// as they are, including advice on what to do next. They name "das EU-Informationssystem TRACES"
+// so users can tell that the problem is on the EU side.
+const BUSY_MESSAGE =
+  'Das EU-Informationssystem TRACES ist derzeit überlastet oder nicht erreichbar. Bitte versuchen Sie es in ein paar Minuten erneut.';
+const SUBMIT_UNCERTAIN_MESSAGE =
+  'Das EU-Informationssystem TRACES hat nicht rechtzeitig geantwortet. Möglicherweise wurde die Erklärung trotzdem erstellt. Bitte prüfen Sie unter "Mein Konto" — "Meine Identifikationsnummern", ob sie dort aufscheint, bevor Sie es erneut versuchen.';
 export const UNEXPECTED_MESSAGE =
-  'Unerwartete Antwort von EU TRACES. Bitte versuchen Sie es später erneut.';
+  'Das EU-Informationssystem TRACES hat eine unerwartete Antwort geliefert. Bitte versuchen Sie es später erneut.';
 
 /**
  * @param {string} text
@@ -98,7 +99,7 @@ function getFaultMessage(xml) {
     .map((s) => s?.trim())
     .filter(Boolean)
     .join(': ');
-  return detail ? `EU TRACES meldet einen Fehler: „${detail}“.` : '';
+  return detail ? `Das EU-Informationssystem TRACES meldet einen Fehler: „${detail}“.` : '';
 }
 
 /**
