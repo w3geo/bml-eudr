@@ -69,6 +69,10 @@ const BUSY_MESSAGE =
   'EU TRACES ist derzeit überlastet oder nicht erreichbar. Bitte versuchen Sie es in ein paar Minuten erneut.';
 const SUBMIT_UNCERTAIN_MESSAGE =
   'EU TRACES hat nicht rechtzeitig geantwortet. Möglicherweise wurde die Vereinfachte Erklärung trotzdem erstellt. Bitte prüfen Sie unter "Mein Konto" — "Meine Identifikationsnummern", ob sie dort aufscheint, bevor Sie es erneut versuchen.';
+// Messages returned as `error` or thrown by this module are complete sentences shown to the user
+// as they are, including advice on what to do next.
+export const UNEXPECTED_MESSAGE =
+  'Unerwartete Antwort von EU TRACES. Bitte versuchen Sie es später erneut.';
 
 /**
  * @param {string} text
@@ -90,10 +94,11 @@ function parseXml(text) {
 function getFaultMessage(xml) {
   const faultString = xml.getElementsByTagName('faultstring').item(0)?.textContent;
   const message = xml.getElementsByTagNameNS(errorNS, 'Message').item(0)?.textContent;
-  return [faultString, message]
+  const detail = [faultString, message]
     .map((s) => s?.trim())
     .filter(Boolean)
     .join(': ');
+  return detail ? `EU TRACES meldet einen Fehler: „${detail}“.` : '';
 }
 
 /**
@@ -446,7 +451,7 @@ export async function submitSD(commodities, geolocationVisible, user) {
     console.error('TRACES submit error:', text, 'body:', body);
     return {
       sdId: undefined,
-      error: error || 'Unerwartete Antwort von EU TRACES.',
+      error: error || UNEXPECTED_MESSAGE,
     };
   }
 
@@ -465,14 +470,14 @@ export async function retrieveSd(sdIds) {
   );
   if (!xml) {
     console.error('TRACES getSd: invalid response:', status, text);
-    return { error: 'Unerwartete Antwort von EU TRACES.' };
+    return { error: UNEXPECTED_MESSAGE };
   }
   if (xml.getElementsByTagNameNS(sdNS, 'NotFoundException').length > 0) {
     return { statements: [] };
   }
   if (status >= 400) {
     console.error('TRACES getSd error:', status, text);
-    return { error: getFaultMessage(xml) || 'Unerwartete Antwort von EU TRACES.' };
+    return { error: getFaultMessage(xml) || UNEXPECTED_MESSAGE };
   }
   const overviewElements = xml.getElementsByTagNameNS(sdNS, 'sdOverviewList');
   const statementInfos = [];
@@ -524,7 +529,7 @@ export async function retrieveSdByInternalReference(internalReference) {
   const { status, text, xml } = await tracesRequest(`${ddsNS}/getSdByInternalReference`, getBody);
   if (!xml) {
     console.error('TRACES getSdByInternalReference: invalid response:', status, text);
-    return { error: 'Unerwartete Antwort von EU TRACES.' };
+    return { error: UNEXPECTED_MESSAGE };
   }
   const error = getFaultMessage(xml);
   // TRACES answers a query without any matching statements with an HTTP 500 SOAP
@@ -537,7 +542,7 @@ export async function retrieveSdByInternalReference(internalReference) {
   if (status >= 400) {
     console.error('TRACES getSdByInternalReference error:', status, text);
     return {
-      error: error || 'Unerwartete Antwort von EU TRACES.',
+      error: error || UNEXPECTED_MESSAGE,
     };
   }
 
@@ -547,11 +552,13 @@ export async function retrieveSdByInternalReference(internalReference) {
     const overview = /** @type {import('@xmldom/xmldom').Element} */ (overviewElements.item(i));
     const sdId = overview.getElementsByTagNameNS(commonNS, 'uuid').item(0)?.textContent;
     if (!sdId) {
-      return { error: 'Invalid response from TRACES: no sdId' };
+      console.error('TRACES getSdByInternalReference: no sdId in response:', text);
+      return { error: UNEXPECTED_MESSAGE };
     }
     const date = overview.getElementsByTagNameNS(commonNS, 'date').item(0)?.textContent;
     if (!date) {
-      return { error: 'Invalid response from TRACES: no date' };
+      console.error('TRACES getSdByInternalReference: no date in response:', text);
+      return { error: UNEXPECTED_MESSAGE };
     }
     statements.push({
       sdId,
@@ -596,20 +603,20 @@ export async function retrieveSdData(referenceNumber, verificationNumber) {
   const { status, text, xml } = await tracesRequest(`${ddsNS}/getSdByIdentifiers`, getBody);
   if (!xml) {
     console.error('TRACES getSdByIdentifiers: invalid response:', status, text);
-    return { error: 'Unerwartete Antwort von EU TRACES.' };
+    return { error: UNEXPECTED_MESSAGE };
   }
   const error = getFaultMessage(xml);
   if (status >= 400) {
     console.error('TRACES getSdByIdentifiers error:', status, text);
     return {
-      error: error || 'Unerwartete Antwort von EU TRACES.',
+      error: error || UNEXPECTED_MESSAGE,
     };
   }
   const statementElement = xml.getElementsByTagNameNS(sdNS, 'statement').item(0);
   if (!statementElement) {
     console.error('TRACES getSdByIdentifiers: no statement element in response:', text);
     return {
-      error: 'No statement found',
+      error: UNEXPECTED_MESSAGE,
     };
   }
 
