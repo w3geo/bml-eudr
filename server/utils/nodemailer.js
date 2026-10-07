@@ -10,12 +10,16 @@ import nodemailer from 'nodemailer';
  * The transport is configured from the private runtime config `smtp`,
  * which is populated via the NUXT_SMTP_* environment variables:
  *   NUXT_SMTP_FROM, NUXT_SMTP_HOST, NUXT_SMTP_PORT, NUXT_SMTP_SECURE,
- *   NUXT_SMTP_AUTH_USER, NUXT_SMTP_AUTH_PASS
+ *   NUXT_SMTP_USER, NUXT_SMTP_PASS
  *
  * @returns {Promise<import('nodemailer').Transporter>}
  */
 const useSmtpTransporter = async () => {
   const { from, host, port, secure, user, pass } = useRuntimeConfig().smtp;
+  if (!host) {
+    // Without a host, nodemailer silently falls back to localhost
+    throw new Error('SMTP host not configured (NUXT_SMTP_HOST)');
+  }
 
   return nodemailer.createTransport(
     {
