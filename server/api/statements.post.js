@@ -38,6 +38,13 @@ export default defineEventHandler(async (event) => {
   };
 
   const commodities = statement.commodities;
+  if (commodities.some((c) => Object.values(unref(c.quantity)).some((v) => v < 0))) {
+    throw createError({
+      status: 400,
+      statusMessage: 'Bad Request',
+      message: 'Mengen dürfen nicht negativ sein.',
+    });
+  }
   const cattleCount = commodities.reduce((sum, c) => {
     const quantity = unref(c.quantity);
     return (quantity['0102'] || 0) + sum;
