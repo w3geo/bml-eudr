@@ -210,35 +210,35 @@ function checkFile(file) {
     </v-form>
   </v-dialog>
   <v-btn-toggle v-model="mapMode">
-    <v-tooltip open-on-click>
+    <action-tooltip>
       <template #activator="{ props: on }">
         <v-btn :icon="mdiVectorSquarePlus" v-bind="on" />
       </template>
       Ort hinzufügen
-    </v-tooltip>
-    <v-tooltip open-on-click>
+    </action-tooltip>
+    <action-tooltip>
       <template #activator="{ props: on }">
         <v-btn :icon="mdiVectorSquareEdit" v-bind="on" />
       </template>
       Ort bearbeiten
-    </v-tooltip>
-    <v-tooltip open-on-click>
+    </action-tooltip>
+    <action-tooltip>
       <template #activator="{ props: on }">
         <v-btn :icon="mdiVectorSquareRemove" v-bind="on" />
       </template>
       Ort entfernen
-    </v-tooltip>
+    </action-tooltip>
   </v-btn-toggle>
-  <v-tooltip open-on-click>
+  <action-tooltip>
     <template #activator="{ props: on }">
       <v-btn :icon="mdiEarthArrowUp" v-bind="on" @click="fileUpload = true" />
     </template>
     GeoJSON laden
-  </v-tooltip>
-  <v-tooltip open-on-click>
+  </action-tooltip>
+  <action-tooltip>
     <template #activator="{ props: on }">
       <v-btn :icon="mdiEarthArrowDown" v-bind="on" @click="saveGeoJSON" />
     </template>
     GeoJSON speichern
-  </v-tooltip>
+  </action-tooltip>
 </template>

@@ -230,7 +230,7 @@ const copyToClipboard = async (statement) => {
             <template v-else>
               Wird erstellt...
               <v-spacer />
-              <v-tooltip max-width="400" open-on-click>
+              <v-tooltip max-width="400" open-on-click :open-on-hover="false">
                 <template #activator="{ props }">
                   <v-btn
                     flat

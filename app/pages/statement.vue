@@ -278,7 +278,7 @@ async function validate() {
             >
               <template #label>
                 <div class="ml-1 text-body-2">Einsicht in die Erzeugungsorte erlauben</div>
-                <v-tooltip max-width="400" open-on-click>
+                <v-tooltip max-width="400" open-on-click :open-on-hover="false">
                   <template #activator="{ props }">
                     <v-btn flat :icon="mdiHelpCircleOutline" size="x-small" v-bind="props"></v-btn>
                   </template>
