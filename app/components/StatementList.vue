@@ -3,11 +3,11 @@ import {
   mdiCardBulletedOutline,
   mdiContentCopy,
   mdiEmailFastOutline,
+  mdiHelpCircleOutline,
   mdiMap,
   mdiMenuDown,
   mdiMessageTextOutline,
   mdiPrinter,
-  mdiRefreshCircle,
   mdiShareVariant,
   mdiTableArrowDown,
 } from '@mdi/js';
@@ -223,23 +223,30 @@ const copyToClipboard = async (statement) => {
   <v-row v-if="statementCount > 0">
     <v-col v-for="item in statements" :key="item.sdId" :cols="mdAndUp ? 6 : 12">
       <v-card color="green-darken-4">
-        <v-card-title class="pt-0 pb-0">
-          <v-toolbar flat color="transparent" density="compact"
-            >{{ item.referenceNumber || 'Wird erstellt...' }}<v-spacer />
-            <v-tooltip v-if="!item.referenceNumber" open-on-click>
-              <template #activator="{ props }">
-                <v-btn
-                  flat
-                  density="compact"
-                  :icon="mdiRefreshCircle"
-                  v-bind="props"
-                  @click="toggleFullStatement(item.sdId)"
-                ></v-btn>
-              </template>
-              Aktualisieren
-            </v-tooltip>
-          </v-toolbar>
-        </v-card-title>
+        <v-card-item>
+          <div class="text-caption text-medium-emphasis">Identifikationsnummer</div>
+          <v-card-title class="pa-0 d-flex align-center ga-1">
+            <template v-if="item.referenceNumber">{{ item.referenceNumber }}</template>
+            <template v-else>
+              Wird erstellt...
+              <v-spacer />
+              <v-tooltip max-width="400" open-on-click>
+                <template #activator="{ props }">
+                  <v-btn
+                    flat
+                    color="transparent"
+                    :icon="mdiHelpCircleOutline"
+                    size="small"
+                    density="comfortable"
+                    v-bind="props"
+                  ></v-btn>
+                </template>
+                Die Identifikationsnummer wird hier angezeigt, sobald sie vom EU-Informationssystem
+                vergeben wurde. Das dauert üblicherweise etwa 5 Minuten.
+              </v-tooltip>
+            </template>
+          </v-card-title>
+        </v-card-item>
         <v-card-text>
           <v-table density="compact">
             <tbody>
