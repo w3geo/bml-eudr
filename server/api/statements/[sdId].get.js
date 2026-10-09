@@ -28,7 +28,7 @@ export default defineEventHandler(async (event) => {
     return sdInfo;
   }
 
-  const { commodities, geolocationVisible, error } = await retrieveSdData(
+  const { commodities, geolocationVisible, operatorName, error } = await retrieveSdData(
     sdInfo.referenceNumber,
     sdInfo.verificationNumber,
   );
@@ -41,5 +41,5 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  return { ...sdInfo, commodities, geolocationVisible };
+  return { ...sdInfo, commodities, geolocationVisible, operatorName };
 });
