@@ -82,8 +82,8 @@ export const COMMODITIES = {
     units: 'm³',
     hsHeadings: ['4403', '4401'],
     hints: {
-      4403: 'Bitte geben Sie hier Ihre durchschnittliche jährliche Rohholzproduktion an',
-      4401: 'Bitte geben Sie hier Ihre durchschnittliche jährliche Brennholzproduktion an',
+      4403: 'Bitte geben Sie hier Ihre durchschnittliche jährliche Rohholzproduktion in Festmetern an',
+      4401: 'Bitte geben Sie hier Ihre durchschnittliche jährliche Brennholzproduktion in Festmetern an',
     },
   },
 };
