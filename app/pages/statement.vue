@@ -21,14 +21,7 @@ const { errorMessage } = useErrorMessage();
 const userDataComplete = ref(null);
 
 const { data: user, refresh: refetchUserData } = await useFetch('/api/users/me');
-const incomplete = computed(() => {
-  return !(
-    user.value?.name &&
-    user.value?.address &&
-    user.value?.identifierType &&
-    user.value?.identifierValue
-  );
-});
+const incomplete = computed(() => !isUserDataValid(user.value));
 
 /** @type {import('vue').Ref<import('~/components/UserData.vue').default|null>} */
 const userDataSubmit = ref(null);

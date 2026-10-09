@@ -1,5 +1,6 @@
 import amaCattle from '../db/schema/ama_cattle';
 import { unref } from 'vue';
+import { isUserDataValid } from '~~/shared/utils/utils';
 
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event);
@@ -18,9 +19,14 @@ export default defineEventHandler(async (event) => {
     !secure.name ||
     !secure.address ||
     !secure.identifierType ||
-    !secure.identifierValue
+    !secure.identifierValue ||
+    !isUserDataValid(secure)
   ) {
-    throw createError({ status: 400, statusMessage: 'User is missing required fields' });
+    throw createError({
+      status: 400,
+      statusMessage: 'User is missing required fields',
+      message: 'Bitte vervollständigen Sie unter "Mein Konto" die Angaben zum Betrieb.',
+    });
   }
   /** @type {import('~~/server/utils/soap-traces').User} */
   const user = {

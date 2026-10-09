@@ -44,10 +44,20 @@ export function getCommoditiesSummary(commodities) {
 
 /**
  * Parse a combined address string ("Street HouseNo, PostalCode City") into structured components.
+ * Also accepts addresses without the comma or with an "A-" prefix on the postal code
+ * (e.g. "Hart 4 5321 Pischelsdorf", "Hauptstraße 1, A-1010 Wien").
  * @param {string} address
  * @returns {{ street: string, postalCode: string, city: string } | null}
  */
 export function parseAddress(address) {
+  const match = address.trim().match(/^(.+)\s+(?:A-?)?(\d{4})\s+(.+)$/);
+  if (match) {
+    const [, rawStreet = '', postalCode = '', city = ''] = match;
+    const street = rawStreet.replace(/,\s*$/, '').trim();
+    if (street) {
+      return { street, postalCode, city: city.trim() };
+    }
+  }
   const commaIdx = address.lastIndexOf(', ');
   if (commaIdx === -1) return null;
   const street = address.substring(0, commaIdx).trim();
@@ -58,4 +68,63 @@ export function parseAddress(address) {
   const city = cityPart.substring(spaceIdx + 1).trim();
   if (!street || !postalCode || !city) return null;
   return { street, postalCode, city };
+}
+
+/**
+ * Combine structured address components into the stored address string
+ * ("Street HouseNo, PostalCode City"), the inverse of `parseAddress`.
+ * @param {{ street?: string, postalCode?: string, city?: string }} address
+ * @returns {string}
+ */
+export function formatAddress({ street = '', postalCode = '', city = '' }) {
+  return `${street.trim()}, ${postalCode.trim()} ${city.trim()}`;
+}
+
+/**
+ * Validation rules for the structured address fields, usable as Vuetify `rules`.
+ * Each rule returns `true` or an error message.
+ */
+export const ADDRESS_RULES = {
+  street: [
+    /** @param {string} [v] */
+    (v) => !!v?.trim() || 'Straße und Hausnummer ist erforderlich',
+  ],
+  postalCode: [
+    /** @param {string} [v] */
+    (v) => !!v?.trim() || 'PLZ ist erforderlich',
+    /** @param {string} [v] */
+    (v) => /^\d{4}$/.test(v?.trim() ?? '') || 'PLZ muss vierstellig sein',
+  ],
+  city: [
+    /** @param {string} [v] */
+    (v) => !!v?.trim() || 'Ort ist erforderlich',
+  ],
+};
+
+/**
+ * @param {string|null|undefined} address Combined address string
+ * @returns {boolean}
+ */
+export function isValidAddress(address) {
+  const parsed = address ? parseAddress(address) : null;
+  return (
+    !!parsed &&
+    /** @type {Array<keyof typeof ADDRESS_RULES>} */ (Object.keys(ADDRESS_RULES)).every((key) =>
+      ADDRESS_RULES[key].every((rule) => rule(parsed[key]) === true),
+    )
+  );
+}
+
+/**
+ * Whether the user data is complete and valid, so statements can be submitted.
+ * @param {{ name?: string|null, address?: string|null, identifierType?: string|null, identifierValue?: string|null }|null|undefined} user
+ * @returns {boolean}
+ */
+export function isUserDataValid(user) {
+  return !!(
+    user?.name?.trim() &&
+    isValidAddress(user.address) &&
+    user.identifierType &&
+    user.identifierValue?.trim()
+  );
 }

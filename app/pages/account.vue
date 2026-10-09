@@ -79,13 +79,34 @@ const unwatch = watch(
   async ([form, statements, statementsError]) => {
     if (form) {
       const formOk = await form.validate();
-      form.resetValidation();
+      if (formOk) {
+        form.resetValidation();
+      }
       const noStatements = !statementsError && (statements?.length || 0) === 0;
       expandUserData.value = !formOk || noStatements;
       unwatch();
     }
   },
 );
+
+// Statements can only be created with complete and valid user data, so don't let the user
+// move on to the statement page before the form validates and is saved.
+onBeforeRouteLeave(async (to) => {
+  const form = userDataForm.value;
+  if (!loggedIn.value || !form || to.path !== '/statement') {
+    return;
+  }
+  if (!(await form.validate())) {
+    expandUserData.value = true;
+    errorMessage.value = 'Bitte vervollständigen Sie zuerst die Angaben zum Betrieb.';
+    return false;
+  }
+  if (!form.valid) {
+    expandUserData.value = true;
+    errorMessage.value = 'Bitte speichern Sie zuerst die Angaben zum Betrieb.';
+    return false;
+  }
+});
 
 const loginRetry = useCookie('login-retry');
 const loginError = useCookie('login-error');

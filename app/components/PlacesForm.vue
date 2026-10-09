@@ -212,27 +212,27 @@ watch(yieldPerHectare, (value) => {
                 density="compact"
                 variant="outlined"
                 hide-details="auto"
-                :rules="[(v) => !!v?.trim() || 'Straße und Hausnummer ist erforderlich']"
+                :rules="ADDRESS_RULES.street"
               ></v-text-field>
             </v-col>
-            <v-col cols="4">
+            <v-col cols="auto" class="postal-code">
               <v-text-field
                 v-model="address.postalCode"
                 label="PLZ"
                 density="compact"
                 variant="outlined"
                 hide-details="auto"
-                :rules="[(v) => !!v || 'PLZ ist erforderlich']"
+                :rules="ADDRESS_RULES.postalCode"
               ></v-text-field>
             </v-col>
-            <v-col cols="8">
+            <v-col>
               <v-text-field
                 v-model="address.city"
                 label="Ort"
                 density="compact"
                 variant="outlined"
                 hide-details="auto"
-                :rules="[(v) => !!v || 'Ort ist erforderlich']"
+                :rules="ADDRESS_RULES.city"
               ></v-text-field>
             </v-col>
           </v-row>
@@ -245,6 +245,9 @@ watch(yieldPerHectare, (value) => {
 </template>
 
 <style scoped>
+.postal-code {
+  width: 6.5rem;
+}
 /* Quantity inputs keep a comfortable width instead of growing to fill the
    row, and are allowed to shrink below their intrinsic size so the row never
    wraps, but keep a floor wide enough to show their label. */
