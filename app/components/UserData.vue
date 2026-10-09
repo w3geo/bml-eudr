@@ -10,6 +10,8 @@ const form = ref();
 /** @type {Ref<import('~/utils/utils').EditableUserData|undefined>} */
 const editableUserData = ref();
 const canSave = ref(false);
+/** Whether the saved user data is complete and valid */
+const valid = ref(false);
 
 async function validate() {
   const { valid } = await form.value.validate();
@@ -27,6 +29,9 @@ async function save() {
     method: 'PUT',
     body: editableUserData.value,
   });
+  if (userData.value) {
+    userData.value = { ...userData.value, ...structuredClone(toRaw(editableUserData.value)) };
+  }
   snackbar.value = true;
 }
 
@@ -35,14 +40,33 @@ defineExpose({
   resetValidation,
   save,
   canSave,
+  valid,
 });
 
 const { data: userData } = await useFetch('/api/users/me');
-editableUserData.value = userData.value;
+// Work on a copy, so the shared `userData` keeps reflecting what is saved
+editableUserData.value = userData.value ? structuredClone(toRaw(userData.value)) : undefined;
 const loginProvidedFields = userData.value
   ? (LOGIN_PROVIDED_FIELDS[userData.value.loginProvider] ?? [])
   : [];
-canSave.value = loginProvidedFields.length < 4;
+// A login-provided address that does not have the expected format can be corrected by the user
+const addressEditable =
+  !loginProvidedFields.includes('address') || !isValidAddress(userData.value?.address);
+canSave.value = loginProvidedFields.length < editableUserDataFields.length || addressEditable;
+watchEffect(() => {
+  valid.value = isUserDataValid(userData.value);
+});
+
+const address = userData.value?.address || '';
+// An address that cannot be parsed goes into the street field, for the user to split up
+const addressParts = reactive(
+  parseAddress(address) ?? { street: address, postalCode: '', city: '' },
+);
+watch(addressParts, (parts) => {
+  if (editableUserData.value) {
+    editableUserData.value.address = formatAddress(parts);
+  }
+});
 
 const { mdAndUp, xs } = useDisplay();
 
@@ -89,24 +113,7 @@ const idItems = [
           :rules="[(v) => !!v || 'Name ist erforderlich']"
         ></v-text-field>
       </v-col>
-      <v-col :cols="mdAndUp ? 8 : 12">
-        <v-text-field
-          v-model="editableUserData.address"
-          density="compact"
-          hide-details="auto"
-          variant="outlined"
-          label="Straße Hausnummer, PLZ Ort"
-          :readonly="!props.editable || loginProvidedFields.includes('address')"
-          :disabled="!props.editable || loginProvidedFields.includes('address')"
-          :rules="[
-            (v) => !!v || 'Adresse ist erforderlich',
-            (v) =>
-              /^.+, \d{4} .+$/.test(v) ||
-              'Format: Straße Hausnummer, PLZ Ort (z.B. Musterstraße 1, 1234 Wien)',
-          ]"
-        ></v-text-field>
-      </v-col>
-      <v-col :cols="mdAndUp ? 4 : xs ? 12 : 6">
+      <v-col :cols="mdAndUp ? 3 : xs ? 12 : 6">
         <v-select
           v-model="editableUserData.identifierType"
           density="compact"
@@ -121,7 +128,7 @@ const idItems = [
           :rules="[(v) => !!v || 'Identifikationstyp ist erforderlich']"
         ></v-select>
       </v-col>
-      <v-col :cols="mdAndUp ? 8 : xs ? 12 : 6">
+      <v-col :cols="mdAndUp ? 5 : xs ? 12 : 6">
         <v-text-field
           v-model="editableUserData.identifierValue"
           density="compact"
@@ -131,6 +138,44 @@ const idItems = [
           :readonly="!props.editable || loginProvidedFields.includes('identifierValue')"
           :disabled="!props.editable || loginProvidedFields.includes('identifierValue')"
           :rules="[(v) => !!v || 'Nummer ist erforderlich']"
+        ></v-text-field>
+      </v-col>
+      <v-col :cols="mdAndUp ? 6 : 12">
+        <v-text-field
+          v-model="addressParts.street"
+          density="compact"
+          hide-details="auto"
+          variant="outlined"
+          label="Straße und Hausnummer"
+          :readonly="!props.editable || !addressEditable"
+          :disabled="!props.editable || !addressEditable"
+          :rules="ADDRESS_RULES.street"
+        ></v-text-field>
+      </v-col>
+      <v-col cols="auto" class="postal-code">
+        <v-text-field
+          v-model="addressParts.postalCode"
+          density="compact"
+          hide-details="auto"
+          variant="outlined"
+          label="PLZ"
+          inputmode="numeric"
+          maxlength="4"
+          :readonly="!props.editable || !addressEditable"
+          :disabled="!props.editable || !addressEditable"
+          :rules="ADDRESS_RULES.postalCode"
+        ></v-text-field>
+      </v-col>
+      <v-col>
+        <v-text-field
+          v-model="addressParts.city"
+          density="compact"
+          hide-details="auto"
+          variant="outlined"
+          label="Ort"
+          :readonly="!props.editable || !addressEditable"
+          :disabled="!props.editable || !addressEditable"
+          :rules="ADDRESS_RULES.city"
         ></v-text-field>
       </v-col>
       <v-col v-if="props.editable && canSave" cols="12" class="text-body-1 mb-2">
@@ -146,3 +191,9 @@ const idItems = [
     </v-snackbar>
   </v-form>
 </template>
+
+<style scoped>
+.postal-code {
+  width: 6.5rem;
+}
+</style>

@@ -2,7 +2,6 @@
 import { mdiCrosshairsGps, mdiMagnify } from '@mdi/js';
 import { PlaceSearch, usePlaceSearch } from '@w3geo/vue-place-search';
 import { View } from 'ol';
-import { getCenter } from 'ol/extent';
 import VectorLayer from 'ol/layer/Vector.js';
 import Map from 'ol/Map';
 import 'ol/ol.css';
@@ -37,6 +36,37 @@ const commodityLayer = shallowRef(null);
 /** @type {Ref<import('~/utils/layers-sources.client.js').GetFeatureAtPixel|(() => void)>} */
 const getFeatureAtPixel = shallowRef(() => {});
 const showPlaceSearchMenu = ref(false);
+
+/**
+ * Zoom level from which the commodity's selectable features are rendered: the
+ * agraratlas Schläge and Hofstellen tiles start at 12, the Kataster Wald layer at 14.
+ */
+const featuresMinZoom = computed(() => (props.commodity === 'holz' ? 14 : 12));
+const featuresHint = computed(() =>
+  props.commodity === 'holz'
+    ? 'Waldflächen'
+    : props.commodity === 'rind'
+      ? 'Flächen und Hofstellen'
+      : 'Flächen',
+);
+/** Whether the map is zoomed out too far to show the commodity's features */
+const zoomedOut = ref(false);
+/** Whether the user closed the zoom hint, until they zoom in far enough */
+const zoomHintDismissed = ref(false);
+const showZoomHint = computed({
+  get: () => zoomedOut.value && !zoomHintDismissed.value,
+  set: (value) => {
+    zoomHintDismissed.value = !value;
+  },
+});
+function updateZoomedOut() {
+  const zoom = map.getView().getZoom();
+  zoomedOut.value = zoom !== undefined && zoom < featuresMinZoom.value;
+  if (!zoomedOut.value) {
+    zoomHintDismissed.value = false;
+  }
+}
+watch(featuresMinZoom, updateZoomedOut);
 
 const mapContainer = ref();
 
@@ -79,6 +109,8 @@ onMounted(async () => {
   map.setTarget(mapContainer.value);
   const view = map.getView();
   if (view.isDef()) {
+    updateZoomedOut();
+    map.on('moveend', updateZoomedOut);
     return;
   }
   view.on('change', () => {
@@ -90,12 +122,14 @@ onMounted(async () => {
   });
   view.fit(extent, { size: map.getSize(), maxZoom: 10, padding: [20, 20, 20, 20] });
   mapContainer.value.classList.add('spinner');
-  const addressParts = props.address?.split(/, ?/);
-  const address =
-    addressParts && addressParts.length > 1
-      ? addressParts.slice(0, 2).reverse().join(' ')
-      : props.address;
-  const animation = { center: getCenter(extent), zoom: 13, duration: 500 };
+  const addressParts = props.address ? parseAddress(props.address) : null;
+  // Same order as the search result names ("3424 Zeiselmauer-Wolfpassing Rosengasse 7"); street
+  // first finds nothing for some addresses
+  const address = addressParts
+    ? `${addressParts.postalCode} ${addressParts.city} ${addressParts.street}`
+    : undefined;
+  /** @type {import('ol/View.js').AnimationOptions|null} */
+  let animation = null;
   try {
     const locationData = address
       ? $fetch(
@@ -107,13 +141,22 @@ onMounted(async () => {
           await locationData
         ).data
       : { features: null };
-    if (features?.[0] && features[0].geometry.type === 'Point') {
-      const [feature] = features;
-      animation.center = fromLonLat(feature.geometry.coordinates);
-      animation.zoom = 16;
+    // The search returns fuzzy matches anywhere in Austria (e.g. "Hartmanngasse 4, 1050 Wien"
+    // for "Hart 4 5321 Pischelsdorf"), so only trust a single result
+    const feature =
+      features?.length === 1 && features[0]?.geometry.type === 'Point' ? features[0] : undefined;
+    if (feature) {
+      animation = { center: fromLonLat(feature.geometry.coordinates), zoom: 16, duration: 500 };
     }
   } finally {
-    view.animate(animation);
+    // Without a known address, stay at the full extent; the zoom hint tells the user how to
+    // get to their fields
+    if (animation) {
+      view.animate(animation);
+    } else {
+      updateZoomedOut();
+    }
+    map.on('moveend', updateZoomedOut);
     map.once('rendercomplete', () => {
       mapContainer.value.classList.remove('spinner');
     });
@@ -183,6 +226,13 @@ function locateMe() {
     </v-app-bar>
     <v-main>
       <div ref="mapContainer" class="fill-height" />
+      <v-snackbar v-model="showZoomHint" timeout="-1">
+        Um {{ featuresHint }} zu sehen, vergrößern Sie die Karte, verwenden Sie die Ortssuche oder
+        zentrieren Sie auf Ihren Standort.
+        <template #actions>
+          <v-btn variant="text" @click="showZoomHint = false">OK</v-btn>
+        </template>
+      </v-snackbar>
     </v-main>
   </v-layout>
 </template>

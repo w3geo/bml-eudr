@@ -1,5 +1,6 @@
 import { eq } from 'drizzle-orm';
 import { editableUserDataFields, LOGIN_PROVIDED_FIELDS } from '~~/shared/utils/constants';
+import { isUserDataValid } from '~~/shared/utils/utils';
 import users from '~~/server/db/schema/users';
 
 export default defineEventHandler(async (event) => {
@@ -32,6 +33,9 @@ export default defineEventHandler(async (event) => {
   if (event.method === 'PUT' && event.headers.get('content-type') === 'application/json') {
     /** @type {import('~~/server/db/schema/users.js').User} */
     const properties = await readBody(event);
+    if (!isUserDataValid(properties)) {
+      throw createError({ status: 400, statusMessage: 'Invalid user data' });
+    }
     const loginProvidedFields = LOGIN_PROVIDED_FIELDS[session.loginProvider] || [];
     await setUserSession(event, {
       user: session.user,
