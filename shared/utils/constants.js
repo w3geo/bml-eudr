@@ -49,6 +49,11 @@ export const LEGACY_HS_HEADING = {
   '1201': '120190', // Sojabohnen
 };
 
+/**
+ * Percentage estimate or deviation sent with netWeight (TRACES allows 0-25 for DOMESTIC).
+ */
+export const NET_WEIGHT_TOLERANCE_PERCENT = 25;
+
 /** @type {Record<Commodity, CommodityMetadata>} */
 export const COMMODITIES = {
   sojabohnen: {
@@ -57,7 +62,7 @@ export const COMMODITIES = {
     units: 't',
     yieldPerHectare: 4,
     hsHeadings: ['120190'],
-    hint: 'Bitte geben Sie hier Ihre durchschnittliche jährliche Sojaproduktion an',
+    hint: `Bitte geben Sie hier Ihre durchschnittliche jährliche Sojaproduktion an. Die Menge wird mit einer Toleranz von ±${NET_WEIGHT_TOLERANCE_PERCENT} % gemeldet.`,
   },
   rind: {
     title: 'Rinder',

@@ -1,7 +1,12 @@
 import { randomBytes, createHash } from 'crypto';
 import { DOMParser } from '@xmldom/xmldom';
 import { unref } from 'vue';
-import { COMMODITIES, HS_HEADING, LEGACY_HS_HEADING } from '~~/shared/utils/constants.js';
+import {
+  COMMODITIES,
+  HS_HEADING,
+  LEGACY_HS_HEADING,
+  NET_WEIGHT_TOLERANCE_PERCENT,
+} from '~~/shared/utils/constants.js';
 import { parseAddress } from '~~/shared/utils/utils.js';
 
 /** @typedef {'AVAILABLE' | 'SUBMITTED' | 'REJECTED' | 'WITHDRAWN' | 'ARCHIVED' | 'SUSPENDED' | 'UPDATED' | 'GROUPED' | 'OBSOLETE' | 'UNKNOWN'} TracesStatus */
@@ -307,7 +312,13 @@ function getCommoditiesXML(commodities) {
         `;
           break;
         case 't':
-          quantityInfo = `<eudrCommon:netWeight>${quantity * 1000}</eudrCommon:netWeight>`; // kg, converted from t
+          // For DOMESTIC, netWeight requires a percentage estimate or deviation (0-25).
+          // Quantities are often yield-based estimates, so the maximum is used.
+          // netWeight is in kg, converted from t.
+          quantityInfo = `
+          <eudrCommon:percentageEstimationOrDeviation>${NET_WEIGHT_TOLERANCE_PERCENT}</eudrCommon:percentageEstimationOrDeviation>
+          <eudrCommon:netWeight>${quantity * 1000}</eudrCommon:netWeight>
+        `;
           break;
         case 'Stk.': // NAR - number of articles
           quantityInfo = `

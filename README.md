@@ -58,21 +58,17 @@ The TRACES EUDR API was updated from V1 (separate `EUDRSubmissionServiceV1` / `E
 
 Although `operatorAddress` inside `representedOperator` is marked optional in the V3 schema, TRACES enforces a business rule that requires `street` (and therefore the full structured address) when submitting as `REPRESENTATIVE_OPERATOR`. The existing combined address string (format `"Street HouseNo, PostalCode City"`) is parsed into the required structured fields (`country`, `street`, `postalCode`, `city`) at submission time.
 
-### `percentageEstimationOrDeviation` is required
+### Units of measure (`GoodsMeasureType`)
 
-`GoodsMeasureType.percentageEstimationOrDeviation` is marked optional in the XSD but is enforced as mandatory by TRACES business rules for every commodity. A value of `0` (exact measurement) is used as the default.
+Simplified declarations are submitted with activity type `DOMESTIC`, so the Domestic rules of the *EUDR Units of Measure Guidance* (V1.2.1) apply. Each commodity uses exactly one of the valid combinations:
 
-### `netWeight` is required for all commodity types
+| Commodity | Sent | Combination |
+|-----------|------|-------------|
+| Sojabohnen | `netWeight` (t × 1000 → kg) + `percentageEstimationOrDeviation` = `25` | Net mass with percentage estimate or deviation |
+| Holz | `supplementaryUnit` + `MTQ` (m³) | Supplementary unit type and quantity |
+| Rinder | `supplementaryUnit` + `NAR` (head count) | Supplementary unit type and quantity |
 
-`GoodsMeasureType.netWeight` is documented as "mandatory if activity type is IMPORT/EXPORT" but TRACES also enforces it for `DOMESTIC` declarations. Because users only enter volume (m³) for wood and head count for cattle, **estimated** values are computed at submission time:
-
-| Commodity | Unit | Estimation |
-|-----------|------|------------|
-| Sojabohnen | t → kg | exact (`quantity × 1000`) |
-| Holz | m³ → kg | estimated (`quantity × 600 kg/m³`, average Austrian timber density) |
-| Rinder | heads → kg | estimated (`quantity × 500 kg/head`, average EU cattle live weight) |
-
-If more accurate weights are needed in the future, a weight input field should be added to the UI for Holz and Rinder.
+`percentageEstimationOrDeviation` is mandatory for `DOMESTIC` whenever `netWeight` is sent (allowed range 0–25), and must not be sent without `netWeight`. The maximum of 25 % is used because soy quantities are often yield-based estimates; the help text next to the quantity field tells users about this tolerance.
 
 # Nuxt Minimal Starter
 
