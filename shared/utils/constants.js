@@ -9,7 +9,7 @@ import { mdiCow, mdiForestOutline, mdiSprout } from '@mdi/js';
  * @property {'t' | 'Stk.' | 'm³'} units
  * @property {number} [yieldPerHectare]
  * @property {Array<HSCode>} hsHeadings
- * @property {string} [hint]
+ * @property {Partial<Record<HSCode, string>>} [hints] Help text shown next to the quantity field of each HS code
  */
 
 export const HS_HEADING = {
@@ -62,20 +62,29 @@ export const COMMODITIES = {
     units: 't',
     yieldPerHectare: 4,
     hsHeadings: ['120190'],
-    hint: `Bitte geben Sie hier Ihre durchschnittliche jährliche Sojaproduktion an. Die Menge wird mit einer Toleranz von ±${NET_WEIGHT_TOLERANCE_PERCENT} % gemeldet.`,
+    hints: {
+      120190: `Bitte geben Sie hier Ihre durchschnittliche jährliche Sojaproduktion an. Die Menge wird mit einer Toleranz von ±${NET_WEIGHT_TOLERANCE_PERCENT} % gemeldet.`,
+    },
   },
   rind: {
     title: 'Rinder',
     icon: mdiCow,
     units: 'Stk.',
     hsHeadings: ['0102'],
+    hints: {
+      '0102':
+        'Bitte geben Sie hier die durchschnittliche jährliche Anzahl der in Verkehr gebrachten Rinder an',
+    },
   },
   holz: {
     title: 'Holz',
     icon: mdiForestOutline,
     units: 'm³',
     hsHeadings: ['4403', '4401'],
-    hint: 'Bitte geben Sie hier Ihre durchschnittliche jährliche Holzproduktion an',
+    hints: {
+      4403: 'Bitte geben Sie hier Ihre durchschnittliche jährliche Rohholzproduktion an',
+      4401: 'Bitte geben Sie hier Ihre durchschnittliche jährliche Brennholzproduktion an',
+    },
   },
 };
 

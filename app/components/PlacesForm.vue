@@ -89,32 +89,39 @@ watch(yieldPerHectare, (value) => {
           class="d-flex align-center flex-nowrap"
           :class="xs ? 'ga-2' : 'ga-4'"
         >
-          <v-text-field
-            v-for="hs in commodityData.hsHeadings"
-            :key="hs"
-            v-model.number="quantity[hs]"
-            class="quantity-field"
-            density="compact"
-            variant="outlined"
-            hide-details
-            :error="quantityMissing"
-            type="number"
-            :label="HS_HEADING[hs]"
-            :suffix="COMMODITIES[commodity]?.units"
-          ></v-text-field>
-          <v-tooltip v-if="commodityData.hint" max-width="300" open-on-click location="top" pa-0>
-            <template #activator="{ props: activatorProps }">
-              <v-btn
-                class="flex-grow-0 flex-shrink-0"
-                :class="xs ? 'ms-n2' : 'ms-n4'"
-                flat
-                :icon="mdiHelpCircleOutline"
-                size="x-small"
-                v-bind="activatorProps"
-              ></v-btn>
-            </template>
-            <div>{{ commodityData.hint }}</div>
-          </v-tooltip>
+          <template v-for="hs in commodityData.hsHeadings" :key="hs">
+            <v-text-field
+              v-model.number="quantity[hs]"
+              class="quantity-field"
+              density="compact"
+              variant="outlined"
+              hide-details
+              :error="quantityMissing"
+              type="number"
+              :label="HS_HEADING[hs]"
+              :suffix="COMMODITIES[commodity]?.units"
+            ></v-text-field>
+            <v-tooltip
+              v-if="commodityData.hints?.[hs]"
+              max-width="300"
+              open-on-click
+              location="top"
+              pa-0
+            >
+              <template #activator="{ props: activatorProps }">
+                <v-btn
+                  class="flex-grow-0 flex-shrink-0"
+                  :class="xs ? 'ms-n1' : 'ms-n3'"
+                  flat
+                  :icon="mdiHelpCircleOutline"
+                  size="x-small"
+                  density="comfortable"
+                  v-bind="activatorProps"
+                ></v-btn>
+              </template>
+              <div>{{ commodityData.hints[hs] }}</div>
+            </v-tooltip>
+          </template>
           <v-select
             v-model="geolocation"
             class="select-field"
