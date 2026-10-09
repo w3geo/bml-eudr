@@ -22,6 +22,7 @@ import { parseAddress } from '~~/shared/utils/utils.js';
  * @property {TracesStatus} status
  * @property {string} date
  * @property {Array<CommodityDataWithKey>} [commodities]
+ * @property {string} [operatorName] Represented operator name as stored in TRACES
  * @property {string} [commoditiesSummary] Short summary of commodities (for display in list)
  */
 
@@ -596,7 +597,7 @@ export async function retrieveSdByInternalReference(internalReference) {
 /**
  * @param {string} referenceNumber
  * @param {string} verificationNumber
- * @returns {Promise<{commodities?: Array<CommodityDataWithKey>, geolocationVisible?: boolean, error?: string | undefined}>}
+ * @returns {Promise<{commodities?: Array<CommodityDataWithKey>, geolocationVisible?: boolean, operatorName?: string, error?: string | undefined}>}
  */
 export async function retrieveSdData(referenceNumber, verificationNumber) {
   const getBody = () => `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
@@ -729,6 +730,15 @@ export async function retrieveSdData(referenceNumber, verificationNumber) {
     .item(0)?.textContent;
   const geolocationVisible = geoLocationConfidential !== 'true';
 
+  // TRACES returns only the name (and country) of the represented operator; the
+  // address comes back as CONFIDENTIAL and the identifier is omitted.
+  const operatorName =
+    statementElement
+      .getElementsByTagNameNS(sdNS, 'representedOperator')
+      .item(0)
+      ?.getElementsByTagNameNS(commonNS, 'operatorName')
+      .item(0)?.textContent || undefined;
+
   // A commodity legitimately has no geojson when a postal address was submitted
   // instead of a drawn geolocation; only missing both is an actual inconsistency.
   if (geolocationVisible && commodities.some((c) => !c.geojson && !c.address)) {
@@ -745,5 +755,5 @@ export async function retrieveSdData(referenceNumber, verificationNumber) {
     );
   }
 
-  return { commodities, geolocationVisible, error };
+  return { commodities, geolocationVisible, operatorName, error };
 }

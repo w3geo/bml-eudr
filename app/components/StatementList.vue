@@ -70,7 +70,7 @@ async function refreshPending() {
         const current = statements.value?.find((c) => c.sdId === s.sdId);
         // Keep details that were already loaded for completed statements.
         return current?.referenceNumber && current.commodities
-          ? { ...s, commodities: current.commodities }
+          ? { ...s, commodities: current.commodities, operatorName: current.operatorName }
           : s;
       }) ?? statements.value;
   } catch (error) {
@@ -142,6 +142,13 @@ const getCommodities = async (statement) => {
 };
 
 /**
+ * The operator name as stored in TRACES, falling back to the user data.
+ * @param {import('~~/server/utils/soap-traces').StatementInfo} statement
+ * @returns {string|undefined}
+ */
+const getOperatorName = (statement) => statement.operatorName ?? userData.value?.name;
+
+/**
  * @param href {string}
  */
 const createAndClickLink = (href) => {
@@ -163,8 +170,8 @@ const sendEmail = async (statement) => {
     return;
   }
   createAndClickLink(
-    `mailto:?subject=EUDR Vereinfachte Erklärung von ${userData.value?.name}&body=${encodeURIComponent(
-      `Ersteller: ${userData.value?.name}\nIdentifikationsnummer: ${statement.referenceNumber}\nVerifikationsnummer: ${statement.verificationNumber}\nErklärungsdatum: ${new Date(statement.date).toLocaleString('sv-SE')}\n${getCommoditiesSummary(
+    `mailto:?subject=EUDR Vereinfachte Erklärung von ${getOperatorName(statement)}&body=${encodeURIComponent(
+      `Ersteller: ${getOperatorName(statement)}\nIdentifikationsnummer: ${statement.referenceNumber}\nVerifikationsnummer: ${statement.verificationNumber}\nErklärungsdatum: ${new Date(statement.date).toLocaleString('sv-SE')}\n${getCommoditiesSummary(
         commodities,
       )}`,
     )}`,
@@ -182,7 +189,7 @@ const sendTextMessage = async (statement) => {
   }
   createAndClickLink(
     `sms:?body=${encodeURIComponent(
-      `EUDR Vereinfachte Erklärung\n\nErsteller: ${userData.value?.name}\nIdentifikationsnummer: ${statement.referenceNumber}\nVerifikationsnummer: ${statement.verificationNumber}\nErklärungsdatum: ${new Date(statement.date).toLocaleString('sv-SE')}\n${getCommoditiesSummary(
+      `EUDR Vereinfachte Erklärung\n\nErsteller: ${getOperatorName(statement)}\nIdentifikationsnummer: ${statement.referenceNumber}\nVerifikationsnummer: ${statement.verificationNumber}\nErklärungsdatum: ${new Date(statement.date).toLocaleString('sv-SE')}\n${getCommoditiesSummary(
         commodities,
       )}`,
     )}`,
@@ -201,7 +208,7 @@ const copyToClipboard = async (statement) => {
   }
   try {
     await navigator.clipboard.writeText(
-      `EUDR Vereinfachte Erklärung\n\nErsteller: ${userData.value?.name}\nIdentifikationsnummer: ${statement.referenceNumber}\nVerifikationsnummer: ${statement.verificationNumber}\nErklärungsdatum: ${new Date(statement.date).toLocaleString('sv-SE')}\n${getCommoditiesSummary(
+      `EUDR Vereinfachte Erklärung\n\nErsteller: ${getOperatorName(statement)}\nIdentifikationsnummer: ${statement.referenceNumber}\nVerifikationsnummer: ${statement.verificationNumber}\nErklärungsdatum: ${new Date(statement.date).toLocaleString('sv-SE')}\n${getCommoditiesSummary(
         commodities,
       )}`,
     );

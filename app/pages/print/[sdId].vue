@@ -32,10 +32,11 @@ const IDENTIFIER_TYPES = {
   VAT: 'UID',
 };
 
-// TRACES redacts the operator address and identifier when retrieving a statement, so the
-// operator section is filled from the user data, which is what the statement was submitted with.
+// TRACES redacts the operator address and identifier when retrieving a statement, so these
+// are filled from the user data, which is what the statement was submitted with. The name
+// comes from the statement; the user data is only a fallback while it is being created.
 const operator = computed(() => ({
-  name: user.value?.name ?? '',
+  name: statement.value?.operatorName ?? user.value?.name ?? '',
   address: user.value?.address ?? '',
   identifierType: user.value?.identifierType ?? '',
   identifierValue: user.value?.identifierValue ?? '',
@@ -200,11 +201,12 @@ onMounted(() => {
         </table>
 
         <p class="text-caption mt-6">
-          Die Angaben zur Erklärung und zu den Rohstoffen/Erzeugnissen stammen aus dem
-          EU-Informationssystem (TRACES), Name und Anschrift des Marktteilnehmers aus den aktuellen
-          Angaben zum Betrieb in der Anwendung „EUDR Meldung“. Maßgeblich ist die in TRACES
-          gespeicherte Erklärung, die mit Identifikations- und Verifikationsnummer abgerufen werden
-          kann.
+          Die Angaben zur Erklärung, der Name des Marktteilnehmers und die Angaben zu den
+          Rohstoffen/Erzeugnissen stammen aus dem EU-Informationssystem (TRACES). Anschrift und
+          {{ IDENTIFIER_TYPES[operator.identifierType] ?? 'Kennung' }} des Marktteilnehmers stammen
+          aus den aktuellen Angaben zum Betrieb in der Anwendung „EUDR Meldung“, da TRACES diese bei
+          der Abfrage nicht übermittelt. Maßgeblich ist die in TRACES gespeicherte Erklärung, die
+          mit Identifikations- und Verifikationsnummer abgerufen werden kann.
           <template v-if="createdOn">Erstellt am {{ createdOn }}.</template>
         </p>
       </template>
