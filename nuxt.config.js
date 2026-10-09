@@ -58,13 +58,6 @@ export default defineNuxtConfig({
   },
   vuetify: {
     vuetifyOptions: {
-      defaults: {
-        // On touch devices, a tap fires an emulated mouseenter before the click, so with hover
-        // enabled, `open-on-click` tooltips open and immediately close again on the first tap.
-        VTooltip: {
-          openOnHover: false,
-        },
-      },
       icons: {
         defaultSet: 'mdi-svg',
       },

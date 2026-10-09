@@ -105,6 +105,7 @@ watch(yieldPerHectare, (value) => {
               v-if="commodityData.hints?.[hs]"
               max-width="300"
               open-on-click
+              :open-on-hover="false"
               location="top"
               pa-0
             >
@@ -171,7 +172,7 @@ watch(yieldPerHectare, (value) => {
               <div class="ml-1 text-body-2">
                 Sämtliche meiner Flächen sind im System der AMA mittels MFA hinterlegt.
               </div>
-              <v-tooltip max-width="400" open-on-click>
+              <v-tooltip max-width="400" open-on-click :open-on-hover="false">
                 <template #activator="{ props: activatorProps }">
                   <v-btn
                     flat
@@ -191,7 +192,7 @@ watch(yieldPerHectare, (value) => {
             <v-btn variant="outlined" :prepend-icon="mdiEyeOutline" @click="showFieldsMap = true">
               Flächen anzeigen
             </v-btn>
-            <v-tooltip v-if="isAmaRind" max-width="400" open-on-click>
+            <v-tooltip v-if="isAmaRind" max-width="400" open-on-click :open-on-hover="false">
               <template #activator="{ props: activatorProps }">
                 <v-btn
                   flat
