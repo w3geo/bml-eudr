@@ -132,7 +132,7 @@ onMounted(() => {
               <td>Inländisch – Österreich (AT)</td>
             </tr>
             <tr>
-              <th>Verifikationsnummer</th>
+              <th>Prüfnummer</th>
               <th>Datum</th>
             </tr>
             <tr>
@@ -206,7 +206,7 @@ onMounted(() => {
           {{ IDENTIFIER_TYPES[operator.identifierType] ?? 'Kennung' }} des Marktteilnehmers stammen
           aus den aktuellen Angaben zum Betrieb in der Anwendung „EUDR Meldung“, da TRACES diese bei
           der Abfrage nicht übermittelt. Maßgeblich ist die in TRACES gespeicherte Erklärung, die
-          mit Identifikations- und Verifikationsnummer abgerufen werden kann.
+          mit Identifikations- und Prüfnummer abgerufen werden kann.
           <template v-if="createdOn">Erstellt am {{ createdOn }}.</template>
         </p>
       </template>

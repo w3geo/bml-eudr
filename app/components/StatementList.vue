@@ -171,7 +171,7 @@ const sendEmail = async (statement) => {
   }
   createAndClickLink(
     `mailto:?subject=EUDR Vereinfachte Erklärung von ${getOperatorName(statement)}&body=${encodeURIComponent(
-      `Ersteller: ${getOperatorName(statement)}\nIdentifikationsnummer: ${statement.referenceNumber}\nVerifikationsnummer: ${statement.verificationNumber}\nErklärungsdatum: ${new Date(statement.date).toLocaleString('sv-SE')}\n${getCommoditiesSummary(
+      `Ersteller: ${getOperatorName(statement)}\nIdentifikationsnummer: ${statement.referenceNumber}\nPrüfnummer: ${statement.verificationNumber}\nErklärungsdatum: ${new Date(statement.date).toLocaleString('sv-SE')}\n${getCommoditiesSummary(
         commodities,
       )}`,
     )}`,
@@ -189,7 +189,7 @@ const sendTextMessage = async (statement) => {
   }
   createAndClickLink(
     `sms:?body=${encodeURIComponent(
-      `EUDR Vereinfachte Erklärung\n\nErsteller: ${getOperatorName(statement)}\nIdentifikationsnummer: ${statement.referenceNumber}\nVerifikationsnummer: ${statement.verificationNumber}\nErklärungsdatum: ${new Date(statement.date).toLocaleString('sv-SE')}\n${getCommoditiesSummary(
+      `EUDR Vereinfachte Erklärung\n\nErsteller: ${getOperatorName(statement)}\nIdentifikationsnummer: ${statement.referenceNumber}\nPrüfnummer: ${statement.verificationNumber}\nErklärungsdatum: ${new Date(statement.date).toLocaleString('sv-SE')}\n${getCommoditiesSummary(
         commodities,
       )}`,
     )}`,
@@ -208,7 +208,7 @@ const copyToClipboard = async (statement) => {
   }
   try {
     await navigator.clipboard.writeText(
-      `EUDR Vereinfachte Erklärung\n\nErsteller: ${getOperatorName(statement)}\nIdentifikationsnummer: ${statement.referenceNumber}\nVerifikationsnummer: ${statement.verificationNumber}\nErklärungsdatum: ${new Date(statement.date).toLocaleString('sv-SE')}\n${getCommoditiesSummary(
+      `EUDR Vereinfachte Erklärung\n\nErsteller: ${getOperatorName(statement)}\nIdentifikationsnummer: ${statement.referenceNumber}\nPrüfnummer: ${statement.verificationNumber}\nErklärungsdatum: ${new Date(statement.date).toLocaleString('sv-SE')}\n${getCommoditiesSummary(
         commodities,
       )}`,
     );
@@ -224,7 +224,7 @@ const copyToClipboard = async (statement) => {
     <v-col v-for="item in statements" :key="item.sdId" :cols="mdAndUp ? 6 : 12">
       <v-card color="green-darken-4">
         <v-card-item>
-          <div class="text-caption text-medium-emphasis">Identifikationsnummer</div>
+          <div class="text-caption">Identifikationsnummer</div>
           <v-card-title class="pa-0 d-flex align-center ga-1">
             <template v-if="item.referenceNumber">{{ item.referenceNumber }}</template>
             <template v-else>
@@ -251,7 +251,7 @@ const copyToClipboard = async (statement) => {
           <v-table density="compact">
             <tbody>
               <tr>
-                <td>Verifikationsnummer</td>
+                <td>Prüfnummer</td>
                 <td>{{ item.verificationNumber }}</td>
               </tr>
               <tr>
