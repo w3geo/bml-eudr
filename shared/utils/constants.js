@@ -6,7 +6,8 @@ import { mdiCow, mdiForestOutline, mdiSprout } from '@mdi/js';
  * @typedef {Object} CommodityMetadata
  * @property {string} title
  * @property {string} icon
- * @property {'t' | 'Stk.' | 'm³'} units
+ * @property {'t' | 'Stk.' | 'm³'} units Units submitted to TRACES
+ * @property {string} [displayUnits] Units shown in the form, if different from `units`
  * @property {number} [yieldPerHectare]
  * @property {Array<HSCode>} hsHeadings
  * @property {Partial<Record<HSCode, string>>} [hints] Help text shown next to the quantity field of each HS code
@@ -80,10 +81,11 @@ export const COMMODITIES = {
     title: 'Holz',
     icon: mdiForestOutline,
     units: 'm³',
+    displayUnits: 'fm',
     hsHeadings: ['4403', '4401'],
     hints: {
-      4403: 'Bitte geben Sie hier Ihre durchschnittliche jährliche Rohholzproduktion in Festmetern an',
-      4401: 'Bitte geben Sie hier Ihre durchschnittliche jährliche Brennholzproduktion in Festmetern an',
+      4403: 'Bitte geben Sie hier Ihre durchschnittliche jährliche Rohholzproduktion an',
+      4401: 'Bitte geben Sie hier Ihre durchschnittliche jährliche Brennholzproduktion an',
     },
   },
 };
