@@ -107,7 +107,7 @@ watch(yieldPerHectare, (value) => {
               type="number"
               min="0"
               :label="HS_HEADING[hs]"
-              :suffix="COMMODITIES[commodity]?.units"
+              :suffix="COMMODITIES[commodity]?.displayUnits ?? COMMODITIES[commodity]?.units"
             ></v-text-field>
             <v-tooltip
               v-if="commodityData.hints?.[hs]"
@@ -148,7 +148,7 @@ watch(yieldPerHectare, (value) => {
             v-model.number="yieldPerHectare"
             class="yield-field"
             label="Ertrag/ha"
-            :suffix="COMMODITIES[commodity]?.units"
+            :suffix="COMMODITIES[commodity]?.displayUnits ?? COMMODITIES[commodity]?.units"
             density="compact"
             variant="plain"
             type="number"
