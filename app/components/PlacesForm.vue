@@ -20,6 +20,12 @@ const { geojson, quantity, address, geolocation } = useStatement(props.commodity
 const isAmaFields = computed(
   () => props.isAma && (props.commodity === 'sojabohnen' || props.commodity === 'rind'),
 );
+/** Label of the "confirm all fields are in AMA/MFA" checkbox. */
+const mfaConfirmationText = computed(() =>
+  props.commodity === 'rind'
+    ? 'Sämtliche Grünland- bzw. Ackerflächen, auf denen meine Rinder gehalten werden, wurden mittels Mehrfachantrag und Almauftriebsmeldung korrekt erfasst und sind im System der AMA ersichtlich.'
+    : 'Sämtliche Ackerflächen, auf denen ich Soja erzeuge, wurden mittels Mehrfachantrag korrekt erfasst und sind im System der AMA ersichtlich.',
+);
 /** For cattle, the map preview only shows the fields of the main farm. */
 const isAmaRind = computed(() => props.isAma && props.commodity === 'rind');
 
@@ -177,8 +183,8 @@ watch(yieldPerHectare, (value) => {
             :rules="[(v) => !!v || 'Bitte bestätigen Sie diese Angabe']"
           >
             <template #label>
-              <div class="ml-1 text-body-2">
-                Sämtliche meiner Flächen sind im System der AMA mittels MFA hinterlegt.
+              <div class="mfa-confirmation-text ml-1 text-body-2">
+                {{ mfaConfirmationText }}
               </div>
               <v-tooltip max-width="400" open-on-click :open-on-hover="false">
                 <template #activator="{ props: activatorProps }">
@@ -263,6 +269,13 @@ watch(yieldPerHectare, (value) => {
 .quantity-field {
   flex: 0 1 140px;
   min-width: 110px;
+}
+
+/* The multi-line checkbox label wraps in its own column next to the checkbox
+   (never under it), leaving room for the help button. */
+.mfa-confirmation-text {
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 /* The select doesn't need to grow with the row; keep it at a comfortable
