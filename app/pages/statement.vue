@@ -4,7 +4,9 @@ import {
   mdiCheck,
   mdiCheckDecagram,
   mdiClose,
+  mdiDeleteOutline,
   mdiHelpCircleOutline,
+  mdiPlus,
 } from '@mdi/js';
 import { FetchError } from 'ofetch';
 
@@ -43,6 +45,34 @@ const placesFormRef = ref(null);
 
 /** @type {import('vue').Ref<boolean>} */
 const confirm = ref(false);
+
+/**
+ * Commodity awaiting confirmation of its removal from the statement.
+ * @type {import('vue').Ref<null|import('~~/shared/utils/constants').Commodity>}
+ */
+const removeCommodity = ref(null);
+/**
+ * Whether the commodity being edited was already in the statement when the editor was
+ * opened, i.e. there is something to remove.
+ */
+const editCommodityInStatement = computed(
+  () =>
+    !!editCommodity.value &&
+    Object.values(statements[editCommodity.value].snapshot.value?.quantity ?? {}).some(
+      (v) => v > 0,
+    ),
+);
+
+function confirmRemove() {
+  if (!removeCommodity.value) {
+    return;
+  }
+  statements[removeCommodity.value].clear();
+  if (editCommodity.value === removeCommodity.value) {
+    map.value = false;
+  }
+  removeCommodity.value = null;
+}
 
 const isAma = computed(() => user.value?.loginProvider === 'AMA');
 /**
@@ -220,12 +250,36 @@ async function validate() {
     </v-card>
   </v-dialog>
 
+  <v-dialog
+    :model-value="!!removeCommodity"
+    max-width="400"
+    @update:model-value="removeCommodity = null"
+  >
+    <v-card v-if="removeCommodity">
+      <v-card-text>
+        {{ COMMODITIES[removeCommodity].title }} aus der Erklärung entfernen? Die eingegebenen
+        Mengen und Lokalisierungen gehen dabei verloren.
+      </v-card-text>
+      <v-card-actions>
+        <v-btn @click="removeCommodity = null"> Abbrechen </v-btn>
+        <v-btn color="error" @click="confirmRemove"> Entfernen </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
   <v-dialog v-model="map" fullscreen>
     <v-card v-if="editCommodity" class="h-100">
       <v-toolbar>
         <v-btn :icon="mdiClose" @click="exitPlaces(editCommodity)"></v-btn>
 
         <v-app-bar-title>{{ COMMODITIES[editCommodity].title }}</v-app-bar-title>
+
+        <action-tooltip v-if="editCommodityInStatement">
+          <template #activator="{ props: on }">
+            <v-btn :icon="mdiDeleteOutline" v-bind="on" @click="removeCommodity = editCommodity" />
+          </template>
+          Aus der Erklärung entfernen
+        </action-tooltip>
 
         <v-btn :icon="mdiCheck" :commodity="editCommodity" @click="validate"></v-btn>
       </v-toolbar>
@@ -260,7 +314,7 @@ async function validate() {
           <v-card-title>Vereinfachte Erklärung</v-card-title>
           <v-card-text v-if="canSend">
             <UserData ref="userDataSubmit" />
-            <v-row>
+            <v-row class="mt-2">
               <v-col
                 v-for="item in commoditiesInStatement"
                 :key="item.key"
@@ -268,19 +322,55 @@ async function validate() {
               >
                 <CommodityCard :item="item" @open-editor="openEditor" />
               </v-col>
+              <!-- An empty placeholder rather than full "Hinzufügen" cards, so the remaining
+                   commodities don't look like part of the statement. -->
+              <v-col v-if="commoditiesToAdd.length" :cols="mdAndUp ? 4 : xs ? 12 : 6">
+                <!-- Centered over the box, so the choices appear where the "+" was. -->
+                <v-menu location="center">
+                  <template #activator="{ props: menu }">
+                    <v-card
+                      class="add-commodity d-flex align-center justify-center h-100"
+                      variant="text"
+                      min-height="180"
+                      aria-label="Weiteren Rohstoff hinzufügen"
+                      v-bind="menu"
+                    >
+                      <v-icon :icon="mdiPlus" size="50" />
+                    </v-card>
+                  </template>
+                  <v-list>
+                    <v-list-item
+                      v-for="item in commoditiesToAdd"
+                      :key="item.key"
+                      :prepend-icon="COMMODITIES[item.key].icon"
+                      :title="COMMODITIES[item.key].title"
+                      @click="openEditor(item.key)"
+                    />
+                  </v-list>
+                </v-menu>
+              </v-col>
             </v-row>
+            <v-divider class="mt-6" />
             <v-checkbox
               v-if="hasGeolocationCommodity"
               v-model="geolocationVisible"
-              class="mt-4"
+              class="checkbox-with-help mt-4"
               hide-details
               density="compact"
             >
               <template #label>
-                <div class="ml-1 text-body-2">Einsicht in die Erzeugungsorte erlauben</div>
+                <div class="checkbox-with-help__text ml-1 text-body-2">
+                  Einsicht in die Erzeugungsorte erlauben
+                </div>
                 <v-tooltip max-width="400" open-on-click :open-on-hover="false">
                   <template #activator="{ props }">
-                    <v-btn flat :icon="mdiHelpCircleOutline" size="x-small" v-bind="props"></v-btn>
+                    <v-btn
+                      class="checkbox-with-help__help"
+                      flat
+                      :icon="mdiHelpCircleOutline"
+                      size="x-small"
+                      v-bind="props"
+                    ></v-btn>
                   </template>
                   <div>
                     Wenn aktiviert, können alle, die die Identifikations- und Verifizierungsnummer
@@ -316,7 +406,8 @@ async function validate() {
           </v-card-actions>
         </v-card>
       </v-col>
-      <template v-if="!incomplete">
+      <!-- Nothing added yet: the heading card stays on its own, with the cards below it. -->
+      <template v-if="!incomplete && !canSend">
         <v-col v-for="item in commoditiesToAdd" :key="item.key" :cols="mdAndUp ? 4 : xs ? 12 : 6">
           <CommodityCard :item="item" @open-editor="openEditor" />
         </v-col>
@@ -328,5 +419,9 @@ async function validate() {
 <style scoped>
 .fill-width {
   width: 100%;
+}
+.add-commodity {
+  border: 2px dashed rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
+  color: rgba(var(--v-theme-on-surface), var(--v-medium-emphasis-opacity));
 }
 </style>

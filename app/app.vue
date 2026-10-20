@@ -99,6 +99,27 @@ const logout = () => {
 </style>
 
 <style>
+/* Checkbox with a text label and a (?) help button: checkbox next to the first line of
+   the label, help button next to the last. The 4px padding centers a 20px line on the
+   28px checkbox. `.v-checkbox` is added to outrank Vuetify's own rules. */
+.v-checkbox.checkbox-with-help .v-selection-control {
+  align-items: flex-start;
+  min-height: 0;
+}
+.v-checkbox.checkbox-with-help .v-label {
+  overflow: visible;
+}
+.v-checkbox.checkbox-with-help .checkbox-with-help__text {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-block: 4px;
+}
+.v-checkbox.checkbox-with-help .checkbox-with-help__help {
+  align-self: flex-end;
+  margin-top: -4px;
+  margin-bottom: -2px;
+}
+
 /* The scrollable v-main clips printouts to one viewport, and the hidden app bar and
    drawer still reserve space; let the content flow across pages at full width instead. */
 @media print {

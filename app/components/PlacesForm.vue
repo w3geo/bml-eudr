@@ -179,16 +179,17 @@ watch(yieldPerHectare, (value) => {
             v-model="mfaConfirmed"
             density="compact"
             hide-details="auto"
-            class="mb-4"
+            class="checkbox-with-help mb-4"
             :rules="[(v) => !!v || 'Bitte bestätigen Sie diese Angabe']"
           >
             <template #label>
-              <div class="mfa-confirmation-text ml-1 text-body-2">
+              <div class="checkbox-with-help__text ml-1 text-body-2">
                 {{ mfaConfirmationText }}
               </div>
               <v-tooltip max-width="400" open-on-click :open-on-hover="false">
                 <template #activator="{ props: activatorProps }">
                   <v-btn
+                    class="checkbox-with-help__help"
                     flat
                     :icon="mdiHelpCircleOutline"
                     size="x-small"
@@ -196,27 +197,16 @@ watch(yieldPerHectare, (value) => {
                   ></v-btn>
                 </template>
                 <div>
-                  Wenn nicht alle Flächen gewünscht sind, bitte über Geolokalisation die korrekten
-                  Flächen wählen.
+                  Sie können die hinterlegten Flächen mit "Flächen anzeigen" einsehen und falls
+                  nötig manuell ändern.
                 </div>
               </v-tooltip>
             </template>
           </v-checkbox>
-          <div v-if="isAmaFields" class="d-flex align-center mb-6">
+          <div v-if="isAmaFields" class="mb-6">
             <v-btn variant="outlined" :prepend-icon="mdiEyeOutline" @click="showFieldsMap = true">
               Flächen anzeigen
             </v-btn>
-            <v-tooltip v-if="isAmaRind" max-width="400" open-on-click :open-on-hover="false">
-              <template #activator="{ props: activatorProps }">
-                <v-btn
-                  flat
-                  :icon="mdiHelpCircleOutline"
-                  size="x-small"
-                  v-bind="activatorProps"
-                ></v-btn>
-              </template>
-              <div>Es werden nur die Flächen des Hauptbetriebs angezeigt.</div>
-            </v-tooltip>
           </div>
           <div class="text-subtitle-2 mb-4">Postanschrift</div>
           <v-row>
@@ -256,7 +246,16 @@ watch(yieldPerHectare, (value) => {
     </v-form>
   </v-container>
 
-  <geolocations-dialog v-model="showFieldsMap" :commodity="props.commodity" />
+  <geolocations-dialog
+    v-model="showFieldsMap"
+    :commodity="props.commodity"
+    :hint="isAmaRind ? 'Es werden nur die Flächen des Hauptbetriebs angezeigt.' : undefined"
+    editable
+    @edit="
+      showFieldsMap = false;
+      geolocation = true;
+    "
+  />
 </template>
 
 <style scoped>
@@ -269,13 +268,6 @@ watch(yieldPerHectare, (value) => {
 .quantity-field {
   flex: 0 1 140px;
   min-width: 110px;
-}
-
-/* The multi-line checkbox label wraps in its own column next to the checkbox
-   (never under it), leaving room for the help button. */
-.mfa-confirmation-text {
-  flex: 1 1 auto;
-  min-width: 0;
 }
 
 /* The select doesn't need to grow with the row; keep it at a comfortable
