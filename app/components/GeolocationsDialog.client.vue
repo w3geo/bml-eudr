@@ -6,7 +6,7 @@ import 'ol/ol.css';
 import VectorSource from 'ol/source/Vector.js';
 import { View } from 'ol';
 import { fromLonLat, transformExtent } from 'ol/proj';
-import { mdiClose } from '@mdi/js';
+import { mdiClose, mdiPencilOutline } from '@mdi/js';
 
 /** Fallback extent (Austria) used when there is no geolocation to fit to. */
 const austriaExtent = [...fromLonLat([9.530952, 46.372276]), ...fromLonLat([17.160776, 49.020608])];
@@ -36,10 +36,28 @@ const props = defineProps({
     default: null,
   },
   modelValue: Boolean,
+  /** Show a "Flächen ändern" button, which emits `edit`. */
+  editable: Boolean,
+  /** Text shown in a snackbar on the map until the user dismisses it. */
+  hint: {
+    type: String,
+    default: null,
+  },
 });
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(['update:modelValue', 'edit']);
 
 const mapContainer = ref(null);
+const showHint = ref(false);
+
+watch(
+  () => props.modelValue,
+  (open) => {
+    if (open) {
+      showHint.value = !!props.hint;
+    }
+  },
+  { immediate: true },
+);
 
 const fields = (await useFetch('/api/lfbis?layer=fields')).data.value;
 const farms = (await useFetch('/api/lfbis?layer=farms')).data.value;
@@ -128,9 +146,34 @@ async function fitMap() {
           />
         </v-toolbar>
       </v-card-title>
-      <v-card-text class="pa-0">
+      <v-card-text class="pa-0 position-relative">
         <div ref="mapContainer" style="height: 500px" />
+        <!-- Reset the app layout's offsets, which would shift the snackbar by the size of the
+             app's bars, and the 344px min-width, which is wider than the dialog on small phones. -->
+        <v-snackbar
+          v-model="showHint"
+          contained
+          timeout="-1"
+          min-width="0"
+          style="
+            --v-layout-top: 0px;
+            --v-layout-bottom: 0px;
+            --v-layout-left: 0px;
+            --v-layout-right: 0px;
+          "
+        >
+          {{ hint }}
+          <template #actions>
+            <v-btn variant="text" @click="showHint = false">OK</v-btn>
+          </template>
+        </v-snackbar>
       </v-card-text>
+      <v-card-actions v-if="editable">
+        <v-spacer />
+        <v-btn variant="outlined" :prepend-icon="mdiPencilOutline" @click="emit('edit')">
+          Flächen ändern
+        </v-btn>
+      </v-card-actions>
     </v-card>
   </v-dialog>
 </template>

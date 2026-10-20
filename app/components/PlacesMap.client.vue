@@ -224,9 +224,9 @@ function locateMe() {
         </v-list>
       </v-menu>
     </v-app-bar>
-    <v-main>
+    <v-main class="position-relative">
       <div ref="mapContainer" class="fill-height" />
-      <v-snackbar v-model="showZoomHint" timeout="-1">
+      <v-snackbar v-model="showZoomHint" contained timeout="-1">
         Um {{ featuresHint }} zu sehen, vergrößern Sie die Karte, verwenden Sie die Ortssuche oder
         zentrieren Sie auf Ihren Standort.
         <template #actions>
