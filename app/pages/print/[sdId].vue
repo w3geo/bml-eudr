@@ -30,6 +30,7 @@ const IDENTIFIER_TYPES = {
   GLN: 'GLN',
   TIN: 'Steuernummer',
   VAT: 'UID',
+  ONI: 'LFBIS',
 };
 
 // TRACES redacts the operator address and identifier when retrieving a statement, so these

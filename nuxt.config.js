@@ -32,6 +32,12 @@ export default defineNuxtConfig({
       user: '',
       pass: '',
     },
+    // See server/utils/brevo.js
+    brevo: {
+      apiKey: '',
+      // Alphanumeric senders are limited to 11 characters
+      smsSender: 'EUDRMeldung',
+    },
   },
   app: {
     head: {

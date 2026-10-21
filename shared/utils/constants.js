@@ -106,11 +106,12 @@ export const EMPTY_GEOJSON = Object.freeze({
 
 export const COMMODITY_KEYS = /** @type {Array<Commodity>} */ (Object.keys(COMMODITIES));
 
-/** @typedef {'OTP' | 'IDA' | 'AMA' | 'USP'} LoginProvider */
+/** @typedef {'OTP' | 'SMS' | 'IDA' | 'AMA' | 'USP'} LoginProvider */
 
 /** @type {Record<LoginProvider, Array<keyof import('~~/server/db/schema/users.js').User>>} */
 export const LOGIN_PROVIDED_FIELDS = {
   OTP: [],
+  SMS: ['identifierType', 'identifierValue'],
   IDA: ['name', 'address'],
   AMA: ['name', 'address', 'identifierType', 'identifierValue'],
   USP: ['name', 'address', 'identifierType', 'identifierValue'],
@@ -128,3 +129,12 @@ const VALID_EMAIL_REGEX =
 export const validateEmail = (email) => {
   return VALID_EMAIL_REGEX.test(email) || 'Bitte eine gültige E-Mail-Adresse eingeben';
 };
+
+/** Phone number in international format, e.g. `+436601234567` */
+const VALID_PHONE_REGEX = /^\+\d{7,15}$/;
+
+/**
+ * @param {string} phone
+ * @returns {boolean}
+ */
+export const isPhoneNumber = (phone) => VALID_PHONE_REGEX.test(phone);

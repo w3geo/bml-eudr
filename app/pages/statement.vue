@@ -75,6 +75,11 @@ function confirmRemove() {
 }
 
 const isAma = computed(() => user.value?.loginProvider === 'AMA');
+/** Cattle are reported to AMA, so they need an LFBIS number: from eAMA, or from SMS login. */
+const canSubmitCattle = computed(
+  () =>
+    isAma.value || (user.value?.loginProvider === 'SMS' && user.value?.identifierType === 'ONI'),
+);
 /**
  * Per-commodity statement state, created once here rather than by re-invoking
  * `useStatement()` inside computeds and handlers. The composable registers a
@@ -83,7 +88,9 @@ const isAma = computed(() => user.value?.loginProvider === 'AMA');
  */
 const statements =
   /** @type {Record<import('~~/shared/utils/constants').Commodity, ReturnType<typeof useStatement>>} */ (
-    Object.fromEntries(COMMODITY_KEYS.map((key) => [key, useStatement(key, isAma.value)]))
+    Object.fromEntries(
+      COMMODITY_KEYS.map((key) => [key, useStatement(key, user.value?.loginProvider)]),
+    )
   );
 
 /**
@@ -124,12 +131,12 @@ const hasGeolocationCommodity = computed(() =>
 );
 
 /**
- * Cattle can only be recorded with an eAMA login (RinderNET link), so the
+ * Cattle can only be recorded with an LFBIS number (RinderNET link), so the
  * "Rinder" card is not offered to users of other login providers.
  * @type {ComputedRef<Array<import('~~/server/utils/soap-traces.js').CommodityDataWithKey>>}
  */
 const commoditiesToAdd = computed(() =>
-  COMMODITY_KEYS.filter((key) => key !== 'rind' || isAma.value)
+  COMMODITY_KEYS.filter((key) => key !== 'rind' || canSubmitCattle.value)
     .map((key) => ({ key, ...statements[key] }))
     .filter((commodity) => !Object.values(commodity.quantity.value).some((v) => v > 0)),
 );

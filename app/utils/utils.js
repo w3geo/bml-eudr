@@ -1,4 +1,4 @@
-/** @typedef {'GLN'|'TIN'|'VAT'} IdentifierType */
+/** @typedef {'GLN'|'TIN'|'VAT'|'ONI'} IdentifierType */
 
 /**
  * @typedef {Object} EditableUserData

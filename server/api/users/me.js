@@ -44,10 +44,16 @@ export default defineEventHandler(async (event) => {
       commodities: session.commodities,
       secure: {
         ...session.secure,
-        name: properties.name ?? undefined,
-        address: properties.address ?? undefined,
-        identifierType: properties.identifierType ?? undefined,
-        identifierValue: properties.identifierValue ?? undefined,
+        // Fields provided by the login cannot be changed, e.g. the LFBIS number of an SMS login,
+        // which is used for submitting cattle
+        ...Object.fromEntries(
+          editableUserDataFields
+            .filter((key) => !loginProvidedFields.includes(/** @type {any} */ (key)))
+            .map((key) => [
+              key,
+              properties[/** @type {keyof typeof properties} */ (key)] ?? undefined,
+            ]),
+        ),
       },
     });
     for (const property of loginProvidedFields) {

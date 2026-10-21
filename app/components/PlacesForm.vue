@@ -12,7 +12,8 @@ const props = defineProps({
 });
 
 const { xs } = useDisplay();
-const { geojson, quantity, address, geolocation } = useStatement(props.commodity, props.isAma);
+// The statement page has already created the state, including the default location type
+const { geojson, quantity, address, geolocation } = useStatement(props.commodity);
 
 /** Soja and cattle producers with an AMA login register their fields via MFA, so
  * they get the "confirm all fields are in AMA/MFA" checkbox and the map preview

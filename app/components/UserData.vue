@@ -70,7 +70,7 @@ watch(addressParts, (parts) => {
 
 const { mdAndUp, xs } = useDisplay();
 
-const idItems = [
+const idItems = computed(() => [
   {
     title: 'GLN',
     value: 'GLN',
@@ -83,7 +83,9 @@ const idItems = [
     title: 'UID',
     value: 'VAT',
   },
-];
+  // Not selectable, only set as fixed value from the LFBIS number provided at SMS login
+  ...(editableUserData.value?.identifierType === 'ONI' ? [{ title: 'LFBIS', value: 'ONI' }] : []),
+]);
 </script>
 <template>
   <v-form v-if="editableUserData" ref="form" validate-on="submit lazy" @submit.prevent="save">

@@ -58,7 +58,22 @@ const otp = ref();
 const emailSubmitted = ref(false);
 const expandUserData = ref(false);
 
+// Hidden feature: entering a phone number (e.g. +436601234567) instead of an e-mail address asks
+// for an LFBIS number, and the code is sent by SMS if that LFBIS number is known.
+/** @type {import('vue').Ref<string|undefined>} */
+const phone = ref();
+const lfbis = ref();
+/** @type {import('vue').Ref<string|undefined>} */
+const lfbisError = ref();
+
+/** @param {string} value */
+const validateEmailOrPhone = (value) => isPhoneNumber(value) || validateEmail(value);
+
 async function submitEmail() {
+  if (isPhoneNumber(email.value)) {
+    phone.value = email.value;
+    return;
+  }
   await $fetch('/auth/otp', {
     method: 'POST',
     body: { email: email.value },
@@ -66,8 +81,63 @@ async function submitEmail() {
   emailSubmitted.value = true;
 }
 
+async function submitLfbis() {
+  lfbisError.value = undefined;
+  try {
+    await $fetch('/auth/otp', {
+      method: 'POST',
+      body: { phone: phone.value, lfbis: lfbis.value },
+    });
+  } catch (e) {
+    lfbisError.value =
+      /** @type {import('ofetch').FetchError} */ (e).data?.message ||
+      'Code konnte nicht gesendet werden';
+    return;
+  }
+  emailSubmitted.value = true;
+  receiveSmsOtp();
+}
+
+/** @type {AbortController|undefined} */
+let smsOtpAbort;
+onBeforeUnmount(() => smsOtpAbort?.abort());
+
+/**
+ * Let browsers that support the WebOTP API (Chrome on Android) read the code from the SMS.
+ * Safari uses AutoFill on the `one-time-code` input instead.
+ */
+async function receiveSmsOtp() {
+  if (!('OTPCredential' in window)) {
+    return;
+  }
+  smsOtpAbort = new AbortController();
+  try {
+    const credential = /** @type {Credential & { code: string } | null} */ (
+      await navigator.credentials.get(
+        /** @type {CredentialRequestOptions} */ ({
+          otp: { transport: ['sms'] },
+          signal: smsOtpAbort.signal,
+        }),
+      )
+    );
+    if (credential?.code) {
+      otp.value = credential.code;
+      submitOtp();
+    }
+  } catch {
+    // Aborted, or the user declined: the code can still be entered manually
+  }
+}
+
 async function submitOtp() {
-  window.location.href = `/auth/otp?code=${otp.value}&email=${email.value}`;
+  const params = new URLSearchParams({ code: otp.value });
+  if (phone.value) {
+    params.set('phone', phone.value);
+    params.set('lfbis', lfbis.value);
+  } else {
+    params.set('email', email.value);
+  }
+  window.location.href = `/auth/otp?${params}`;
 }
 
 /** @type {import('vue').Ref<import('~/components/UserData.vue').default|null>} */
@@ -255,9 +325,32 @@ if (!statementsError.value) {
           <v-card-title v-else class="text-center"> Einmalcode eingeben </v-card-title>
           <v-card-actions class="d-flex justify-center">
             <v-form
-              v-if="!emailSubmitted"
+              v-if="!emailSubmitted && phone"
               class="d-flex justify-center align-center fill-width"
-              @submit.prevent="validateEmail(email) === true && submitEmail()"
+              @submit.prevent="lfbis && submitLfbis()"
+            >
+              <v-text-field
+                v-model="lfbis"
+                label="Betriebsnummer (LFBIS)"
+                variant="outlined"
+                density="compact"
+                hide-details="auto"
+                inputmode="numeric"
+                autofocus
+                :error-messages="lfbisError"
+                @update:model-value="lfbisError = undefined"
+              /><v-btn
+                class="ml-2"
+                density="compact"
+                :icon="mdiEmailFastOutline"
+                color="primary"
+                type="submit"
+              />
+            </v-form>
+            <v-form
+              v-else-if="!emailSubmitted"
+              class="d-flex justify-center align-center fill-width"
+              @submit.prevent="validateEmailOrPhone(email) === true && submitEmail()"
             >
               <v-text-field
                 v-model="email"
@@ -266,7 +359,7 @@ if (!statementsError.value) {
                 density="compact"
                 hide-details="auto"
                 validate-on="submit lazy"
-                :rules="[validateEmail(email)]"
+                :rules="[validateEmailOrPhone(email)]"
               /><v-btn
                 class="ml-2"
                 density="compact"
@@ -283,7 +376,7 @@ if (!statementsError.value) {
             <LoginFeatures :features="features.email" />
           </v-card-text>
           <v-card-text v-else class="text-center">
-            Bitte geben Sie den per E-Mail erhaltenen Code ein.
+            Bitte geben Sie den per {{ phone ? 'SMS' : 'E-Mail' }} erhaltenen Code ein.
           </v-card-text>
         </v-card>
       </v-col>

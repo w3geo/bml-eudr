@@ -49,7 +49,14 @@ export default defineEventHandler(async (event) => {
     const quantity = unref(c.quantity);
     return (quantity['0102'] || 0) + sum;
   }, 0);
-  if (cattleCount && session.loginProvider !== 'AMA') {
+  // For AMA logins, the login is the LFBIS number; SMS logins provide it as identifier
+  const lfbis =
+    session.loginProvider === 'AMA'
+      ? userId
+      : session.loginProvider === 'SMS' && secure.identifierType === 'ONI'
+        ? secure.identifierValue
+        : undefined;
+  if (cattleCount && !lfbis) {
     throw createError({
       status: 403,
       statusMessage: 'Forbidden',
@@ -69,10 +76,10 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  if (cattleCount && process.env.AMA_CATTLE_PATH) {
+  if (cattleCount && lfbis && process.env.AMA_CATTLE_PATH) {
     await db.insert(amaCattle).values({
       sdId,
-      lfbis: userId,
+      lfbis,
       count: cattleCount,
     });
   }
@@ -83,18 +90,31 @@ export default defineEventHandler(async (event) => {
     loggedInAt: session.loggedInAt,
     commodities: {
       ...(session.commodities ?? {}),
-      [sdId]: commodities.map((c) => ({
-        key: c.key,
-        quantity: c.quantity,
-        geojson: {
-          type: 'FeatureCollection',
-          features: unref(c.geojson).features.map((f) => ({
-            type: 'Feature',
-            properties: { Area: f.properties?.Area },
-            geometry: null,
-          })),
-        },
-      })),
+      // Only what's needed for the summary until TRACES has issued the reference number, and
+      // only the location that was actually submitted (see getCommoditiesXML)
+      [sdId]: commodities.map((c) => {
+        const features = unref(c.geojson)?.features ?? [];
+        const usesGeolocation = unref(c.geolocation) && features.some((f) => f.geometry);
+        const address = unref(c.address);
+        return {
+          key: c.key,
+          quantity: c.quantity,
+          geojson: {
+            type: 'FeatureCollection',
+            features: usesGeolocation
+              ? features.map((f) => ({
+                  type: 'Feature',
+                  properties: { Area: f.properties?.Area },
+                  geometry: null,
+                }))
+              : [],
+          },
+          address:
+            !usesGeolocation && address
+              ? { street: '', postalCode: address.postalCode, city: address.city }
+              : null,
+        };
+      }),
     },
   });
 

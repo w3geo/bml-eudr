@@ -86,15 +86,18 @@ function clear(quantity, geojson, address, geolocation, defaultGeolocation) {
 
 /**
  * @param {import('~~/shared/utils/constants').Commodity} commodity
- * @param {boolean} [isAma] Whether the logged in user has an AMA (eAMA) login.
+ * @param {import('~~/shared/utils/constants').LoginProvider} [loginProvider] Login provider of
+ * the logged in user. Only relevant for the first call per commodity, which sets the default
+ * location type.
  * @returns {UseStatement}
  */
-export function useStatement(commodity, isAma = false) {
-  // Holz always defaults to "Postanschrift"; soja and cattle only for AMA users,
-  // whose fields are known from MFA.
+export function useStatement(commodity, loginProvider) {
+  // Holz always defaults to "Postanschrift"; soja and cattle for AMA users, whose fields are
+  // known from MFA; all commodities for SMS (LFBIS) users.
   const defaultGeolocation = !(
     commodity === 'holz' ||
-    (isAma && (commodity === 'sojabohnen' || commodity === 'rind'))
+    loginProvider === 'SMS' ||
+    (loginProvider === 'AMA' && (commodity === 'sojabohnen' || commodity === 'rind'))
   );
 
   /** @type {import('vue').Ref<import('ol/format/GeoJSON').GeoJSONFeatureCollection>} */
