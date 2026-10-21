@@ -148,10 +148,10 @@ const unwatch = watch(
   [userDataForm, statements, statementsError],
   async ([form, statements, statementsError]) => {
     if (form) {
+      // Only validate to decide whether to expand the form; don't show errors before the user
+      // had a chance to fill it in
       const formOk = await form.validate();
-      if (formOk) {
-        form.resetValidation();
-      }
+      form.resetValidation();
       const noStatements = !statementsError && (statements?.length || 0) === 0;
       expandUserData.value = !formOk || noStatements;
       unwatch();
