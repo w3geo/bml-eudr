@@ -10,8 +10,9 @@ const showDisclaimer = ref(!loggedIn.value);
 
         <div class="text-body-1 mb-2">
           herzlichen Dank, dass Sie das Tool zur EUDR Meldung (in der Folge „Tool“) des BMLUK
-          verwenden. Dieses dient der einfacheren Abgabe Ihrer Vereinfachten Erklärung im Rahmen der
-          EU-Entwaldungsverordnung [Verordnung (EU) 2023/1115].
+          verwenden. Dieses dient der einfacheren Abgabe Ihrer Vereinfachten Erklärung für Kleinst-
+          oder Kleinprimärerzeuger im Rahmen der EU-Entwaldungsverordnung bzw. EUDR [Verordnung (EU)
+          2023/1115].
         </div>
 
         <div class="text-body-1 mb-2">
@@ -32,10 +33,10 @@ const showDisclaimer = ref(!loggedIn.value);
 
         <div class="text-body-1 mb-2">
           Das Tool wird vom Unternehmen
-          <a href="https://w3geo.at" target="_blank">w3geo GmbH</a> betrieben. w3geo übernimmt
-          keinerlei Haftung für Schäden oder Mängelfolgeschäden, welche durch die Verwendung dieses
-          Webdienstes und all seiner Inhalte entstehen. Die Nutzung der Inhalte dieses Webdienstes
-          erfolgt ausschließlich auf Risiko der Benutzerin bzw. des Benutzers.
+          <a href="https://w3geo.at" target="_blank" class="text-primary">w3geo GmbH</a> betrieben.
+          w3geo übernimmt keinerlei Haftung für Schäden oder Mängelfolgeschäden, welche durch die
+          Verwendung dieses Webdienstes und all seiner Inhalte entstehen. Die Nutzung der Inhalte
+          dieses Webdienstes erfolgt ausschließlich auf Risiko der Benutzerin bzw. des Benutzers.
         </div>
 
         <div class="text-body-1 mb-2">
