@@ -386,17 +386,19 @@ async function validate() {
             <div class="text-body-1 mt-4">
               Hiermit beauftrage ich das Bundesministerium für Land- und Forstwirtschaft, Klima- und
               Umweltschutz, Regionen und Wasserwirtschaft (BMLUK), für mich als Bevollmächtiger im
-              Sinne von Artikel 2 Ziffer 22 der Verordnung (EU) 2023/1115 aufzutreten und die von
-              mir erstellte Vereinfachte Erklärung an das Informationssystem gemäß Artikel 33 dieser
-              Verordnung zu übermitteln. Ich bestätige, die alleinige Verantwortung für den Inhalt
-              der Vereinfachten Erklärung zu übernehmen.
+              Sinne von Artikel 2 Ziffer 22 in Verbindung mit Artikel 6 der Verordnung (EU)
+              2023/1115 aufzutreten und die von mir erstellte Vereinfachte Erklärung an das
+              Informationssystem gemäß Artikel 33 dieser Verordnung zu übermitteln. Ich bestätige,
+              die alleinige Verantwortung für den Inhalt der Vereinfachten Erklärung zu übernehmen.
             </div>
             <div class="text-body-1 mt-4">
-              Durch Übermittlung dieser Vereinfachten Erklärung bestätige ich, die Sorgfaltspflicht
-              gemäß der Verordnung (EU) 2023/1115 durchgeführt zu haben, und dass kein oder
-              lediglich ein vernachlässigbares Risiko dahingehend festgestellt wurde, dass die
-              relevanten Erzeugnisse gegen Artikel 3 Buchstaben a oder b dieser Verordnung
-              verstoßen.
+              Durch Übermittlung dieser vereinfachten Erklärung für Kleinst- oder
+              Kleinprimärerzeuger bestätige ich, dass ich die Sorgfaltspflicht gemäß der Verordnung
+              (EU) 2023/1115 in Bezug auf die relevanten Erzeugnisse, die ich in Verkehr bringe oder
+              ausführe, erfülle , und dass ich diese Erzeugnisse nur dann in Verkehr bringe oder
+              ausführe, wenn kein oder lediglich ein vernachlässigbares Risiko dahingehend
+              festgestellt wurde, dass die relevanten Erzeugnisse gegen Artikel 3 Buchstaben a oder
+              b dieser Verordnung verstoßen.
             </div>
           </v-card-text>
           <v-card-actions v-if="canSend">
