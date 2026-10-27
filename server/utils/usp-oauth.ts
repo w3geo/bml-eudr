@@ -6,6 +6,7 @@ import {
   handleMissingConfiguration,
   handleAccessTokenErrorResponse,
   getOAuthRedirectURL,
+  requestAccessToken,
 } from './utils';
 import { createError } from '#imports';
 import type { OAuthConfig } from '#auth-utils';
@@ -143,49 +144,21 @@ export function defineOAuthUSPEventHandler({
       );
     }
 
-    // TEMPORARY DEBUG LOGGING (includes secrets) - remove after investigation
-    const rawResponse = await $fetch
-      .raw(config.tokenURL as string, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({
-          grant_type: 'authorization_code',
-          client_id: config.clientId,
-          client_secret: config.clientSecret,
-          redirect_uri: redirectURL,
-          code: query.code,
-        }).toString(),
-      })
-      .catch((error) => {
-        console.log(
-          '[USP DEBUG] token request failed',
-          error?.status,
-          error?.response?.headers,
-          error?.data,
-        );
-        if (error?.status === 401) return error.response;
-        throw error;
-      });
-    const tokens = rawResponse._data;
-    console.log('[USP DEBUG] response status', rawResponse.status);
-    console.log(
-      '[USP DEBUG] response headers',
-      JSON.stringify(Object.fromEntries(rawResponse.headers.entries()), null, 2),
-    );
-    console.log('[USP DEBUG] response body', JSON.stringify(tokens, null, 2));
+    const tokens = await requestAccessToken(config.tokenURL as string, {
+      body: {
+        grant_type: 'authorization_code',
+        client_id: config.clientId,
+        client_secret: config.clientSecret,
+        redirect_uri: redirectURL,
+        code: query.code,
+      },
+    });
 
     if (tokens.error) {
       return handleAccessTokenErrorResponse(event, 'usp', tokens, onError);
     }
 
     const tokenData = decodeJwt(tokens.access_token);
-    console.log('[USP DEBUG] access token claims', JSON.stringify(tokenData, null, 2));
-    if (tokens.id_token) {
-      console.log(
-        '[USP DEBUG] id token claims',
-        JSON.stringify(decodeJwt(tokens.id_token), null, 2),
-      );
-    }
 
     idTokens[tokenData.sid as string] = tokens.id_token;
 
@@ -210,8 +183,6 @@ export function defineOAuthUSPEventHandler({
       enterpriseKeys: tokenData['urn:uspgvat:enterprise_keys'],
       lfbis,
     };
-
-    console.log('[USP DEBUG] user', JSON.stringify(user, null, 2));
 
     return onSuccess(event, {
       user,
