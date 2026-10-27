@@ -59,9 +59,12 @@ watch(
   { immediate: true },
 );
 
-const fields = (await useFetch('/api/lfbis?layer=fields')).data.value;
-const farms = (await useFetch('/api/lfbis?layer=farms')).data.value;
-const fieldsExtent = (await useFetch('/api/lfbis-extent')).data.value;
+const { data: userData } = await useFetch('/api/users/me');
+const showOwnFields =
+  !!userData.value?.lfbis && FIELDS_LOGIN_PROVIDERS.includes(userData.value.loginProvider);
+const fields = showOwnFields ? (await useFetch('/api/lfbis?layer=fields')).data.value : undefined;
+const farms = showOwnFields ? (await useFetch('/api/lfbis?layer=farms')).data.value : undefined;
+const fieldsExtent = showOwnFields ? (await useFetch('/api/lfbis-extent')).data.value : undefined;
 
 const geojsonFormat = new GeoJSON({ featureProjection: 'EPSG:3857' });
 const geolocationSource = new VectorSource();

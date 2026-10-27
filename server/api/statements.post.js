@@ -1,6 +1,7 @@
 import amaCattle from '../db/schema/ama_cattle';
 import { unref } from 'vue';
 import { isUserDataValid } from '~~/shared/utils/utils';
+import { CATTLE_LOGIN_PROVIDERS } from '~~/shared/utils/constants';
 
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event);
@@ -49,13 +50,7 @@ export default defineEventHandler(async (event) => {
     const quantity = unref(c.quantity);
     return (quantity['0102'] || 0) + sum;
   }, 0);
-  // For AMA logins, the login is the LFBIS number; SMS logins provide it as identifier
-  const lfbis =
-    session.loginProvider === 'AMA'
-      ? userId
-      : session.loginProvider === 'SMS' && secure.identifierType === 'ONI'
-        ? secure.identifierValue
-        : undefined;
+  const lfbis = CATTLE_LOGIN_PROVIDERS.includes(session.loginProvider) ? secure.lfbis : undefined;
   if (cattleCount && !lfbis) {
     throw createError({
       status: 403,

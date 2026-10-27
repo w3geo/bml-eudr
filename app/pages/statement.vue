@@ -75,10 +75,9 @@ function confirmRemove() {
 }
 
 const isAma = computed(() => user.value?.loginProvider === 'AMA');
-/** Cattle are reported to AMA, so they need an LFBIS number: from eAMA, or from SMS login. */
+/** Cattle are reported to AMA, so they need an LFBIS number */
 const canSubmitCattle = computed(
-  () =>
-    isAma.value || (user.value?.loginProvider === 'SMS' && user.value?.identifierType === 'ONI'),
+  () => !!user.value?.lfbis && CATTLE_LOGIN_PROVIDERS.includes(user.value.loginProvider),
 );
 /**
  * Per-commodity statement state, created once here rather than by re-invoking

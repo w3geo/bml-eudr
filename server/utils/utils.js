@@ -3,6 +3,7 @@ import { getRequestURL } from 'h3';
 import { FetchError } from 'ofetch';
 import { snakeCase, upperFirst } from 'scule';
 import { createError } from '#imports';
+import { FIELDS_LOGIN_PROVIDERS } from '~~/shared/utils/constants';
 
 /**
  * Origin of this instance, as seen by the browser.
@@ -11,6 +12,15 @@ import { createError } from '#imports';
  */
 export function getPublicOrigin(event) {
   return getRequestURL(event, { xForwardedHost: true, xForwardedProto: true }).origin;
+}
+
+/**
+ * LFBIS number for looking up the user's fields and farms, if the login provider allows that.
+ * @param {import('#auth-utils').UserSession} session
+ * @returns {string|undefined}
+ */
+export function getFieldsLfbis(session) {
+  return FIELDS_LOGIN_PROVIDERS.includes(session.loginProvider) ? session.secure?.lfbis : undefined;
 }
 
 /**

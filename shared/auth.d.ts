@@ -18,6 +18,8 @@ declare module '#auth-utils' {
     address?: string;
     identifierType?: IdentifierType;
     identifierValue?: string;
+    /** LFBIS number provided by the login (eAMA, SMS, USP) */
+    lfbis?: string;
     sid?: string;
   }
 }

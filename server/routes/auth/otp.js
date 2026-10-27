@@ -147,6 +147,7 @@ export default defineEventHandler(async (event) => {
       address: user.address ?? undefined,
       identifierType: user.identifierType ?? undefined,
       identifierValue: user.identifierValue ?? undefined,
+      lfbis,
     },
   });
 

@@ -7,7 +7,8 @@ export default defineEventHandler(async (event) => {
   if (!session?.user?.login) {
     throw createError({ statusCode: 401, statusMessage: 'Unauthorized' });
   }
-  if (session.loginProvider !== 'AMA') {
+  const lfbis = getFieldsLfbis(session);
+  if (!lfbis) {
     throw createError({ statusCode: 403, statusMessage: 'Forbidden' });
   }
 
@@ -27,6 +28,6 @@ export default defineEventHandler(async (event) => {
   const localIds = await db
     .select({ localId: table.localId })
     .from(table)
-    .where(eq(table.lfbis, session.user.login));
+    .where(eq(table.lfbis, lfbis));
   return localIds.map((r) => r.localId);
 });

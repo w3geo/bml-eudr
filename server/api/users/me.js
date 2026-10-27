@@ -26,6 +26,7 @@ export default defineEventHandler(async (event) => {
       address: session.secure.address,
       identifierType: session.secure.identifierType,
       identifierValue: session.secure.identifierValue,
+      lfbis: session.secure.lfbis,
       otp: user?.otp ?? null,
     };
   }
