@@ -73,8 +73,11 @@ const mapContainer = ref();
 const { user } = useUserSession();
 const login = user.value?.login;
 
-const fields = (await useFetch('/api/lfbis?layer=fields')).data.value;
-const farms = (await useFetch('/api/lfbis?layer=farms')).data.value;
+const { data: userData } = await useFetch('/api/users/me');
+const showOwnFields =
+  !!userData.value?.lfbis && FIELDS_LOGIN_PROVIDERS.includes(userData.value.loginProvider);
+const fields = showOwnFields ? (await useFetch('/api/lfbis?layer=fields')).data.value : undefined;
+const farms = showOwnFields ? (await useFetch('/api/lfbis?layer=farms')).data.value : undefined;
 
 const map = new Map({
   target: mapContainer.value,

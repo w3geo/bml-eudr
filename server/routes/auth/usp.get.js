@@ -19,6 +19,7 @@ export default defineOAuthUSPEventHandler({
         address,
         identifierType: 'GLN',
         identifierValue,
+        lfbis: user.lfbis,
         sid: /** @type {string|undefined} */ (decodeJwt(tokens.access_token).sid),
       },
       loggedInAt: Date.now(),

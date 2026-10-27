@@ -92,7 +92,7 @@ const idItems = computed(() => [
     <v-row v-if="userData?.loginProvider === 'AMA'">
       <v-col :cols="mdAndUp ? 4 : 12">
         <v-text-field
-          :model-value="userData.id"
+          :model-value="userData.lfbis"
           density="compact"
           hide-details
           variant="outlined"

@@ -46,7 +46,7 @@ const logout = () => {
           <v-list-item
             :subtitle="
               userData?.loginProvider === 'AMA'
-                ? `${userData.name} · ${userData.id}`
+                ? `${userData.name} · ${userData.lfbis}`
                 : userData?.name
             "
           />

@@ -81,6 +81,7 @@ export default defineEventHandler(async (event) => {
         address: user.bewadr,
         identifierType: 'GLN',
         identifierValue: user.GLN,
+        lfbis: user.betriebsnummern,
       },
     });
 

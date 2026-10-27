@@ -189,6 +189,17 @@ export function defineOAuthUSPEventHandler({
 
     idTokens[tokenData.sid as string] = tokens.id_token;
 
+    // e.g. '{"LFB":["1709674"],"SID":["0048277969"]}', where LFB is the LFBIS number
+    const subIdsClaim =
+      tokenData['urn:uspgvat:enterprise_sub_ids'] ??
+      (tokens.id_token ? decodeJwt(tokens.id_token)['urn:uspgvat:enterprise_sub_ids'] : undefined);
+    let lfbis: string | undefined;
+    try {
+      lfbis = subIdsClaim ? JSON.parse(subIdsClaim as string).LFB?.[0] : undefined;
+    } catch {
+      console.error('Invalid urn:uspgvat:enterprise_sub_ids claim', subIdsClaim);
+    }
+
     const user = {
       login: tokenData['urn:pvpgvat:oidc.ou_gv_ou_id'],
       name: tokenData['urn:pvpgvat:oidc.ou'],
@@ -197,6 +208,7 @@ export function defineOAuthUSPEventHandler({
       postalCode: tokenData['urn:uspgvat:enterprise_postal_code'],
       locality: tokenData['urn:uspgvat:enterprise_locality'],
       enterpriseKeys: tokenData['urn:uspgvat:enterprise_keys'],
+      lfbis,
     };
 
     console.log('[USP DEBUG] user', JSON.stringify(user, null, 2));

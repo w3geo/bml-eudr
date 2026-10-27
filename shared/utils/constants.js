@@ -117,6 +117,18 @@ export const LOGIN_PROVIDED_FIELDS = {
   USP: ['name', 'address', 'identifierType', 'identifierValue'],
 };
 
+/**
+ * Login providers whose LFBIS number can be used for submitting cattle (reported to AMA).
+ * @type {Array<LoginProvider>}
+ */
+export const CATTLE_LOGIN_PROVIDERS = ['AMA', 'SMS'];
+
+/**
+ * Login providers whose LFBIS number can be used for showing the user's fields and farms.
+ * @type {Array<LoginProvider>}
+ */
+export const FIELDS_LOGIN_PROVIDERS = ['AMA', 'USP'];
+
 export const editableUserDataFields = ['name', 'address', 'identifierType', 'identifierValue'];
 
 const VALID_EMAIL_REGEX =
