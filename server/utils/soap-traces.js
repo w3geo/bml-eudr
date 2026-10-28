@@ -129,8 +129,8 @@ function getRetryDelay(attempt, retryAfter) {
  * not errors here - TRACES sends every fault with HTTP 500, and callers inspect them.
  *
  * Reads are retried with backoff, except after a timeout, because retrying would only add
- * load to an already slow service. Submits are never retried, because a request that failed
- * this way may still have been processed.
+ * load to an already slow service. Submits are never retried, because a request that timed
+ * out may still have been processed.
  * @param {string} soapAction
  * @param {() => string} getBody Called per attempt, so every attempt gets a fresh nonce and timestamp
  * @param {{ submit?: boolean }} [options]
@@ -145,8 +145,10 @@ async function tracesRequest(soapAction, getBody, { submit = false } = {}) {
     /** @type {string | null} */
     let retryAfter = null;
     let timedOut = false;
-    // A 429 or 503 means the request was turned away; anything else may have been processed.
-    let rejected = false;
+    // Only a timeout (ours or a gateway's 504) means TRACES may have processed the request without
+    // us getting the answer. Other failures happen before TRACES accepts the request.
+    /** @type {boolean} */
+    let maybeProcessed;
     try {
       const response = await fetch(tracesV3Endpoint, {
         method: 'POST',
@@ -167,9 +169,10 @@ async function tracesRequest(soapAction, getBody, { submit = false } = {}) {
       }
       reason = `HTTP ${response.status}`;
       retryAfter = response.headers.get('retry-after');
-      rejected = response.status === 429 || response.status === 503;
+      maybeProcessed = response.status === 504;
     } catch (error) {
       timedOut = error instanceof Error && error.name === 'TimeoutError';
+      maybeProcessed = timedOut;
       reason = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
     }
 
@@ -180,7 +183,7 @@ async function tracesRequest(soapAction, getBody, { submit = false } = {}) {
       throw createError({
         status: 500,
         statusMessage: 'TRACES Unavailable',
-        message: submit && !rejected ? SUBMIT_UNCERTAIN_MESSAGE : BUSY_MESSAGE,
+        message: submit && maybeProcessed ? SUBMIT_UNCERTAIN_MESSAGE : BUSY_MESSAGE,
       });
     }
     await new Promise((resolve) => setTimeout(resolve, getRetryDelay(attempt, retryAfter)));
