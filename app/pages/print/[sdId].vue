@@ -33,11 +33,10 @@ const IDENTIFIER_TYPES = {
   ONI: 'LFBIS',
 };
 
-// TRACES redacts the operator address and identifier when retrieving a statement, so these
-// are filled from the user data, which is what the statement was submitted with. The name
-// comes from the statement; the user data is only a fallback while it is being created.
+// TRACES does not return the contents of a statement, and our copy does not include the operator,
+// so it is filled from the user data, which is what the statement was submitted with.
 const operator = computed(() => ({
-  name: statement.value?.operatorName ?? user.value?.name ?? '',
+  name: user.value?.name ?? '',
   address: user.value?.address ?? '',
   identifierType: user.value?.identifierType ?? '',
   identifierValue: user.value?.identifierValue ?? '',
@@ -166,7 +165,10 @@ onMounted(() => {
         </table>
 
         <!-- Not kept together as a whole: the rows may span pages, the header repeats. -->
-        <table class="sheet commodities mt-4">
+        <p v-if="rows.length === 0" class="mt-4">
+          Für diese Erklärung sind keine Angaben zu den Rohstoffen/Erzeugnissen gespeichert.
+        </p>
+        <table v-else class="sheet commodities mt-4">
           <thead>
             <tr>
               <th class="commodity">Rohstoff/Erzeugnis</th>
@@ -202,12 +204,12 @@ onMounted(() => {
         </table>
 
         <p class="text-caption mt-6">
-          Die Angaben zur Erklärung, der Name des Marktteilnehmers und die Angaben zu den
-          Rohstoffen/Erzeugnissen stammen aus dem EU-Informationssystem (TRACES). Anschrift und
-          {{ IDENTIFIER_TYPES[operator.identifierType] ?? 'Kennung' }} des Marktteilnehmers stammen
-          aus den aktuellen Angaben zum Betrieb in der Anwendung „EUDR Meldung“, da TRACES diese bei
-          der Abfrage nicht übermittelt. Maßgeblich ist die in TRACES gespeicherte Erklärung, die
-          mit Identifikations- und Prüfnummer abgerufen werden kann.
+          Die Angaben zur Erklärung stammen aus dem EU-Informationssystem (TRACES), die Angaben zu
+          den Rohstoffen/Erzeugnissen aus der bei der Übermittlung gespeicherten Kopie, Name,
+          Anschrift und {{ IDENTIFIER_TYPES[operator.identifierType] ?? 'Kennung' }} des
+          Marktteilnehmers aus den aktuellen Angaben zum Betrieb in der Anwendung „EUDR Meldung“.
+          Maßgeblich ist die in TRACES gespeicherte Erklärung. Abnehmer können sie dort mit
+          Identifikations- und Prüfnummer überprüfen.
           <template v-if="createdOn">Erstellt am {{ createdOn }}.</template>
         </p>
       </template>

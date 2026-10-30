@@ -40,17 +40,6 @@ export const STATUS_LABELS = {
 };
 
 /**
- * HS codes of previously submitted statements that TRACES no longer offers, mapped
- * to the heading that replaces them.
- * @type {Record<string, HSCode>}
- */
-export const LEGACY_HS_HEADING = {
-  '010229': '0102', // Rinder
-  '010221': '0102', // Zuchtrinder
-  '1201': '120190', // Sojabohnen
-};
-
-/**
  * Percentage estimate or deviation sent with netWeight (TRACES allows 0-25 for DOMESTIC).
  */
 export const NET_WEIGHT_TOLERANCE_PERCENT = 25;

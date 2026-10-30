@@ -35,7 +35,7 @@ export function getCommoditySummary(commodity) {
  * @returns {string}
  */
 export function getCommoditiesSummary(commodities) {
-  return commodities
+  return commodities?.length
     ? `\nRohstoffe/Erzeugnisse:\n${commodities
         .map((commodity) => `${getCommoditySummary(commodity)}`)
         .join('\n')}`

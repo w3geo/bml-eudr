@@ -55,9 +55,8 @@ useSeoMeta({
               <a href="mailto:service.entwaldung@bmluk.gv.at" class="text-primary"
                 >service.entwaldung@bmluk.gv.at</a
               >. widerrufen werden. Vom BMLUK werden die im Rahmen der Nutzung dieser Applikation
-              eingegebenen und übermittelten Inhaltsdaten für keine anderen Zwecke weiterverwendet
-              und nach Übermittlung der vereinfachten Erklärung nicht weiter gespeichert. Bei
-              Klicken der Schaltfläche „Bestätigen und Übermitteln“ auf der Seite „Vereinfachte
+              eingegebenen und übermittelten Inhaltsdaten für keine anderen Zwecke weiterverwendet.
+              Bei Klicken der Schaltfläche „Bestätigen und Übermitteln“ auf der Seite „Vereinfachte
               Erklärung“ werden Name und Adresse des Betriebes, der Identifikationstyp (GLN, UID
               oder Steuernummer) und die dazugehörige Nummer, sowie die für die Vereinfachte
               Erklärung erfasste Lokalisierung (Postanschrift bzw. Flächen- und Punktdaten),
@@ -65,6 +64,24 @@ useSeoMeta({
               für die Vereinfachte Erklärung verpflichtend sind. Die auf diese Weise übermittelten
               Daten werden von der EU-Kommission als Betreiberin der TRACES-Datenbank
               weiterverarbeitet.
+            </div>
+            <div class="text-body-1 mb-2">
+              Damit Sie Ihre vereinfachten Erklärungen in dieser Applikation ansehen, drucken und
+              weitergeben können, speichert das BMLUK eine Kopie der übermittelten Erzeugnisse,
+              Mengen und Erzeugungsorte (Postanschrift bzw. Flächen- und Punktdaten). Die Kopie wird
+              verschlüsselt und ohne direkte Verknüpfung mit Ihrem Benutzerkonto gespeichert; die
+              Zuordnung zu Ihnen ist nur über die TRACES-Datenbank möglich. Sie wird fünf Jahre nach
+              Übermittlung der vereinfachten Erklärung gelöscht, entsprechend der Aufbewahrungsfrist
+              der Verordnung (EU) 2023/1115, oder früher, wenn die vereinfachte Erklärung in der
+              TRACES-Datenbank nicht mehr als verfügbar geführt wird (etwa weil sie zurückgezogen
+              wurde) oder Ihr Konto gelöscht wird.
+            </div>
+            <div class="text-body-1 mb-2">
+              Enthält Ihre vereinfachte Erklärung Rinder, werden nach Vergabe der
+              Identifikationsnummer Ihre Betriebsnummer (LFBIS), die Anzahl der Rinder sowie
+              Identifikationsnummer, Prüfnummer und Datum der vereinfachten Erklärung an die
+              Agrarmarkt Austria (AMA) übermittelt. Bis zur Übermittlung speichert das BMLUK
+              Betriebsnummer und Anzahl der Rinder; danach werden sie gelöscht.
             </div>
             <div class="text-body-1 mb-2">
               Hinsichtlich der Zugangsdaten zu dieser Applikation gilt Folgendes, wenn Sie nicht
@@ -85,12 +102,18 @@ useSeoMeta({
               </ul>
             </div>
             <div class="text-body-1 mb-2">
-              In diesen beiden Fällen können Sie jederzeit durch formlose Mitteilung an
+              Unabhängig von der Art der Anmeldung können Sie Ihr Konto jederzeit auf der Seite
+              „Mein Konto“ löschen oder die Löschung durch formlose Mitteilung an
               <a href="mailto:service.entwaldung@bmluk.gv.at" class="text-primary"
                 >service.entwaldung@bmluk.gv.at</a
               >
-              die Löschung Ihrer vom BMLUK gespeicherten Daten beantragen. Ansonsten bleiben Ihre
-              Zugangsdaten gespeichert, solange Ihr Konto aktiv ist.
+              beantragen. Dabei werden Ihre vom BMLUK gespeicherten Angaben zum Betrieb und die
+              gespeicherten Kopien Ihrer vereinfachten Erklärungen gelöscht. Die in der
+              TRACES-Datenbank gespeicherten vereinfachten Erklärungen bleiben davon unberührt und
+              werden nach erneuter Anmeldung mit derselben Anmeldeart wieder angezeigt, allerdings
+              ohne die gelöschten Kopien. Ebenfalls unberührt bleibt die Übermittlung von
+              Rinderzahlen an die AMA. Ansonsten bleiben Ihre Zugangsdaten gespeichert, solange Ihr
+              Konto aktiv ist.
             </div>
             <div class="text-body-1 mb-2">
               Bei Klicken der Schaltfläche „Bestätigen und Übermitteln" auf der Seite „Vereinfachte

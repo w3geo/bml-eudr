@@ -4,7 +4,6 @@ import { unref } from 'vue';
 import {
   COMMODITIES,
   HS_HEADING,
-  LEGACY_HS_HEADING,
   NET_WEIGHT_TOLERANCE_PERCENT,
 } from '~~/shared/utils/constants.js';
 import { parseAddress } from '~~/shared/utils/utils.js';
@@ -22,7 +21,7 @@ import { parseAddress } from '~~/shared/utils/utils.js';
  * @property {TracesStatus} status
  * @property {string} date
  * @property {Array<CommodityDataWithKey>} [commodities]
- * @property {string} [operatorName] Represented operator name as stored in TRACES
+ * @property {boolean} [geolocationVisible] Whether the geolocations may be viewed by those who know the reference and verification numbers
  * @property {string} [commoditiesSummary] Short summary of commodities (for display in list)
  */
 
@@ -595,168 +594,4 @@ export async function retrieveSdByInternalReference(internalReference) {
   }
 
   return { statements, error };
-}
-
-/**
- * @param {string} referenceNumber
- * @param {string} verificationNumber
- * @returns {Promise<{commodities?: Array<CommodityDataWithKey>, geolocationVisible?: boolean, operatorName?: string, error?: string | undefined}>}
- */
-export async function retrieveSdData(referenceNumber, verificationNumber) {
-  const getBody = () => `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
-    xmlns:sd="http://ec.europa.eu/tracesnt/certificate/eudr/simplified-declaration/v3"
-    xmlns:eudrCommon="http://ec.europa.eu/tracesnt/certificate/eudr/common/v3"
-    xmlns:v4="http://ec.europa.eu/sanco/tracesnt/base/v4">
-        ${getHeader()}
-        <soapenv:Body>
-            <sd:GetSdByIdentifiersRequest>
-              <sd:referenceAndVerificationNumber>
-                <eudrCommon:referenceNumber>${escapeXml(referenceNumber)}</eudrCommon:referenceNumber>
-                <eudrCommon:verificationNumber>${escapeXml(verificationNumber)}</eudrCommon:verificationNumber>
-              </sd:referenceAndVerificationNumber>
-            </sd:GetSdByIdentifiersRequest>
-        </soapenv:Body>
-    </soapenv:Envelope>`;
-
-  const { status, text, xml } = await tracesRequest(`${ddsNS}/getSdByIdentifiers`, getBody);
-  if (!xml) {
-    console.error('TRACES getSdByIdentifiers: invalid response:', status, text);
-    return { error: UNEXPECTED_MESSAGE };
-  }
-  const error = getFaultMessage(xml);
-  if (status >= 400) {
-    console.error('TRACES getSdByIdentifiers error:', status, text);
-    return {
-      error: error || UNEXPECTED_MESSAGE,
-    };
-  }
-  const statementElement = xml.getElementsByTagNameNS(sdNS, 'statement').item(0);
-  if (!statementElement) {
-    console.error('TRACES getSdByIdentifiers: no statement element in response:', text);
-    return {
-      error: UNEXPECTED_MESSAGE,
-    };
-  }
-
-  const commoditiesElements = statementElement.getElementsByTagNameNS(sdNS, 'commodities');
-  /** @type {Array<CommodityDataWithKey>} */
-  const commodities = [];
-  for (let i = 0; i < commoditiesElements.length; i++) {
-    const commodity = /** @type {import('@xmldom/xmldom').Element} */ (commoditiesElements.item(i));
-    const submittedHsCode =
-      commodity.getElementsByTagNameNS(sdNS, 'hsHeading').item(0)?.textContent ?? '';
-    const hsCode = /** @type {import('~~/shared/utils/constants').HSCode} */ (
-      LEGACY_HS_HEADING[submittedHsCode] ?? submittedHsCode
-    );
-    const goodsMeasureElement = commodity.getElementsByTagNameNS(commonNS, 'goodsMeasure').item(0);
-    const producerElement = commodity.getElementsByTagNameNS(sdNS, 'producers').item(0);
-    const producerLocationElement = producerElement
-      ?.getElementsByTagNameNS(sdNS, 'producerLocation')
-      .item(0);
-    const geojsonText = producerLocationElement
-      ?.getElementsByTagNameNS(sdNS, 'geometryGeojson')
-      .item(0)?.textContent;
-    // A producer location is either a GeoJSON geometry or a postal address
-    // (§4.2.3 SdProducerLocationType). Parse whichever the statement carries so
-    // that confidential (address-only) declarations still show their location.
-    const postalAddressElement = producerLocationElement
-      ?.getElementsByTagNameNS(sdNS, 'postalAddress')
-      .item(0);
-    /** @type {import('~/composables/useStatement').Address} */
-    const address = postalAddressElement
-      ? {
-          street:
-            postalAddressElement.getElementsByTagNameNS(sdNS, 'producerStreet').item(0)
-              ?.textContent ?? '',
-          postalCode:
-            postalAddressElement.getElementsByTagNameNS(sdNS, 'producerPostalCode').item(0)
-              ?.textContent ?? '',
-          city:
-            postalAddressElement.getElementsByTagNameNS(sdNS, 'producerCity').item(0)
-              ?.textContent ?? '',
-        }
-      : null;
-    // Guard the decode: a single malformed geometry must not abort retrieval of
-    // the whole statement (which would surface as "details cannot be retrieved").
-    /** @type {*} */
-    let geojson = null;
-    if (geojsonText) {
-      try {
-        geojson = JSON.parse(atob(geojsonText));
-      } catch (e) {
-        console.error('TRACES getSdByIdentifiers: failed to parse geometryGeojson', e);
-      }
-    }
-    const key = /** @type {import('~~/shared/utils/constants').Commodity} */ (
-      Object.keys(COMMODITIES).find((key) => {
-        return COMMODITIES[
-          /** @type {import('~~/shared/utils/constants').Commodity} */ (key)
-        ].hsHeadings.includes(hsCode);
-      })
-    );
-    const quantity = {
-      // Prefer the supplementary unit (m³ for wood, head count for cattle) when
-      // present. Older statements also carry an estimated netWeight for those
-      // commodities, so dividing it by 1000 would yield a wrong amount. Soja has
-      // no supplementary unit and falls back to netWeight (t).
-      [hsCode]:
-        Number(
-          goodsMeasureElement?.getElementsByTagNameNS(commonNS, 'supplementaryUnit').item(0)
-            ?.textContent,
-        ) ||
-        Number(
-          goodsMeasureElement?.getElementsByTagNameNS(commonNS, 'netWeight').item(0)?.textContent, // kg, convert to t
-        ) / 1000,
-    };
-    const existing = commodities.find((c) => c.key === key);
-    if (existing) {
-      const existingQuantity = unref(existing.quantity);
-      // Legacy cattle statements carry two headings that now map to one; add them up.
-      existing.quantity = {
-        ...existingQuantity,
-        [hsCode]: (existingQuantity[hsCode] || 0) + (quantity[hsCode] || 0),
-      };
-      existing.geojson = unref(existing.geojson) ?? geojson;
-      existing.address = unref(existing.address) ?? address;
-    } else {
-      commodities.push({
-        key,
-        quantity,
-        geojson,
-        address,
-      });
-    }
-  }
-
-  const geoLocationConfidential = statementElement
-    .getElementsByTagNameNS(sdNS, 'geoLocationConfidential')
-    .item(0)?.textContent;
-  const geolocationVisible = geoLocationConfidential !== 'true';
-
-  // TRACES returns only the name (and country) of the represented operator; the
-  // address comes back as CONFIDENTIAL and the identifier is omitted.
-  const operatorName =
-    statementElement
-      .getElementsByTagNameNS(sdNS, 'representedOperator')
-      .item(0)
-      ?.getElementsByTagNameNS(commonNS, 'operatorName')
-      .item(0)?.textContent || undefined;
-
-  // A commodity legitimately has no geojson when a postal address was submitted
-  // instead of a drawn geolocation; only missing both is an actual inconsistency.
-  if (geolocationVisible && commodities.some((c) => !c.geojson && !c.address)) {
-    console.error(
-      'TRACES getSdByIdentifiers: geoLocationConfidential=false but no geometryGeojson or address found.' +
-        ' producers count per commodity:',
-      Array.from(
-        { length: statementElement.getElementsByTagNameNS(sdNS, 'commodities').length },
-        (_, i) => {
-          const c = statementElement.getElementsByTagNameNS(sdNS, 'commodities').item(i);
-          return c?.getElementsByTagNameNS(sdNS, 'producers').length ?? 0;
-        },
-      ),
-    );
-  }
-
-  return { commodities, geolocationVisible, operatorName, error };
 }

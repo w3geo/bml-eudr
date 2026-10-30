@@ -68,10 +68,8 @@ async function refreshPending() {
     statements.value =
       fresh?.map((s) => {
         const current = statements.value?.find((c) => c.sdId === s.sdId);
-        // Keep details that were already loaded for completed statements.
-        return current?.referenceNumber && current.commodities
-          ? { ...s, commodities: current.commodities, operatorName: current.operatorName }
-          : s;
+        // Keep details that were already loaded.
+        return current?.commodities ? { ...s, commodities: current.commodities } : s;
       }) ?? statements.value;
   } catch (error) {
     console.error('Failed to refresh statements', error);
@@ -101,7 +99,7 @@ async function toggleFullStatement(sdId) {
     return;
   }
 
-  if (statement.referenceNumber && statement.commodities) {
+  if (statement.commodities) {
     delete statement.commodities;
     statements.value = [...statements.value];
     return;
@@ -116,6 +114,11 @@ async function toggleFullStatement(sdId) {
     if (error instanceof Error) {
       clear();
       console.error('Failed to retrieve SD data', error.message);
+    }
+    if (error instanceof FetchError && error.statusCode === 404) {
+      // The statement is no longer available, e.g. because it was withdrawn.
+      statements.value = statements.value.filter((s) => s.sdId !== sdId);
+      statementCount.value = statements.value.length;
     }
     errorMessage.value =
       (error instanceof FetchError && error.data?.message) || DETAILS_ERROR_MESSAGE;
@@ -142,11 +145,9 @@ const getCommodities = async (statement) => {
 };
 
 /**
- * The operator name as stored in TRACES, falling back to the user data.
- * @param {import('~~/server/utils/soap-traces').StatementInfo} statement
  * @returns {string|undefined}
  */
-const getOperatorName = (statement) => statement.operatorName ?? userData.value?.name;
+const getOperatorName = () => userData.value?.name;
 
 /**
  * @param href {string}
@@ -170,8 +171,8 @@ const sendEmail = async (statement) => {
     return;
   }
   createAndClickLink(
-    `mailto:?subject=EUDR Vereinfachte Erklärung von ${getOperatorName(statement)}&body=${encodeURIComponent(
-      `Ersteller: ${getOperatorName(statement)}\nIdentifikationsnummer: ${statement.referenceNumber}\nPrüfnummer: ${statement.verificationNumber}\nErklärungsdatum: ${new Date(statement.date).toLocaleString('sv-SE')}\n${getCommoditiesSummary(
+    `mailto:?subject=EUDR Vereinfachte Erklärung von ${getOperatorName()}&body=${encodeURIComponent(
+      `Ersteller: ${getOperatorName()}\nIdentifikationsnummer: ${statement.referenceNumber}\nPrüfnummer: ${statement.verificationNumber}\nErklärungsdatum: ${new Date(statement.date).toLocaleString('sv-SE')}\n${getCommoditiesSummary(
         commodities,
       )}`,
     )}`,
@@ -189,7 +190,7 @@ const sendTextMessage = async (statement) => {
   }
   createAndClickLink(
     `sms:?body=${encodeURIComponent(
-      `EUDR Vereinfachte Erklärung\n\nErsteller: ${getOperatorName(statement)}\nIdentifikationsnummer: ${statement.referenceNumber}\nPrüfnummer: ${statement.verificationNumber}\nErklärungsdatum: ${new Date(statement.date).toLocaleString('sv-SE')}\n${getCommoditiesSummary(
+      `EUDR Vereinfachte Erklärung\n\nErsteller: ${getOperatorName()}\nIdentifikationsnummer: ${statement.referenceNumber}\nPrüfnummer: ${statement.verificationNumber}\nErklärungsdatum: ${new Date(statement.date).toLocaleString('sv-SE')}\n${getCommoditiesSummary(
         commodities,
       )}`,
     )}`,
@@ -208,7 +209,7 @@ const copyToClipboard = async (statement) => {
   }
   try {
     await navigator.clipboard.writeText(
-      `EUDR Vereinfachte Erklärung\n\nErsteller: ${getOperatorName(statement)}\nIdentifikationsnummer: ${statement.referenceNumber}\nPrüfnummer: ${statement.verificationNumber}\nErklärungsdatum: ${new Date(statement.date).toLocaleString('sv-SE')}\n${getCommoditiesSummary(
+      `EUDR Vereinfachte Erklärung\n\nErsteller: ${getOperatorName()}\nIdentifikationsnummer: ${statement.referenceNumber}\nPrüfnummer: ${statement.verificationNumber}\nErklärungsdatum: ${new Date(statement.date).toLocaleString('sv-SE')}\n${getCommoditiesSummary(
         commodities,
       )}`,
     );
@@ -292,8 +293,23 @@ const copyToClipboard = async (statement) => {
                   </td>
                 </tr>
               </template>
+              <tr v-if="item.commodities.length === 0">
+                <td colspan="3" class="text-medium-emphasis">
+                  Für diese Erklärung sind keine Details gespeichert.
+                </td>
+              </tr>
+              <tr
+                v-else-if="
+                  item.geolocationVisible === false &&
+                  item.commodities.some((c) => unref(c.geojson)?.features?.length)
+                "
+              >
+                <td colspan="3" class="text-medium-emphasis">
+                  Erzeugungsorte vertraulich übermittelt
+                </td>
+              </tr>
             </tbody>
-            <tbody v-else-if="item.referenceNumber">
+            <tbody v-else>
               <tr>
                 <td class="text-center">
                   <v-btn
