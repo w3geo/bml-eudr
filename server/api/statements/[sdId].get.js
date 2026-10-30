@@ -22,24 +22,16 @@ export default defineEventHandler(async (event) => {
   }
   delete sdInfo.internalReferenceNumber;
 
-  if (!sdInfo.referenceNumber || !sdInfo.verificationNumber) {
-    const session = await requireUserSession(event);
-    sdInfo.commodities = session.commodities?.[sdInfo.sdId];
-    return sdInfo;
-  }
-
-  const { commodities, geolocationVisible, operatorName, error } = await retrieveSdData(
-    sdInfo.referenceNumber,
-    sdInfo.verificationNumber,
-  );
-
-  if (error) {
+  if (isInvalidated(sdInfo)) {
+    await deleteStatementContents([sdId]);
     throw createError({
-      status: 500,
-      statusMessage: 'Failed to retrieve SD data',
-      message: error,
+      status: 404,
+      statusMessage: 'Not found',
+      message: 'Diese Erklärung ist im EU-Informationssystem TRACES nicht mehr verfügbar.',
     });
   }
 
-  return { ...sdInfo, commodities, geolocationVisible, operatorName };
+  // Statements submitted before copies were kept have no contents.
+  const contents = await loadStatementContents(sdId);
+  return { ...sdInfo, commodities: [], ...contents };
 });

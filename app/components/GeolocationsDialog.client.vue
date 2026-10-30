@@ -86,19 +86,36 @@ const geolocationLayer = new VectorLayer({ source: geolocationSource });
 const commodityLayer = shallowRef(null);
 
 const map = new Map({
-  layers: [createBackgroundKatasterLayer()],
   view: new View(),
 });
 
+/**
+ * Commodity that the current commodity layer was created for
+ * @type {import('~~/shared/utils/constants.js').Commodity|null}
+ */
+let layerCommodity = null;
+
+// Layers are only created when the dialog is opened. It is part of the commodity editor, which
+// has a map of its own, and most users never open it.
 watch(
-  () => props.commodity,
-  (newValue) => {
+  [() => props.modelValue, () => props.commodity],
+  ([open, commodity]) => {
+    if (!open) {
+      return;
+    }
+    if (map.getLayers().getLength() === 0) {
+      map.addLayer(createBackgroundKatasterLayer());
+    }
+    if (commodity === layerCommodity) {
+      return;
+    }
+    layerCommodity = commodity;
     if (commodityLayer.value) {
       map.removeLayer(commodityLayer.value);
       map.removeLayer(geolocationLayer);
     }
-    if (newValue) {
-      const { layerGroup } = createCommodityLayerset(newValue, farms, fields, { ownOnly: true });
+    if (commodity) {
+      const { layerGroup } = createCommodityLayerset(commodity, farms, fields, { ownOnly: true });
       commodityLayer.value = layerGroup;
       map.addLayer(commodityLayer.value);
       map.addLayer(geolocationLayer);

@@ -4,7 +4,7 @@ import { isUserDataValid } from '~~/shared/utils/utils';
 import users from '~~/server/db/schema/users';
 
 export default defineEventHandler(async (event) => {
-  if (event.method !== 'GET' && event.method !== 'PUT') {
+  if (!['GET', 'PUT', 'DELETE'].includes(event.method)) {
     throw createError({ status: 405, statusMessage: 'Method Not Allowed' });
   }
 
@@ -31,6 +31,19 @@ export default defineEventHandler(async (event) => {
     };
   }
 
+  if (event.method === 'DELETE') {
+    // Statement copies are not linked to the user in our database, so find them via TRACES.
+    // Fail before deleting anything when that is not possible, so the user can try again.
+    const { statements, error } = await retrieveSdByInternalReference(userId);
+    if (error) {
+      throw createError({ status: 500, statusMessage: 'Internal Server Error', message: error });
+    }
+    await deleteStatementContents(statements?.map((s) => s.sdId) ?? []);
+    await db.delete(users).where(eq(users.id, userId));
+    // The client logs out, because a USP logout needs the session.
+    return sendNoContent(event);
+  }
+
   if (event.method === 'PUT' && event.headers.get('content-type') === 'application/json') {
     /** @type {import('~~/server/db/schema/users.js').User} */
     const properties = await readBody(event);
@@ -42,7 +55,6 @@ export default defineEventHandler(async (event) => {
       user: session.user,
       loginProvider: session.loginProvider,
       loggedInAt: session.loggedInAt,
-      commodities: session.commodities,
       secure: {
         ...session.secure,
         // Fields provided by the login cannot be changed, e.g. the LFBIS number of an SMS login,

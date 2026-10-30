@@ -6,7 +6,7 @@ useHead({
 });
 const theme = useColorMode();
 const { mdAndUp } = useDisplay();
-const { loggedIn, clear } = useUserSession();
+const { loggedIn } = useUserSession();
 const { errorMessage, displayErrorMessage } = useErrorMessage();
 const drawer = ref(false);
 const router = useRouter();
@@ -17,14 +17,7 @@ const items = routes
   .map((route) => ({ title: route.meta.title, to: route.path }));
 const { data: userData } = await useFetch('/api/users/me');
 
-const logout = () => {
-  if (useUserSession().session.value?.loginProvider === 'USP') {
-    window.location.href = './auth/usp?logout';
-  } else {
-    clear();
-    router.push('/');
-  }
-};
+const logout = useLogout();
 </script>
 
 <template>

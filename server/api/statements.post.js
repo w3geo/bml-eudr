@@ -1,5 +1,4 @@
 import amaCattle from '../db/schema/ama_cattle';
-import { unref } from 'vue';
 import { isUserDataValid } from '~~/shared/utils/utils';
 import { CATTLE_LOGIN_PROVIDERS } from '~~/shared/utils/constants';
 
@@ -39,7 +38,7 @@ export default defineEventHandler(async (event) => {
   };
 
   const commodities = statement.commodities;
-  if (commodities.some((c) => Object.values(unref(c.quantity)).some((v) => v < 0))) {
+  if (commodities.some((c) => Object.values(c.quantity).some((v) => v < 0))) {
     throw createError({
       status: 400,
       statusMessage: 'Bad Request',
@@ -47,7 +46,7 @@ export default defineEventHandler(async (event) => {
     });
   }
   const cattleCount = commodities.reduce((sum, c) => {
-    const quantity = unref(c.quantity);
+    const quantity = c.quantity;
     return (quantity['0102'] || 0) + sum;
   }, 0);
   const lfbis = CATTLE_LOGIN_PROVIDERS.includes(session.loginProvider) ? secure.lfbis : undefined;
@@ -79,39 +78,12 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  await setUserSession(event, {
-    user: session.user,
-    loginProvider: session.loginProvider,
-    loggedInAt: session.loggedInAt,
-    commodities: {
-      ...(session.commodities ?? {}),
-      // Only what's needed for the summary until TRACES has issued the reference number, and
-      // only the location that was actually submitted (see getCommoditiesXML)
-      [sdId]: commodities.map((c) => {
-        const features = unref(c.geojson)?.features ?? [];
-        const usesGeolocation = unref(c.geolocation) && features.some((f) => f.geometry);
-        const address = unref(c.address);
-        return {
-          key: c.key,
-          quantity: c.quantity,
-          geojson: {
-            type: 'FeatureCollection',
-            features: usesGeolocation
-              ? features.map((f) => ({
-                  type: 'Feature',
-                  properties: { Area: f.properties?.Area },
-                  geometry: null,
-                }))
-              : [],
-          },
-          address:
-            !usesGeolocation && address
-              ? { street: '', postalCode: address.postalCode, city: address.city }
-              : null,
-        };
-      }),
-    },
-  });
+  try {
+    await storeStatementContents(sdId, commodities, statement.geolocationVisible);
+  } catch (error) {
+    // The statement was submitted nevertheless, so don't report an error to the user.
+    console.error('Failed to store statement contents', sdId, error);
+  }
 
   return sendNoContent(event, 201);
 });

@@ -1,11 +1,13 @@
 <script setup>
 import { DevOnly } from '#components';
 import {
+  mdiAccountRemove,
   mdiEmailFastOutline,
   mdiStar,
   mdiUnfoldLessHorizontal,
   mdiUnfoldMoreHorizontal,
 } from '@mdi/js';
+import { FetchError } from 'ofetch';
 
 definePageMeta({
   title: 'Mein Konto',
@@ -191,6 +193,25 @@ watch(
   { immediate: true },
 );
 
+const logout = useLogout();
+const deleteDialog = ref(false);
+const deleting = ref(false);
+
+async function deleteAccount() {
+  deleting.value = true;
+  try {
+    await $fetch('/api/users/me', { method: 'DELETE' });
+    deleteDialog.value = false;
+    await logout();
+  } catch (error) {
+    errorMessage.value =
+      (error instanceof FetchError && error.data?.message) ||
+      'Das Konto konnte nicht gelöscht werden. Bitte versuchen Sie es später erneut.';
+  } finally {
+    deleting.value = false;
+  }
+}
+
 if (!statementsError.value) {
   expandUserData.value = (statements.value?.length || 0) === 0;
 }
@@ -244,7 +265,46 @@ if (!statementsError.value) {
           </v-card-text>
         </v-card>
       </v-col>
+      <v-col v-if="loggedIn" cols="12">
+        <v-card>
+          <v-card-title>Konto löschen</v-card-title>
+          <v-card-text>
+            Löscht Ihr Konto und alle Daten, die diese Applikation zu Ihnen gespeichert hat.
+          </v-card-text>
+          <v-card-actions>
+            <v-btn color="error" :prepend-icon="mdiAccountRemove" @click="deleteDialog = true">
+              Konto löschen
+            </v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-col>
     </v-row>
+    <v-dialog v-model="deleteDialog" max-width="560" :persistent="deleting" scrollable>
+      <v-card title="Konto löschen?">
+        <v-card-text>
+          <p class="mb-3">
+            Gelöscht werden die in dieser Applikation gespeicherten Angaben zum Betrieb und die
+            gespeicherten Kopien Ihrer vereinfachten Erklärungen mit Rohstoffen/Erzeugnissen, Mengen
+            und Erzeugungsorten. Anschließend werden Sie abgemeldet.
+          </p>
+          <p class="mb-3">
+            Ihre vereinfachten Erklärungen bleiben im EU-Informationssystem TRACES gültig und werden
+            nicht zurückgezogen. Wenn Sie sich später mit derselben Anmeldeart wieder anmelden,
+            werden sie unter „Meine Identifikationsnummern“ wieder angezeigt, allerdings ohne
+            Details.
+          </p>
+          <p>
+            Für vereinfachte Erklärungen mit Rindern werden Betriebsnummer und Anzahl der Rinder
+            nach Vergabe der Identifikationsnummer an die AMA übermittelt. Das gilt auch für
+            Erklärungen, deren Identifikationsnummer bei der Löschung noch aussteht.
+          </p>
+        </v-card-text>
+        <v-card-actions>
+          <v-btn :disabled="deleting" @click="deleteDialog = false">Abbrechen</v-btn>
+          <v-btn color="error" :loading="deleting" @click="deleteAccount">Konto löschen</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <v-row v-if="!loggedIn">
       <v-col cols="12">
         <v-card href="./auth/ama" variant="tonal" color="primary" elevation="1">

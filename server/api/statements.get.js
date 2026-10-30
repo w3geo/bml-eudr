@@ -9,19 +9,13 @@ export default defineEventHandler(async (event) => {
   if (error) {
     throw createError({ status: 500, statusMessage: 'Internal Server Error', message: error });
   }
-  // Only statements waiting for TRACES to issue a reference number lack one. Others, e.g. withdrawn
-  // ones, have had their reference and verification numbers removed and can no longer be loaded.
-  const sdInfo = statements?.filter((sd) => sd.referenceNumber || sd.status === 'SUBMITTED');
-  if (sdInfo) {
-    for (const sd of sdInfo) {
-      if (sd.referenceNumber && sd.verificationNumber) {
-        delete session.commodities?.[sd.sdId];
-      }
-      sd.commodities = session.commodities?.[sd.sdId];
-    }
+  const invalidated = statements?.filter(isInvalidated) ?? [];
+  try {
+    await deleteStatementContents(invalidated.map((sd) => sd.sdId));
+  } catch (error) {
+    // The cleanup task will try again.
+    console.error('Failed to delete contents of invalidated statements', error);
   }
 
-  await replaceUserSession(event, session);
-
-  return sdInfo;
+  return statements?.filter((sd) => !isInvalidated(sd));
 });

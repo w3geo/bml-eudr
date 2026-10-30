@@ -1,5 +1,4 @@
 import type { IdentifierType } from '~/utils/utils';
-import type { CommodityDataWithKey } from '../server/utils/soap-traces';
 import type { LoginProvider } from './utils/constants';
 
 declare module '#auth-utils' {
@@ -10,7 +9,6 @@ declare module '#auth-utils' {
   interface UserSession {
     loggedInAt: number;
     loginProvider: LoginProvider;
-    commodities?: Record<string, Array<CommodityDataWithKey>>;
   }
 
   interface SecureSessionData {
