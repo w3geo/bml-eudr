@@ -131,7 +131,10 @@ function pauseOtherVideos(event) {
                 :icon="item.included ? mdiCheckCircle : mdiCloseCircle"
                 :color="item.included ? 'primary' : 'error'"
               />
-              <div>{{ item.text }}</div>
+              <div>
+                <span class="d-sr-only">{{ item.included ? 'Ja:' : 'Nein:' }}</span>
+                {{ item.text }}
+              </div>
             </div>
           </v-card-text>
         </v-card>

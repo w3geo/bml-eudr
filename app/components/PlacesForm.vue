@@ -130,6 +130,7 @@ watch(yieldPerHectare, (value) => {
                   :class="xs ? 'ms-n1' : 'ms-n3'"
                   flat
                   :icon="mdiHelpCircleOutline"
+                  aria-label="Hilfe"
                   size="x-small"
                   density="comfortable"
                   v-bind="activatorProps"
@@ -193,6 +194,7 @@ watch(yieldPerHectare, (value) => {
                     class="checkbox-with-help__help"
                     flat
                     :icon="mdiHelpCircleOutline"
+                    aria-label="Hilfe"
                     size="x-small"
                     v-bind="activatorProps"
                   ></v-btn>

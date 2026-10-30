@@ -30,7 +30,7 @@ watch(showCode, (value) => {
     <v-card>
       <v-card-title class="headline"> QR-Code </v-card-title>
       <v-card-text>
-        <v-img v-if="codeSVG" :src="codeSVG" />
+        <v-img v-if="codeSVG" :src="codeSVG" :alt="`QR-Code: ${props.payload}`" />
       </v-card-text>
       <v-card-actions>
         <v-btn text @click="showCode = false"> Schließen </v-btn>

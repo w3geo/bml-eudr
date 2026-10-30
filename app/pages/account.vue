@@ -232,6 +232,8 @@ if (!statementsError.value) {
               >Angaben zum Betrieb<v-spacer /><v-btn
                 flat
                 density="compact"
+                aria-label="Angaben zum Betrieb"
+                :aria-expanded="expandUserData"
                 :icon="
                   expandUserData ? mdiUnfoldLessHorizontal : mdiUnfoldMoreHorizontal
                 " /></v-toolbar
@@ -316,7 +318,10 @@ if (!statementsError.value) {
             :prepend-icon="xs ? undefined : mdiStar"
             :title="xs ? 'Empfohlen' : undefined"
           >
-            <v-icon v-if="xs" :icon="mdiStar" aria-label="Empfohlen" />
+            <template v-if="xs">
+              <v-icon :icon="mdiStar" />
+              <span class="d-sr-only">Empfohlen</span>
+            </template>
             <template v-else>Empfohlen</template>
           </v-chip>
           <v-card-title class="text-center text-high-emphasis pt-4"> Anmelden über </v-card-title>
@@ -403,6 +408,7 @@ if (!statementsError.value) {
                 class="ml-2"
                 density="compact"
                 :icon="mdiEmailFastOutline"
+                aria-label="Einmalcode anfordern"
                 color="primary"
                 type="submit"
               />
@@ -424,6 +430,7 @@ if (!statementsError.value) {
                 class="ml-2"
                 density="compact"
                 :icon="mdiEmailFastOutline"
+                aria-label="Einmalcode anfordern"
                 color="primary"
                 type="submit"
               />

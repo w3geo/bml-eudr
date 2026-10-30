@@ -194,11 +194,10 @@ function locateMe() {
         :commodity="props.commodity"
       />
       <v-spacer />
-      <action-tooltip>
+      <action-tooltip text="Auf meinen Standort zentrieren">
         <template #activator="{ props: on }">
           <v-btn flat :icon="mdiCrosshairsGps" v-bind="on" @click="locateMe" />
         </template>
-        Auf meinen Standort zentrieren
       </action-tooltip>
       <place-search v-if="!xs" />
       <v-menu
@@ -208,7 +207,7 @@ function locateMe() {
         :offset="[-48, -48]"
       >
         <template #activator="{ props: menu }">
-          <action-tooltip v-bind="menu">
+          <action-tooltip v-bind="menu" text="Ortssuche">
             <template #activator="{ props: on }">
               <v-btn
                 flat
@@ -217,7 +216,6 @@ function locateMe() {
                 @click="showPlaceSearchMenu = !showPlaceSearchMenu"
               />
             </template>
-            Ortssuche
           </action-tooltip>
         </template>
         <v-list class="pa-0">

@@ -160,6 +160,7 @@ async function fitMap() {
           <v-spacer />
           <v-btn
             :icon="mdiClose"
+            aria-label="Schließen"
             variant="text"
             size="small"
             @click="emit('update:modelValue', false)"

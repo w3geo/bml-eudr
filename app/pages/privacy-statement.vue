@@ -1,8 +1,4 @@
 <script setup>
-definePageMeta({
-  title: 'Datenschutzerklärung',
-  sort: 50,
-});
 useSeoMeta({
   title: 'Datenschutz',
 });
@@ -13,7 +9,7 @@ useSeoMeta({
     <v-row>
       <v-col cols="12">
         <v-card>
-          <v-card-title>Datenschutzerklärung</v-card-title>
+          <v-card-title tag="h1" class="text-wrap">Datenschutzerklärung</v-card-title>
           <v-card-text>
             <div class="text-body-1 mb-2">
               Schutz und Sicherheit Ihrer persönlichen Daten ist uns ein wichtiges Anliegen. Das
