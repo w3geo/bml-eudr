@@ -79,12 +79,18 @@ export default defineNuxtConfig({
               'primary': '#11785F',
               'primary-darken-1': '#0D5946',
             },
+            variables: {
+              // Vuetify's 0.6 makes field labels (0.87 × 0.6) fail the WCAG AA contrast of 4.5:1
+              'medium-emphasis-opacity': 0.65,
+            },
           },
           dark: {
             dark: true,
             colors: {
               'primary': '#66BDA7',
               'primary-darken-1': '#43A38B',
+              // Vuetify's #CF6679 has a contrast of 4.47:1 on dark cards, WCAG AA requires 4.5:1
+              'error': '#D46F80',
             },
           },
         },

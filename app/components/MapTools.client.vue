@@ -210,35 +210,30 @@ function checkFile(file) {
     </v-form>
   </v-dialog>
   <v-btn-toggle v-model="mapMode">
-    <action-tooltip>
+    <action-tooltip text="Ort hinzufügen">
       <template #activator="{ props: on }">
-        <v-btn :icon="mdiVectorSquarePlus" v-bind="on" />
+        <v-btn :icon="mdiVectorSquarePlus" :aria-pressed="mapMode === 0" v-bind="on" />
       </template>
-      Ort hinzufügen
     </action-tooltip>
-    <action-tooltip>
+    <action-tooltip text="Ort bearbeiten">
       <template #activator="{ props: on }">
-        <v-btn :icon="mdiVectorSquareEdit" v-bind="on" />
+        <v-btn :icon="mdiVectorSquareEdit" :aria-pressed="mapMode === 1" v-bind="on" />
       </template>
-      Ort bearbeiten
     </action-tooltip>
-    <action-tooltip>
+    <action-tooltip text="Ort entfernen">
       <template #activator="{ props: on }">
-        <v-btn :icon="mdiVectorSquareRemove" v-bind="on" />
+        <v-btn :icon="mdiVectorSquareRemove" :aria-pressed="mapMode === 2" v-bind="on" />
       </template>
-      Ort entfernen
     </action-tooltip>
   </v-btn-toggle>
-  <action-tooltip>
+  <action-tooltip text="GeoJSON laden">
     <template #activator="{ props: on }">
       <v-btn :icon="mdiEarthArrowUp" v-bind="on" @click="fileUpload = true" />
     </template>
-    GeoJSON laden
   </action-tooltip>
-  <action-tooltip>
+  <action-tooltip text="GeoJSON speichern">
     <template #activator="{ props: on }">
       <v-btn :icon="mdiEarthArrowDown" v-bind="on" @click="saveGeoJSON" />
     </template>
-    GeoJSON speichern
   </action-tooltip>
 </template>

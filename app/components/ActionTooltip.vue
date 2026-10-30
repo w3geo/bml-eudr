@@ -5,6 +5,16 @@ import { mergeProps } from 'vue';
 // devices, a tap fires emulated mouseenter and focus events, which would open a hover tooltip on
 // every tap, so there it opens on long press instead, and the click that follows is swallowed.
 // Right click (also what a long press on Android fires) opens it too.
+// The text also serves as the activator's accessible name, because icon-only buttons have none,
+// and aria-describedby would only make it a description. Without it, the tooltip need not be
+// eager, which would leave an empty role="tooltip" element in the DOM inside dialogs.
+
+defineProps({
+  text: {
+    type: String,
+    required: true,
+  },
+});
 
 const LONG_PRESS_DELAY = 500;
 const TOUCH_HIDE_DELAY = 1500;
@@ -112,10 +122,19 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <v-tooltip v-model="open" :open-on-hover="false" :open-on-focus="false" :open-on-click="false">
+  <v-tooltip
+    v-model="open"
+    :eager="false"
+    :open-on-hover="false"
+    :open-on-focus="false"
+    :open-on-click="false"
+  >
     <template #activator="{ props }">
-      <slot name="activator" :props="mergeProps(props, handlers)" />
+      <slot
+        name="activator"
+        :props="mergeProps(props, handlers, { 'aria-label': text, 'aria-describedby': undefined })"
+      />
     </template>
-    <slot />
+    {{ text }}
   </v-tooltip>
 </template>

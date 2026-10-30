@@ -276,18 +276,22 @@ async function validate() {
   <v-dialog v-model="map" fullscreen>
     <v-card v-if="editCommodity" class="h-100">
       <v-toolbar>
-        <v-btn :icon="mdiClose" @click="exitPlaces(editCommodity)"></v-btn>
+        <v-btn :icon="mdiClose" aria-label="Schließen" @click="exitPlaces(editCommodity)"></v-btn>
 
         <v-app-bar-title>{{ COMMODITIES[editCommodity].title }}</v-app-bar-title>
 
-        <action-tooltip v-if="editCommodityInStatement">
+        <action-tooltip v-if="editCommodityInStatement" text="Aus der Erklärung entfernen">
           <template #activator="{ props: on }">
             <v-btn :icon="mdiDeleteOutline" v-bind="on" @click="removeCommodity = editCommodity" />
           </template>
-          Aus der Erklärung entfernen
         </action-tooltip>
 
-        <v-btn :icon="mdiCheck" :commodity="editCommodity" @click="validate"></v-btn>
+        <v-btn
+          :icon="mdiCheck"
+          :commodity="editCommodity"
+          aria-label="Übernehmen"
+          @click="validate"
+        ></v-btn>
       </v-toolbar>
       <places-form ref="placesFormRef" :commodity="editCommodity" :is-ama="isAma" />
       <places-map
@@ -374,6 +378,7 @@ async function validate() {
                       class="checkbox-with-help__help"
                       flat
                       :icon="mdiHelpCircleOutline"
+                      aria-label="Hilfe"
                       size="x-small"
                       v-bind="props"
                     ></v-btn>

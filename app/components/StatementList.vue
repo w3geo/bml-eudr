@@ -238,6 +238,7 @@ const copyToClipboard = async (statement) => {
                     flat
                     color="transparent"
                     :icon="mdiHelpCircleOutline"
+                    aria-label="Hilfe"
                     size="small"
                     density="comfortable"
                     v-bind="props"
@@ -289,6 +290,7 @@ const copyToClipboard = async (statement) => {
                       density="compact"
                       variant="text"
                       :icon="mdiMap"
+                      aria-label="Lokalisierungen auf der Karte anzeigen"
                       @click="openMapDialog(value.geojson, value.key)"
                     />
                   </td>

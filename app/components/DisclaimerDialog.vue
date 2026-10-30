@@ -38,20 +38,6 @@ const showDisclaimer = ref(!loggedIn.value);
           Verwendung dieses Webdienstes und all seiner Inhalte entstehen. Die Nutzung der Inhalte
           dieses Webdienstes erfolgt ausschließlich auf Risiko der Benutzerin bzw. des Benutzers.
         </div>
-
-        <div class="text-body-1 mb-2">
-          Anmerkung zur Barrierefreiheit: Diese Webseite ist mit dem Bundesgesetz über den
-          barrierefreien Zugang zu Websites und mobilen Anwendungen des Bundes
-          (Web-Zugänglichkeits-Gesetz – WZG), BGBl. I Nr. 59/2019 vereinbar.
-        </div>
-
-        <div class="text-body-1 mb-2">
-          Gemäß § 2 Abs. 3 lit. d muss die Webseite nicht den, in dem oben angeführten Bundesgesetz
-          normierten Anforderungen an die Barrierefreiheit genügen, da Online-Karten und
-          Kartendienste, die nicht der Navigation dienen, vom Regelungsumfang ausgenommen sind. Bei
-          Fragen zur barrierefreien Lesbarkeit des Kartenteiles wenden Sie sich bitte an den im
-          Impressum angegebenen Kontakt.
-        </div>
       </v-card-text>
       <v-card-actions class="justify-center">
         <v-btn color="primary" @click="showDisclaimer = false">Akzeptieren</v-btn>

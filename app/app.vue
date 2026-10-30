@@ -15,6 +15,12 @@ const items = routes
   .filter((route) => route.meta.title)
   .sort((a, b) => Number(a.meta.sort) - Number(b.meta.sort))
   .map((route) => ({ title: route.meta.title, to: route.path }));
+const legalItems = [
+  { title: 'Kontakt', href: 'mailto:service.entwaldung@bmluk.gv.at' },
+  { title: 'Impressum', href: 'https://www.bmluk.gv.at/impressum.html' },
+  { title: 'Datenschutz', to: '/privacy-statement' },
+  { title: 'Barrierefreiheit', to: '/accessibility-statement' },
+];
 const { data: userData } = await useFetch('/api/users/me');
 
 const logout = useLogout();
@@ -23,14 +29,19 @@ const logout = useLogout();
 <template>
   <NuxtLoadingIndicator color="blue" :height="2" />
   <v-app :theme="theme.value">
+    <a class="skip-link" href="#main">Zum Inhalt springen</a>
     <DisclaimerDialog />
     <v-app-bar class="d-print-none" color="green-darken-3" flat density="compact">
       <template #prepend>
-        <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
+        <v-app-bar-nav-icon
+          aria-label="Menü"
+          :aria-expanded="drawer"
+          @click.stop="drawer = !drawer"
+        ></v-app-bar-nav-icon>
       </template>
       <v-app-bar-title>
         <NuxtLink
-          class="d-flex fit-content align-center ga-2 text-decoration-none text-grey-lighten-2"
+          class="d-flex fit-content align-center ga-2 text-decoration-none text-white"
           to="/"
         >
           <img src="/logo.png" alt="" height="28" width="34" />
@@ -39,7 +50,7 @@ const logout = useLogout();
       </v-app-bar-title>
       <v-menu v-if="loggedIn">
         <template #activator="{ props }">
-          <v-btn v-bind="props" variant="plain" :icon="mdiAccountCircle" />
+          <v-btn v-bind="props" variant="plain" :icon="mdiAccountCircle" aria-label="Konto" />
         </template>
         <v-list density="compact">
           <v-list-item
@@ -56,33 +67,78 @@ const logout = useLogout();
           >
         </v-list>
       </v-menu>
-      <v-btn v-else variant="plain" to="/account" :icon="mdiAccountCircle" />
+      <v-btn v-else variant="plain" to="/account" :icon="mdiAccountCircle" aria-label="Anmelden" />
     </v-app-bar>
     <v-navigation-drawer v-model="drawer" class="d-print-none" :permanent="mdAndUp">
-      <v-list nav slim density="compact">
-        <v-list-item class="pl-0 pt-0">
-          <NuxtLink to="https://bmluk.gv.at/" target="_blank">
-            <v-img width="199" height="63" :src="`/BMLUK_Logo_${theme.value}.svg`" />
-          </NuxtLink>
-        </v-list-item>
-        <v-divider />
-        <v-list-item v-for="item in items" :key="item.to" class="pl-6" link :to="item.to">
+      <template #prepend>
+        <NuxtLink class="d-block px-2" to="https://bmluk.gv.at/" target="_blank">
+          <v-img
+            width="199"
+            height="63"
+            :src="`/BMLUK_Logo_${theme.value}.svg`"
+            alt="Bundesministerium für Land- und Forstwirtschaft, Klima- und Umweltschutz, Regionen und Wasserwirtschaft (öffnet in neuem Fenster)"
+          />
+        </NuxtLink>
+        <v-divider class="mx-2" />
+      </template>
+      <!-- Vuetify makes lists an arrow key navigated widget: role="list" (which must not have links
+           as direct children), the list in the tab order and its items not. Menus are expected to
+           be navigated with tab instead. -->
+      <v-list
+        tag="nav"
+        role="navigation"
+        aria-label="Hauptmenü"
+        tabindex="-1"
+        nav
+        slim
+        density="compact"
+      >
+        <v-list-item
+          v-for="item in items"
+          :key="item.to"
+          class="pl-6"
+          tabindex="0"
+          link
+          :to="item.to"
+        >
           {{ item.title }}
         </v-list-item>
-        <v-list-item class="pl-6" link href="mailto:service.entwaldung@bmluk.gv.at"
-          >Kontakt</v-list-item
-        >
-        <v-list-item class="pl-6" link href="https://www.bmluk.gv.at/impressum.html"
-          >Impressum</v-list-item
-        >
         <template v-if="loggedIn">
-          <v-list-item :append-icon="mdiLogout" class="pl-6 text-medium-emphasis" @click="logout"
+          <v-list-item
+            :append-icon="mdiLogout"
+            class="pl-6 text-medium-emphasis"
+            role="button"
+            tabindex="0"
+            @click="logout"
             >Abmelden</v-list-item
           ></template
         >
       </v-list>
+      <template #append>
+        <v-list
+          tag="nav"
+          role="navigation"
+          aria-label="Service und Rechtliches"
+          class="text-medium-emphasis"
+          tabindex="-1"
+          nav
+          slim
+          density="compact"
+        >
+          <v-list-item
+            v-for="item in legalItems"
+            :key="item.title"
+            class="pl-6"
+            tabindex="0"
+            link
+            v-bind="item.to ? { to: item.to } : { href: item.href }"
+          >
+            {{ item.title }}
+          </v-list-item>
+        </v-list>
+      </template>
     </v-navigation-drawer>
-    <v-main scrollable>
+    <v-main id="main" tabindex="-1" scrollable>
       <NuxtPage />
     </v-main>
     <v-snackbar v-model="displayErrorMessage" color="warning" timeout="6000">
@@ -97,6 +153,23 @@ const logout = useLogout();
 }
 .fit-content {
   width: fit-content;
+}
+.skip-link {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 10000;
+  padding: 8px 16px;
+  border-radius: 4px;
+  color: rgb(var(--v-theme-on-primary));
+  background: rgb(var(--v-theme-primary));
+  transform: translateY(-200%);
+}
+.skip-link:focus {
+  transform: none;
+}
+#main:focus {
+  outline: none;
 }
 </style>
 
