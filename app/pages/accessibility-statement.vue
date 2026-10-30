@@ -20,7 +20,7 @@ useSeoMeta({
             </div>
             <div class="text-body-1 mb-2">
               Diese Erklärung zur Barrierefreiheit gilt für die Web-Applikation „EUDR Meldung“ zur
-              Abgabe der Vereinfachten Erklärung im Rahmen der EU-Entwaldungsverordnung.
+              Abgabe der vereinfachten Erklärung im Rahmen der EU-Entwaldungsverordnung.
             </div>
 
             <h2 class="text-h6 mt-4 mb-2">Stand der Vereinbarkeit mit den Anforderungen</h2>

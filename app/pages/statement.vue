@@ -225,7 +225,7 @@ async function submit() {
     // in progress or may have succeeded.
     errorMessage.value =
       (error instanceof FetchError && error.data?.message) ||
-      'Die Erklärung konnte nicht übermittelt werden. Möglicherweise wurde sie trotzdem erstellt. Bitte prüfen Sie unter "Mein Konto" — "Meine Identifikationsnummern", ob sie dort aufscheint, bevor Sie es erneut versuchen.';
+      'Die Erklärung konnte nicht übermittelt werden. Möglicherweise wurde sie trotzdem erstellt. Bitte prüfen Sie unter „Mein Konto“ — „Meine Identifikationsnummern“, ob sie dort aufscheint, bevor Sie es erneut versuchen.';
   } finally {
     finish();
     clear();
@@ -384,29 +384,29 @@ async function validate() {
                     ></v-btn>
                   </template>
                   <div>
-                    Wenn aktiviert, können alle, die die Identifikations- und Verifizierungsnummer
-                    dieser Erklärung kennen, die Erzeugungsorte im EU-Informationssystem einsehen.
-                    Das sind üblicherweise Ihre Abnehmer; diese können die Nummern jedoch
-                    weitergeben. Wenn nicht aktiviert, werden die Erzeugungsorte als vertraulich
-                    behandelt und nicht weitergegeben. Auf die übrigen Angaben der Erklärung und auf
-                    die Einsicht durch die Behörden hat diese Einstellung keinen Einfluss.
+                    Wenn aktiviert, können alle, die die Identifikations- und Prüfnummer dieser
+                    Erklärung kennen, die Erzeugungsorte im EU-Informationssystem einsehen. Das sind
+                    üblicherweise Ihre Abnehmer; diese können die Nummern jedoch weitergeben. Wenn
+                    nicht aktiviert, werden die Erzeugungsorte als vertraulich behandelt und nicht
+                    weitergegeben. Auf die übrigen Angaben der Erklärung und auf die Einsicht durch
+                    die Behörden hat diese Einstellung keinen Einfluss.
                   </div>
                 </v-tooltip>
               </template>
             </v-checkbox>
             <div class="text-body-1 mt-4">
               Hiermit beauftrage ich das Bundesministerium für Land- und Forstwirtschaft, Klima- und
-              Umweltschutz, Regionen und Wasserwirtschaft (BMLUK), für mich als Bevollmächtiger im
+              Umweltschutz, Regionen und Wasserwirtschaft (BMLUK), für mich als Bevollmächtigter im
               Sinne von Artikel 2 Ziffer 22 in Verbindung mit Artikel 6 der Verordnung (EU)
-              2023/1115 aufzutreten und die von mir erstellte Vereinfachte Erklärung an das
+              2023/1115 aufzutreten und die von mir erstellte vereinfachte Erklärung an das
               Informationssystem gemäß Artikel 33 dieser Verordnung zu übermitteln. Ich bestätige,
-              die alleinige Verantwortung für den Inhalt der Vereinfachten Erklärung zu übernehmen.
+              die alleinige Verantwortung für den Inhalt der vereinfachten Erklärung zu übernehmen.
             </div>
             <div class="text-body-1 mt-4">
               Durch Übermittlung dieser vereinfachten Erklärung für Kleinst- oder
               Kleinprimärerzeuger bestätige ich, dass ich die Sorgfaltspflicht gemäß der Verordnung
               (EU) 2023/1115 in Bezug auf die relevanten Erzeugnisse, die ich in Verkehr bringe oder
-              ausführe, erfülle , und dass ich diese Erzeugnisse nur dann in Verkehr bringe oder
+              ausführe, erfülle, und dass ich diese Erzeugnisse nur dann in Verkehr bringe oder
               ausführe, wenn kein oder lediglich ein vernachlässigbares Risiko dahingehend
               festgestellt wurde, dass die relevanten Erzeugnisse gegen Artikel 3 Buchstaben a oder
               b dieser Verordnung verstoßen.

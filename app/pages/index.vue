@@ -91,7 +91,7 @@ function pauseOtherVideos(event) {
         <v-card>
           <v-card-text>
             <div class="text-body-1 mb-2">
-              Herzlich willkommen auf der Seite zur Erstellung Ihrer Vereinfachten Erklärung im
+              Herzlich willkommen auf der Seite zur Erstellung Ihrer vereinfachten Erklärung im
               Rahmen der EU-Entwaldungsverordnung (EUDR,
               <a
                 href="https://eur-lex.europa.eu/eli/reg/2023/1115/oj"
@@ -101,7 +101,7 @@ function pauseOtherVideos(event) {
               >)!
             </div>
             <div class="text-body-1">
-              Hier können Sie Ihre Vereinfachte Erklärung schnell und einfach abgeben. Die Videos
+              Hier können Sie Ihre vereinfachte Erklärung schnell und einfach abgeben. Die Videos
               auf dieser Seite zeigen Schritt für Schritt, wie es geht.
             </div>
           </v-card-text>

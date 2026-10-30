@@ -200,7 +200,7 @@ watch(yieldPerHectare, (value) => {
                   ></v-btn>
                 </template>
                 <div>
-                  Sie können die hinterlegten Flächen mit "Flächen anzeigen" einsehen und falls
+                  Sie können die hinterlegten Flächen mit „Flächen anzeigen“ einsehen und falls
                   nötig manuell ändern.
                 </div>
               </v-tooltip>
