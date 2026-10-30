@@ -1,5 +1,4 @@
 import amaCattle from '../db/schema/ama_cattle';
-import { unref } from 'vue';
 import { isUserDataValid } from '~~/shared/utils/utils';
 import { CATTLE_LOGIN_PROVIDERS } from '~~/shared/utils/constants';
 
@@ -39,7 +38,7 @@ export default defineEventHandler(async (event) => {
   };
 
   const commodities = statement.commodities;
-  if (commodities.some((c) => Object.values(unref(c.quantity)).some((v) => v < 0))) {
+  if (commodities.some((c) => Object.values(c.quantity).some((v) => v < 0))) {
     throw createError({
       status: 400,
       statusMessage: 'Bad Request',
@@ -47,7 +46,7 @@ export default defineEventHandler(async (event) => {
     });
   }
   const cattleCount = commodities.reduce((sum, c) => {
-    const quantity = unref(c.quantity);
+    const quantity = c.quantity;
     return (quantity['0102'] || 0) + sum;
   }, 0);
   const lfbis = CATTLE_LOGIN_PROVIDERS.includes(session.loginProvider) ? secure.lfbis : undefined;

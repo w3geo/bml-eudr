@@ -55,9 +55,7 @@ const geolocationVisible = computed(
 const rows = computed(() =>
   (statement.value?.commodities ?? []).flatMap((commodity) => {
     const metadata = COMMODITIES[commodity.key];
-    const quantity = unref(commodity.quantity);
-    const geojson = unref(commodity.geojson);
-    const address = unref(commodity.address);
+    const { quantity, geojson, address } = commodity;
     const places = geojson?.features?.filter((f) => f.geometry).length || 0;
     const location = places
       ? `Geolokalisation, ${places} ${places === 1 ? 'Fläche' : 'Flächen'}`

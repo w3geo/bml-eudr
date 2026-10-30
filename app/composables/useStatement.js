@@ -120,7 +120,7 @@ export function useStatement(commodity, loginProvider) {
   const geolocation = useState(`geolocation-${commodity}`, () => defaultGeolocation);
 
   /** @type {Snapshot} */
-  const snapshot = useState(`snapshot-${commodity}`, () => null);
+  const snapshot = useState(`snapshot-${commodity}`, () => shallowRef(null));
 
   // Derive "modified" by comparing the current state against the snapshot rather
   // than flipping a flag from a watcher. A watcher would fire on the editor's

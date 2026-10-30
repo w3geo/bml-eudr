@@ -1,6 +1,5 @@
 import { randomBytes, createHash } from 'crypto';
 import { DOMParser } from '@xmldom/xmldom';
-import { unref } from 'vue';
 import {
   COMMODITIES,
   HS_HEADING,
@@ -20,14 +19,14 @@ import { parseAddress } from '~~/shared/utils/utils.js';
  * @property {string} [verificationNumber]
  * @property {TracesStatus} status
  * @property {string} date
- * @property {Array<CommodityDataWithKey>} [commodities]
+ * @property {Array<PlainCommodityDataWithKey>} [commodities]
  * @property {boolean} [geolocationVisible] Whether the geolocations may be viewed by those who know the reference and verification numbers
  * @property {string} [commoditiesSummary] Short summary of commodities (for display in list)
  */
 
 /**
  * @typedef {Object} StatementPayload
- * @property {Array<CommodityDataWithKey>} commodities
+ * @property {Array<PlainCommodityDataWithKey>} commodities
  * @property {boolean} geolocationVisible
  */
 
@@ -43,6 +42,19 @@ import { parseAddress } from '~~/shared/utils/utils.js';
 
 /**
  * @typedef {{key: import('~~/shared/utils/constants.js').Commodity} & CommodityData} CommodityDataWithKey
+ */
+
+/**
+ * Commodity data without refs, as sent to and returned by the API.
+ * @typedef {Object} PlainCommodityData
+ * @property {import('~/composables/useStatement').Quantity} quantity
+ * @property {import('geojson').FeatureCollection<import('geojson').Geometry | null>} geojson
+ * @property {import('~/composables/useStatement').Address} [address] Override for the producer postal address; defaults to the user's address.
+ * @property {boolean} [geolocation] Whether the drawn geolocation ("Geolokalisation") is submitted as the producer location instead of the postal address ("Postanschrift").
+ */
+
+/**
+ * @typedef {{key: import('~~/shared/utils/constants.js').Commodity} & PlainCommodityData} PlainCommodityDataWithKey
  */
 
 // TRACES API Specification and documentation:
@@ -283,19 +295,19 @@ function getHeader() {
 }
 
 /**
- * @param {Array<CommodityDataWithKey>} commodities
+ * @param {Array<PlainCommodityDataWithKey>} commodities
  */
 function getCommoditiesXML(commodities) {
   const commodityXMLs = [];
   for (const commodity of commodities) {
-    const geojson = unref(commodity.geojson);
+    const geojson = commodity.geojson;
     const key = commodity.key;
-    const producerAddress = unref(commodity.address);
+    const producerAddress = commodity.address;
     const hsCodes = /** @type {Array<import('~~/shared/utils/constants').HSCode>} */ (
       Object.keys(commodity.quantity)
     );
     for (const hsCode of hsCodes) {
-      const quantity = /** @type {number} */ (unref(commodity.quantity)[hsCode]);
+      const quantity = /** @type {number} */ (commodity.quantity[hsCode]);
       if (!quantity) {
         continue;
       }
@@ -342,8 +354,7 @@ function getCommoditiesXML(commodities) {
         </sd:descriptors>`;
       const hsHeading = `<sd:hsHeading>${hsCode}</sd:hsHeading>`;
 
-      const hasGeometry =
-        unref(commodity.geolocation) && geojson?.features?.some((f) => f.geometry);
+      const hasGeometry = commodity.geolocation && geojson?.features?.some((f) => f.geometry);
       const producerLocation = hasGeometry
         ? `<sd:producerLocation>
               <sd:geometryGeojson>${btoa(JSON.stringify(geojson))}</sd:geometryGeojson>
@@ -373,7 +384,7 @@ function getCommoditiesXML(commodities) {
 }
 
 /**
- * @param {Array<CommodityDataWithKey>} commodities
+ * @param {Array<PlainCommodityDataWithKey>} commodities
  * @param {boolean} geolocationVisible
  * @param {User} user
  * @returns {string}
@@ -450,7 +461,7 @@ function getRetrieveSdXML(sdIds) {
 }
 
 /**
- * @param {Array<CommodityDataWithKey>} commodities
+ * @param {Array<PlainCommodityDataWithKey>} commodities
  * @param {boolean} geolocationVisible
  * @param {User} user
  * @returns {Promise<{ sdId: string | undefined, error: string | undefined }>}

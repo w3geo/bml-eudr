@@ -1,6 +1,5 @@
 import { createCipheriv, createDecipheriv, randomBytes } from 'crypto';
 import { eq, inArray, lt } from 'drizzle-orm';
-import { unref } from 'vue';
 import statementContents from '../db/schema/statement_contents';
 
 // TRACES no longer returns the contents of a statement, so we keep an encrypted copy of what was
@@ -11,7 +10,7 @@ export const RETENTION_YEARS = 5;
 
 /**
  * @typedef {Object} StoredContents
- * @property {Array<import('./soap-traces').CommodityDataWithKey>} commodities
+ * @property {Array<import('./soap-traces').PlainCommodityDataWithKey>} commodities
  * @property {boolean} geolocationVisible
  */
 
@@ -75,20 +74,19 @@ export function isInvalidated(statement) {
  * Store a copy of what was submitted for each commodity: the geolocation or the postal address,
  * whichever getCommoditiesXML() sent.
  * @param {string} sdId
- * @param {Array<import('./soap-traces').CommodityDataWithKey>} commodities
+ * @param {Array<import('./soap-traces').PlainCommodityDataWithKey>} commodities
  * @param {boolean} geolocationVisible
  */
 export async function storeStatementContents(sdId, commodities, geolocationVisible) {
   /** @type {StoredContents} */
   const contents = {
     commodities: commodities.map((c) => {
-      const geojson = unref(c.geojson);
-      const usesGeolocation = unref(c.geolocation) && geojson?.features?.some((f) => f.geometry);
+      const usesGeolocation = c.geolocation && c.geojson?.features?.some((f) => f.geometry);
       return {
         key: c.key,
-        quantity: unref(c.quantity),
-        geojson: usesGeolocation ? geojson : { type: 'FeatureCollection', features: [] },
-        address: usesGeolocation ? null : (unref(c.address) ?? null),
+        quantity: c.quantity,
+        geojson: usesGeolocation ? c.geojson : { type: 'FeatureCollection', features: [] },
+        address: usesGeolocation ? null : (c.address ?? null),
       };
     }),
     geolocationVisible,

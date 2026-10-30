@@ -18,18 +18,19 @@ const { start, finish, clear } = useLoadingIndicator();
 const { errorMessage } = useErrorMessage();
 const statementCount = ref(0);
 
-const mapDialog = reactive({
+// Shallow, so the GeoJSON passed to the map does not become deeply reactive.
+const mapDialog = shallowReactive({
   open: false,
   // prettier-ignore
   geojson: /** @type {import('geojson').FeatureCollection<import('geojson').Geometry|null>|undefined} */ (undefined),
   commodity: /** @type {import('~~/shared/utils/constants.js').Commodity|undefined} */ (undefined),
 });
 /**
- * @param {import('geojson').FeatureCollection<import('geojson').Geometry|null>|import('vue').Ref<import('geojson').FeatureCollection<import('geojson').Geometry|null>>} geojson
+ * @param {import('geojson').FeatureCollection<import('geojson').Geometry|null>} geojson
  * @param {string} commodity
  */
 function openMapDialog(geojson, commodity) {
-  mapDialog.geojson = unref(geojson);
+  mapDialog.geojson = geojson;
   mapDialog.commodity = /** @type {import('~~/shared/utils/constants.js').Commodity} */ (commodity);
   mapDialog.open = true;
 }
@@ -130,7 +131,7 @@ async function toggleFullStatement(sdId) {
 
 /**
  * @param {import('~~/server/utils/soap-traces').StatementInfo} statement
- * @returns {Promise<Array<import('~~/server/utils/soap-traces').CommodityDataWithKey>|undefined>}
+ * @returns {Promise<Array<import('~~/server/utils/soap-traces').PlainCommodityDataWithKey>|undefined>}
  */
 const getCommodities = async (statement) => {
   if (!statement.commodities) {
@@ -284,7 +285,7 @@ const copyToClipboard = async (statement) => {
                   </td>
                   <td>
                     <v-btn
-                      v-if="unref(value.geojson)?.features?.some((f) => f.geometry)"
+                      v-if="value.geojson?.features?.some((f) => f.geometry)"
                       density="compact"
                       variant="text"
                       :icon="mdiMap"
@@ -301,7 +302,7 @@ const copyToClipboard = async (statement) => {
               <tr
                 v-else-if="
                   item.geolocationVisible === false &&
-                  item.commodities.some((c) => unref(c.geojson)?.features?.length)
+                  item.commodities.some((c) => c.geojson?.features?.length)
                 "
               >
                 <td colspan="3" class="text-medium-emphasis">
