@@ -36,7 +36,6 @@
     "polygon-clipping": "^0.15.7",
     "uqr": "^0.1.2",
     "vue": "^3.5.18",
-    "vue-router": "^4.5.1",
     "vuetify": "^3.13.4",
     "vuetify-nuxt-module": "^1.0.0-rc.5"
   },
