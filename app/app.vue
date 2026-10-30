@@ -36,7 +36,13 @@ const logout = () => {
         <v-app-bar-nav-icon @click.stop="drawer = !drawer"></v-app-bar-nav-icon>
       </template>
       <v-app-bar-title>
-        <NuxtLink class="text-decoration-none text-grey-lighten-2" to="/"> EUDR Meldung </NuxtLink>
+        <NuxtLink
+          class="d-flex fit-content align-center ga-2 text-decoration-none text-grey-lighten-2"
+          to="/"
+        >
+          <img src="/logo.png" alt="" height="28" width="34" />
+          EUDR Meldung
+        </NuxtLink>
       </v-app-bar-title>
       <v-menu v-if="loggedIn">
         <template #activator="{ props }">
@@ -95,6 +101,9 @@ const logout = () => {
 <style scoped>
 .inline-block {
   display: inline-block;
+}
+.fit-content {
+  width: fit-content;
 }
 </style>
 
