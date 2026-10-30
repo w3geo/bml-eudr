@@ -92,12 +92,17 @@ function pauseOtherVideos(event) {
           <v-card-text>
             <div class="text-body-1 mb-2">
               Herzlich willkommen auf der Seite zur Erstellung Ihrer Vereinfachten Erklärung im
-              Rahmen der EU- Entwaldungsverordnung (EUDR) link zur EUDR VO 2023/1115!
+              Rahmen der EU-Entwaldungsverordnung (EUDR,
+              <a
+                href="https://eur-lex.europa.eu/eli/reg/2023/1115/oj"
+                target="_blank"
+                class="text-primary"
+                >Verordnung (EU) 2023/1115</a
+              >)!
             </div>
             <div class="text-body-1">
-              Auf dieser Homepage haben Sie die Möglichkeit, Ihre Vereinfachte Erklärung schnell und
-              einfach abzugeben. Die Videos auf dieser Seite zeigen Schritt für Schritt, wie es
-              geht.
+              Hier können Sie Ihre Vereinfachte Erklärung schnell und einfach abgeben. Die Videos
+              auf dieser Seite zeigen Schritt für Schritt, wie es geht.
             </div>
           </v-card-text>
           <v-card-actions class="justify-center flex-wrap ga-2 pb-4">
