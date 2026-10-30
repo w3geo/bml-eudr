@@ -6,6 +6,7 @@ import {
   NET_WEIGHT_TOLERANCE_PERCENT,
 } from '~~/shared/utils/constants.js';
 import { parseAddress } from '~~/shared/utils/utils.js';
+import { removeHoles } from './remove-holes.js';
 
 /** @typedef {'AVAILABLE' | 'SUBMITTED' | 'REJECTED' | 'WITHDRAWN' | 'ARCHIVED' | 'SUSPENDED' | 'UPDATED' | 'GROUPED' | 'OBSOLETE' | 'UNKNOWN'} TracesStatus */
 
@@ -357,7 +358,7 @@ function getCommoditiesXML(commodities) {
       const hasGeometry = commodity.geolocation && geojson?.features?.some((f) => f.geometry);
       const producerLocation = hasGeometry
         ? `<sd:producerLocation>
-              <sd:geometryGeojson>${btoa(JSON.stringify(geojson))}</sd:geometryGeojson>
+              <sd:geometryGeojson>${btoa(JSON.stringify(removeHoles(geojson)))}</sd:geometryGeojson>
             </sd:producerLocation>`
         : producerAddress
           ? `<sd:producerLocation>
