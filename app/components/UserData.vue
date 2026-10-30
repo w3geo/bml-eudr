@@ -184,8 +184,8 @@ const idItems = computed(() => [
         <v-alert v-if="loginProvidedFields.length > 0" :icon="mdiInformationOutline" class="mb-4">
           Nicht editierbare Felder wurden vom Anmeldedienst übernommen.
         </v-alert>
-        Mit dem Klicken auf "Speichern" stimme ich zu, dass meine Daten zum Zweck der Erstellung von
-        Vereinfachten Erklärungen gespeichert und verarbeitet werden.
+        Mit dem Klicken auf „Speichern“ stimme ich zu, dass meine Daten zum Zweck der Erstellung von
+        vereinfachten Erklärungen gespeichert und verarbeitet werden.
       </v-col>
     </v-row>
     <v-snackbar v-if="props.editable && canSave" v-model="snackbar" timeout="2000">

@@ -216,7 +216,7 @@ const copyToClipboard = async (statement) => {
     );
   } catch {
     errorMessage.value =
-      'Die Erklärung konnte nicht in die Zwischenablage kopiert werden. Bitte klicken Sie erneut auf "Kopieren".';
+      'Die Erklärung konnte nicht in die Zwischenablage kopiert werden. Bitte klicken Sie erneut auf „Kopieren“.';
   }
 };
 </script>
@@ -359,7 +359,7 @@ const copyToClipboard = async (statement) => {
     </v-col>
     <v-col v-else>
       Noch keine vorhanden. Erstellen Sie eine
-      <NuxtLink to="/statement"> Vereinfachte Erklärung </NuxtLink>.
+      <NuxtLink to="/statement"> vereinfachte Erklärung </NuxtLink>.
     </v-col>
   </v-row>
   <geolocations-dialog

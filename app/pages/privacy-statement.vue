@@ -50,14 +50,15 @@ useSeoMeta({
               zur Datenverarbeitung beruht. Diese Einwilligung kann jederzeit per E-Mail an
               <a href="mailto:service.entwaldung@bmluk.gv.at" class="text-primary"
                 >service.entwaldung@bmluk.gv.at</a
-              >. widerrufen werden. Vom BMLUK werden die im Rahmen der Nutzung dieser Applikation
+              >
+              widerrufen werden. Vom BMLUK werden die im Rahmen der Nutzung dieser Applikation
               eingegebenen und übermittelten Inhaltsdaten für keine anderen Zwecke weiterverwendet.
-              Bei Klicken der Schaltfläche „Bestätigen und Übermitteln“ auf der Seite „Vereinfachte
+              Bei Klicken der Schaltfläche „Bestätigen und übermitteln“ auf der Seite „Vereinfachte
               Erklärung“ werden Name und Adresse des Betriebes, der Identifikationstyp (GLN, UID
-              oder Steuernummer) und die dazugehörige Nummer, sowie die für die Vereinfachte
+              oder Steuernummer) und die dazugehörige Nummer, sowie die für die vereinfachte
               Erklärung erfasste Lokalisierung (Postanschrift bzw. Flächen- und Punktdaten),
               Erzeugnisse, und deren Mengen an die TRACES-Datenbank übermittelt, da diese Angaben
-              für die Vereinfachte Erklärung verpflichtend sind. Die auf diese Weise übermittelten
+              für die vereinfachte Erklärung verpflichtend sind. Die auf diese Weise übermittelten
               Daten werden von der EU-Kommission als Betreiberin der TRACES-Datenbank
               weiterverarbeitet.
             </div>
@@ -84,16 +85,16 @@ useSeoMeta({
               über Ihren eAMA-Zugang einsteigen:
               <ul class="pl-4 mt-2">
                 <li class="mb-1">
-                  Bei Anmeldung mit ID Austria wird auf der Seite "Mein Konto" unter "Angaben zum
-                  Betrieb" der Identifikationstyp (GLN, UID oder Steuernummer) sowie die
-                  dazugehörige Nummer zum Zweck der Erstellung von Vereinfachten Erklärungen
+                  Bei Anmeldung mit ID Austria wird auf der Seite „Mein Konto“ unter „Angaben zum
+                  Betrieb“ der Identifikationstyp (GLN, UID oder Steuernummer) sowie die
+                  dazugehörige Nummer zum Zweck der Erstellung von vereinfachten Erklärungen
                   gespeichert.
                 </li>
                 <li class="mb-1">
-                  Bei Anmeldung mit E-Mail werden auf der Seite "Mein Konto" unter "Angaben zum
-                  Betrieb" die E-Mail Adresse, Name, Adresse und Identifikationstyp (GLN, UID oder
+                  Bei Anmeldung mit E-Mail werden auf der Seite „Mein Konto“ unter „Angaben zum
+                  Betrieb“ die E-Mail-Adresse, Name, Adresse und Identifikationstyp (GLN, UID oder
                   Steuernummer) sowie die dazugehörige Nummer zum Zweck der Erstellung und
-                  Verwaltung von Vereinfachten Erklärungen gespeichert.
+                  Verwaltung von vereinfachten Erklärungen gespeichert.
                 </li>
               </ul>
             </div>
@@ -112,10 +113,10 @@ useSeoMeta({
               Konto aktiv ist.
             </div>
             <div class="text-body-1 mb-2">
-              Bei Klicken der Schaltfläche „Bestätigen und Übermitteln" auf der Seite „Vereinfachte
+              Bei Klicken der Schaltfläche „Bestätigen und übermitteln“ auf der Seite „Vereinfachte
               Erklärung“ wird zum Zweck der Verknüpfung mit dieser Applikation ein aus Ihrer
               Benutzer-ID (LFBIS-Nummer bei eAMA Login, KUR bei USP Login, bPK bei ID Austria Login,
-              e-mail Adresse bei E-Mail Login) errechneter, nicht umkehrbarer Hash-Wert als interne
+              E-Mail-Adresse bei E-Mail Login) errechneter, nicht umkehrbarer Hash-Wert als interne
               Referenz an die TRACES-Datenbank übermittelt.
             </div>
             <div class="text-body-1 mb-2">
@@ -124,7 +125,7 @@ useSeoMeta({
               Widerspruch gegen die Verarbeitung sowie das Recht auf Datenübertragbarkeit. Wenn Sie
               der Auffassung sind, dass Ihren Rechten nicht oder nicht ausreichend nachgekommen
               wird, haben Sie die Möglichkeit einer Beschwerde bei der Aufsichtsbehörde (in
-              Österreich ist dies die Österreichische Datenschutzbehörde Datenschutzbehörde:
+              Österreich ist dies die Österreichische Datenschutzbehörde:
               <a href="https://www.dsb.gv.at" class="text-primary">www.dsb.gv.at</a>).
             </div>
 

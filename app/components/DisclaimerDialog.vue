@@ -10,7 +10,7 @@ const showDisclaimer = ref(!loggedIn.value);
 
         <div class="text-body-1 mb-2">
           herzlichen Dank, dass Sie das Tool zur EUDR Meldung (in der Folge „Tool“) des BMLUK
-          verwenden. Dieses dient der einfacheren Abgabe Ihrer Vereinfachten Erklärung für Kleinst-
+          verwenden. Dieses dient der einfacheren Abgabe Ihrer vereinfachten Erklärung für Kleinst-
           oder Kleinprimärerzeuger im Rahmen der EU-Entwaldungsverordnung bzw. EUDR [Verordnung (EU)
           2023/1115].
         </div>
@@ -18,17 +18,18 @@ const showDisclaimer = ref(!loggedIn.value);
         <div class="text-body-1 mb-2">
           Aus den im Tool angezeigten Karteninhalten (Darstellungen) und den dazugehörenden Texten
           können Rechtsansprüche weder begründet noch abgeleitet werden. Das Bundesministerium für
-          Land- und Forstwirtschaft, Regionen und Wasserwirtschaft (BMLUK) übernimmt keine Haftung
-          für Richtigkeit, Vollständigkeit, Aktualität oder dauernde Verfügbarkeit dieses Tools. Die
-          Karten und Texte sind keine amtliche Auskunft oder rechtsverbindliche Aussage. Amtliche
-          Auskünfte zu einem bestimmten Gebiet oder einer bestimmten Frage erteilt auf Anfrage die
-          zuständige Behörde. Alle Angaben (Berechnungsergebnisse) sind trotz sorgfältigster
-          Bearbeitung/Verarbeitung ohne Gewähr und nicht rechtsverbindlich. Für Eingaben im Tool
-          haftet überdies derjenige, der sich ihm bedient oder der es für einen anderen verwendet.
-          Eine Haftung des BMLUK für Nachteile, die aufgrund des Tools angezeigten und abgefragten
-          Inhalte entstanden sind, wird ausgeschlossen. Das BMLUK behält sich ausdrücklich vor,
-          Inhalte des Tools jederzeit ohne Ankündigung ganz oder teilweise zu ändern, zu ergänzen,
-          zu löschen oder zeitweise nicht zu veröffentlichen.
+          Land- und Forstwirtschaft, Klima- und Umweltschutz, Regionen und Wasserwirtschaft (BMLUK)
+          übernimmt keine Haftung für Richtigkeit, Vollständigkeit, Aktualität oder dauernde
+          Verfügbarkeit dieses Tools. Die Karten und Texte sind keine amtliche Auskunft oder
+          rechtsverbindliche Aussage. Amtliche Auskünfte zu einem bestimmten Gebiet oder einer
+          bestimmten Frage erteilt auf Anfrage die zuständige Behörde. Alle Angaben
+          (Berechnungsergebnisse) sind trotz sorgfältigster Bearbeitung/Verarbeitung ohne Gewähr und
+          nicht rechtsverbindlich. Für Eingaben im Tool haftet überdies derjenige, der sich seiner
+          bedient oder der es für einen anderen verwendet. Eine Haftung des BMLUK für Nachteile, die
+          aufgrund der im Tool angezeigten und abgefragten Inhalte entstanden sind, wird
+          ausgeschlossen. Das BMLUK behält sich ausdrücklich vor, Inhalte des Tools jederzeit ohne
+          Ankündigung ganz oder teilweise zu ändern, zu ergänzen, zu löschen oder zeitweise nicht zu
+          veröffentlichen.
         </div>
 
         <div class="text-body-1 mb-2">
