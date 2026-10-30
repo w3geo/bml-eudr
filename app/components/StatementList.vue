@@ -293,7 +293,7 @@ const copyToClipboard = async (statement) => {
                 </tr>
               </template>
             </tbody>
-            <tbody v-else>
+            <tbody v-else-if="item.referenceNumber">
               <tr>
                 <td class="text-center">
                   <v-btn
