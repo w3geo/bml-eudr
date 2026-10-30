@@ -476,7 +476,7 @@ export async function submitSD(commodities, geolocationVisible, user) {
   });
   const error = xml ? getFaultMessage(xml) : '';
   if (status >= 400 || !xml) {
-    console.error('TRACES submit error:', text, 'body:', body);
+    console.error('TRACES submit error:', text);
     return {
       sdId: undefined,
       error: error || UNEXPECTED_MESSAGE,
