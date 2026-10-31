@@ -11,8 +11,9 @@ export default defineEventHandler(async (event) => {
       .values({
         id,
         loginProvider: 'IDA',
+        lastLoginAt: new Date(),
       })
-      .onConflictDoNothing();
+      .onConflictDoUpdate({ target: users.id, set: { lastLoginAt: new Date() } });
     const [user] = await useDb().select().from(users).where(eq(users.id, id));
     await setUserSession(event, {
       user: {

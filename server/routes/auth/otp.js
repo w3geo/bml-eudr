@@ -130,6 +130,7 @@ export default defineEventHandler(async (event) => {
     .update(users)
     .set({
       otp: null, // Clear the OTP after successful login
+      lastLoginAt: new Date(),
       loginProvider,
       identifierType: user.identifierType,
       identifierValue: user.identifierValue,

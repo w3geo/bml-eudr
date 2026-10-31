@@ -46,7 +46,14 @@ export default defineEventHandler(async (event) => {
 
   if (event.method === 'PUT' && event.headers.get('content-type') === 'application/json') {
     /** @type {import('~~/server/db/schema/users.js').User} */
-    const properties = await readBody(event);
+    /** @type {Record<string, any>} */
+    const body = await readBody(event);
+    // Only editable fields, so e.g. lastLoginAt or otp cannot be set by the client
+    const properties = /** @type {import('~~/server/db/schema/users.js').User} */ (
+      Object.fromEntries(
+        editableUserDataFields.filter((key) => key in body).map((key) => [key, body[key]]),
+      )
+    );
     if (!isUserDataValid(properties)) {
       throw createError({ status: 400, statusMessage: 'Invalid user data' });
     }
