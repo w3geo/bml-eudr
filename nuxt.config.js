@@ -19,7 +19,25 @@ export default defineNuxtConfig({
     'nuxt-auth-utils',
     'vuetify-nuxt-module',
     '@eschricht/nuxt-color-mode',
+    '@nuxtjs/robots',
+    '@nuxtjs/sitemap',
   ],
+  // See https://nuxtseo.com/docs/site-config and README.md. Not indexable unless production sets
+  // NUXT_SITE_INDEXABLE=true at build time.
+  site: {
+    name: 'EUDR Meldung',
+    indexable: false,
+  },
+  robots: {
+    disallow: ['/auth/'],
+  },
+  routeRules: {
+    // noindex header and meta tag, and not in the sitemap
+    '/api/**': { robots: false },
+    '/auth/**': { robots: false },
+    '/print/**': { robots: false },
+    '/statement': { robots: false },
+  },
   runtimeConfig: {
     // See server/utils/database.js and server/plugins/storage.js
     pgliteDataDir: join('.data', 'pglite'),
