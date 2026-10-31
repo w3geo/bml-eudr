@@ -24,6 +24,38 @@ Drizzle provides Studio, a database browser to see what's going on in the databs
 
 and open https://local.drizzle.studio in your browser. The connection parameters of the current environment will be used.
 
+### Deleting an account on request
+
+Users can delete their account on the "Mein Konto" page. When that is not possible and a deletion is requested via service.entwaldung@bmluk.gv.at, the request has to include the reference number ("Identifikationsnummer") of one of the user's statements, or the e-mail address for e-mail logins. In the TRACES UI, that statement's "Company Internal Ref" identifies the user: it is a hash of the user id (see `getInternalReferenceHash()` in `server/utils/soap-traces.js`).
+
+1. In the TRACES UI, find all statements with that "Company Internal Ref" and note the UUID in the URL of each statement: it is the `sdId`. Delete their copies in this application's database:
+
+       DELETE FROM statement_contents WHERE "sdId" IN ('<sdId>', ...);
+
+2. AMA and USP logins have no row in the `users` table. For e-mail logins, the user id is the e-mail address. For all other logins, find the user id by hashing all ids, with `DATABASE_URL` and `DATABASE_CA_CERT` of the production database set:
+
+   ```sh
+   node --input-type=module -e "
+   import { createHash } from 'crypto';
+   import pg from 'pg';
+   const url = new URL(process.env.DATABASE_URL);
+   const client = new pg.Client({
+     host: url.hostname, port: parseInt(url.port), user: url.username, password: url.password,
+     database: url.pathname.slice(1), ssl: { rejectUnauthorized: false, ca: process.env.DATABASE_CA_CERT },
+   });
+   await client.connect();
+   const { rows } = await client.query('SELECT id FROM users');
+   // Must match getInternalReferenceHash() in server/utils/soap-traces.js
+   const hash = (id) => BigInt('0x' + createHash('sha256').update(String(id)).digest('hex')).toString(36).slice(0, 14);
+   console.log(rows.filter((row) => hash(row.id) === process.argv[1]).map((row) => row.id));
+   await client.end();
+   " <Company Internal Ref>
+   ```
+
+   Then delete the row:
+
+       DELETE FROM users WHERE id = '<id>';
+
 ## AMA Client certificate
 
 To convert the AMA client certificate to .crt and .key files for use with Node HTTPS Agent's `cert` and `key` properties, use the following:

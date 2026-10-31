@@ -100,15 +100,17 @@ useSeoMeta({
             </div>
             <div class="text-body-1 mb-2">
               Unabhängig von der Art der Anmeldung können Sie Ihr Konto jederzeit auf der Seite
-              „Mein Konto“ löschen oder die Löschung durch formlose Mitteilung an
+              „Mein Konto“ löschen. Ist das nicht möglich, können Sie die Löschung durch formlose
+              Mitteilung an
               <a href="mailto:service.entwaldung@bmluk.gv.at" class="text-primary"
                 >service.entwaldung@bmluk.gv.at</a
               >
-              beantragen. Dabei werden Ihre vom BMLUK gespeicherten Angaben zum Betrieb und die
-              gespeicherten Kopien Ihrer vereinfachten Erklärungen gelöscht. Die in der
-              TRACES-Datenbank gespeicherten vereinfachten Erklärungen bleiben davon unberührt und
-              werden nach erneuter Anmeldung mit derselben Anmeldeart wieder angezeigt, allerdings
-              ohne die gelöschten Kopien. Ebenfalls unberührt bleibt die Übermittlung von
+              beantragen. Geben Sie dabei bitte die Identifikationsnummer einer Ihrer vereinfachten
+              Erklärungen an. Bei der Löschung werden Ihre vom BMLUK gespeicherten Angaben zum
+              Betrieb und die gespeicherten Kopien Ihrer vereinfachten Erklärungen gelöscht. Die in
+              der TRACES-Datenbank gespeicherten vereinfachten Erklärungen bleiben davon unberührt
+              und werden nach erneuter Anmeldung mit derselben Anmeldeart wieder angezeigt,
+              allerdings ohne die gelöschten Kopien. Ebenfalls unberührt bleibt die Übermittlung von
               Rinderzahlen an die AMA. Ansonsten bleiben Ihre Zugangsdaten gespeichert, solange Ihr
               Konto aktiv ist. Konten, mit denen Sie sich fünf Jahre lang nicht angemeldet haben,
               werden automatisch gelöscht.
