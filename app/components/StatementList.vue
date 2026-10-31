@@ -84,6 +84,10 @@ onBeforeUnmount(() => {
   document.removeEventListener('visibilitychange', refreshPending);
 });
 
+// Make sure server and browser use the same time zone when rendering dates
+/** @param {string} date */
+const formatDate = (date) => new Date(date).toLocaleString('sv-SE', { timeZone: 'Europe/Vienna' });
+
 const DETAILS_ERROR_MESSAGE =
   'Details zu dieser Erklärung konnten nicht abgerufen werden. Bitte versuchen Sie es später erneut.';
 
@@ -173,7 +177,7 @@ const sendEmail = async (statement) => {
   }
   createAndClickLink(
     `mailto:?subject=EUDR Vereinfachte Erklärung von ${getOperatorName()}&body=${encodeURIComponent(
-      `Ersteller: ${getOperatorName()}\nIdentifikationsnummer: ${statement.referenceNumber}\nPrüfnummer: ${statement.verificationNumber}\nErklärungsdatum: ${new Date(statement.date).toLocaleString('sv-SE')}\n${getCommoditiesSummary(
+      `Ersteller: ${getOperatorName()}\nIdentifikationsnummer: ${statement.referenceNumber}\nPrüfnummer: ${statement.verificationNumber}\nErklärungsdatum: ${formatDate(statement.date)}\n${getCommoditiesSummary(
         commodities,
       )}`,
     )}`,
@@ -191,7 +195,7 @@ const sendTextMessage = async (statement) => {
   }
   createAndClickLink(
     `sms:?body=${encodeURIComponent(
-      `EUDR Vereinfachte Erklärung\n\nErsteller: ${getOperatorName()}\nIdentifikationsnummer: ${statement.referenceNumber}\nPrüfnummer: ${statement.verificationNumber}\nErklärungsdatum: ${new Date(statement.date).toLocaleString('sv-SE')}\n${getCommoditiesSummary(
+      `EUDR Vereinfachte Erklärung\n\nErsteller: ${getOperatorName()}\nIdentifikationsnummer: ${statement.referenceNumber}\nPrüfnummer: ${statement.verificationNumber}\nErklärungsdatum: ${formatDate(statement.date)}\n${getCommoditiesSummary(
         commodities,
       )}`,
     )}`,
@@ -210,7 +214,7 @@ const copyToClipboard = async (statement) => {
   }
   try {
     await navigator.clipboard.writeText(
-      `EUDR Vereinfachte Erklärung\n\nErsteller: ${getOperatorName()}\nIdentifikationsnummer: ${statement.referenceNumber}\nPrüfnummer: ${statement.verificationNumber}\nErklärungsdatum: ${new Date(statement.date).toLocaleString('sv-SE')}\n${getCommoditiesSummary(
+      `EUDR Vereinfachte Erklärung\n\nErsteller: ${getOperatorName()}\nIdentifikationsnummer: ${statement.referenceNumber}\nPrüfnummer: ${statement.verificationNumber}\nErklärungsdatum: ${formatDate(statement.date)}\n${getCommoditiesSummary(
         commodities,
       )}`,
     );
@@ -259,7 +263,7 @@ const copyToClipboard = async (statement) => {
               </tr>
               <tr>
                 <td>Erklärungsdatum</td>
-                <td>{{ new Date(item.date).toLocaleString('sv-SE') }}</td>
+                <td>{{ formatDate(item.date) }}</td>
               </tr>
               <tr>
                 <td>Status</td>
