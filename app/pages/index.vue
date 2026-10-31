@@ -21,7 +21,7 @@ const audience = [
 const introVideo = {
   name: 'einfuehrung',
   title: 'Einführung in die EUDR',
-  text: 'Was die EU-Entwaldungsverordnung verlangt, wer betroffen ist und ab wann eine Identifikationsnummer nötig ist: für Holz ab 30.12.2026, für Soja und Rinder ab 30.06.2027.',
+  text: 'Was die EU-Entwaldungsverordnung verlangt und wer als Kleinst- oder Kleinprimärerzeuger die vereinfachte Erklärung nutzen kann: Umsatz unter 10 Mio. €, Bilanzsumme unter 5 Mio. €, weniger als 50 Beschäftigte.',
   duration: 160,
 };
 const loginVideos = [
@@ -151,13 +151,13 @@ function pauseOtherVideos(event) {
     <h2 class="text-h5 mt-8">Anleitungen in Videos</h2>
     <h3 class="text-h6 mt-4 mb-2">So melden Sie sich an</h3>
     <v-row>
-      <v-col v-for="video in loginVideos" :key="video.name" cols="12" sm="6" lg="3">
+      <v-col v-for="video in loginVideos" :key="video.name" cols="12" sm="6" xl="3">
         <explainer-video v-bind="video" />
       </v-col>
     </v-row>
     <h3 class="text-h6 mt-6 mb-2">So erstellen Sie Ihre Erklärung</h3>
     <v-row>
-      <v-col v-for="video in statementVideos" :key="video.name" cols="12" sm="6" md="4">
+      <v-col v-for="video in statementVideos" :key="video.name" cols="12" sm="6" lg="4">
         <explainer-video v-bind="video" />
       </v-col>
     </v-row>
