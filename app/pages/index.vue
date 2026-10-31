@@ -8,6 +8,8 @@ definePageMeta({
 useSeoMeta({
   title: 'Startseite',
   description: 'Vereinfachte Erklärung im Rahmen der EU-Entwaldungsverordnung (EUDR)',
+  ogTitle: 'EUDR Meldung',
+  ogDescription: 'Vereinfachte Erklärung im Rahmen der EU-Entwaldungsverordnung (EUDR)',
 });
 
 const audience = [

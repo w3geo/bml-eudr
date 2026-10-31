@@ -56,6 +56,15 @@ Users can delete their account on the "Mein Konto" page. When that is not possib
 
        DELETE FROM users WHERE id = '<id>';
 
+## Search engines
+
+Search engines are kept out unless the site is explicitly made indexable, which only production does. robots.txt, `X-Robots-Tag` headers, robots meta tags and the sitemap are handled by [`@nuxtjs/robots`](https://nuxtseo.com/docs/robots) and [`@nuxtjs/sitemap`](https://nuxtseo.com/docs/sitemap), configured in `nuxt.config.js`. Both read these environment variables:
+
+* `NUXT_SITE_URL`: canonical origin, e.g. `https://example.com`. Set it on every deployment, so the sitemap and canonical links use the public domain instead of the request host.
+* `NUXT_SITE_INDEXABLE=true`: set it on production only, at build and run time (on DigitalOcean: scope "Build and run time"). Without it, robots.txt disallows everything, and all responses get `noindex, nofollow` headers and meta tags. It has to be there at build time, because the module bakes a `noindex` header for files in `public/` into non-indexable builds.
+
+To check robots rules locally, append `?mockProductionEnv` to a URL in development.
+
 ## AMA Client certificate
 
 To convert the AMA client certificate to .crt and .key files for use with Node HTTPS Agent's `cert` and `key` properties, use the following:

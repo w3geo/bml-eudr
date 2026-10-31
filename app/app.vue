@@ -4,6 +4,20 @@ import { mdiAccountCircle, mdiLogout } from '@mdi/js';
 useHead({
   titleTemplate: (titleChunk) => (titleChunk ? `${titleChunk} | EUDR Meldung` : 'EUDR Meldung'),
 });
+// Canonical link and Open Graph tags for production. robots meta tags come from @nuxtjs/robots.
+const route = useRoute();
+const siteConfig = useSiteConfig();
+if (siteConfig.indexable) {
+  const canonicalUrl = computed(() => new URL(route.path, siteConfig.url).href);
+  useHead({ link: [{ rel: 'canonical', href: canonicalUrl }] });
+  useSeoMeta({
+    ogSiteName: siteConfig.name,
+    ogType: 'website',
+    ogLocale: 'de_AT',
+    ogUrl: canonicalUrl,
+    ogImage: new URL('/logo.png', siteConfig.url).href,
+  });
+}
 const theme = useColorMode();
 const { mdAndUp } = useDisplay();
 const { loggedIn } = useUserSession();
