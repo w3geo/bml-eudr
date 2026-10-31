@@ -23,8 +23,9 @@ export default defineOAuthIdAustriaEventHandler({
       .values({
         id: user.login,
         loginProvider: 'IDA',
+        lastLoginAt: new Date(),
       })
-      .onConflictDoNothing();
+      .onConflictDoUpdate({ target: users.id, set: { lastLoginAt: new Date() } });
 
     const [userData] = await useDb().select().from(users).where(eq(users.id, user.login));
     await setUserSession(event, {

@@ -1,4 +1,4 @@
-import { numeric, pgTable, varchar } from 'drizzle-orm/pg-core';
+import { numeric, pgTable, timestamp, varchar } from 'drizzle-orm/pg-core';
 
 const users = pgTable('users', {
   id: varchar({ length: 127 }).primaryKey(),
@@ -8,6 +8,9 @@ const users = pgTable('users', {
   identifierValue: varchar({ length: 15 }),
   loginProvider: varchar({ enum: ['AMA', 'IDA', 'USP', 'OTP', 'SMS'], length: 3 }),
   otp: numeric(),
+  createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
+  /** null until the first successful login, e.g. when only an OTP code was requested */
+  lastLoginAt: timestamp({ withTimezone: true }),
 });
 
 /** @typedef {import('drizzle-orm').InferSelectModel<users>} User */

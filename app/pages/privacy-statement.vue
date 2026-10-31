@@ -110,7 +110,8 @@ useSeoMeta({
               werden nach erneuter Anmeldung mit derselben Anmeldeart wieder angezeigt, allerdings
               ohne die gelöschten Kopien. Ebenfalls unberührt bleibt die Übermittlung von
               Rinderzahlen an die AMA. Ansonsten bleiben Ihre Zugangsdaten gespeichert, solange Ihr
-              Konto aktiv ist.
+              Konto aktiv ist. Konten, mit denen Sie sich fünf Jahre lang nicht angemeldet haben,
+              werden automatisch gelöscht.
             </div>
             <div class="text-body-1 mb-2">
               Bei Klicken der Schaltfläche „Bestätigen und übermitteln“ auf der Seite „Vereinfachte
