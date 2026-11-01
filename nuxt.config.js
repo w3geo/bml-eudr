@@ -36,11 +36,14 @@ export default defineNuxtConfig({
     '/api/**': { robots: false },
     '/auth/**': { robots: false },
     '/print/**': { robots: false },
+    '/stats/**': { robots: false },
     '/statement': { robots: false },
   },
   runtimeConfig: {
     // See server/utils/database.js and server/plugins/storage.js
     pgliteDataDir: join('.data', 'pglite'),
+    // See server/routes/stats/[...path].js. Hard to guess, so only we can set visitor IPs.
+    umamiClientIpHeader: '',
     // See server/utils/nodemailer.js
     smtp: {
       from: '',
