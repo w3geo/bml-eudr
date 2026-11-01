@@ -18,6 +18,13 @@ if (siteConfig.indexable) {
     ogImage: new URL('/logo.png', siteConfig.url).href,
   });
 }
+// Umami analytics, only where NUXT_PUBLIC_UMAMI_* is set (production)
+const { umami } = useRuntimeConfig().public;
+if (umami.websiteId && umami.scriptUrl) {
+  useHead({
+    script: [{ 'src': umami.scriptUrl, 'defer': true, 'data-website-id': umami.websiteId }],
+  });
+}
 const theme = useColorMode();
 const { mdAndUp } = useDisplay();
 const { loggedIn } = useUserSession();

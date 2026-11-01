@@ -56,6 +56,14 @@ export default defineNuxtConfig({
       // Alphanumeric senders are limited to 11 characters
       smsSender: 'EUDRMeldung',
     },
+    public: {
+      // Self-hosted Umami, see app/app.vue. Only production sets these, so analytics are off
+      // elsewhere.
+      umami: {
+        websiteId: '',
+        scriptUrl: '',
+      },
+    },
   },
   app: {
     head: {
