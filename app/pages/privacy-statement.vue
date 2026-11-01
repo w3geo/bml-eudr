@@ -123,6 +123,11 @@ useSeoMeta({
               Referenz an die TRACES-Datenbank übermittelt.
             </div>
             <div class="text-body-1 mb-2">
+              Zur Auswertung und Verbesserung dieser Applikation speichert das BMLUK anonyme
+              Nutzungsstatistiken, etwa aufgerufene Seiten, Browser, Gerätetyp und Land. Dabei
+              werden keine Cookies gesetzt und keine IP-Adressen gespeichert.
+            </div>
+            <div class="text-body-1 mb-2">
               Sie haben das Recht auf Auskunft über die Sie betreffenden personenbezogenen Daten
               sowie auf Berichtigung oder Löschung oder auf Einschränkung der Verarbeitung oder auf
               Widerspruch gegen die Verarbeitung sowie das Recht auf Datenübertragbarkeit. Wenn Sie

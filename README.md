@@ -65,6 +65,8 @@ Search engines are kept out unless the site is explicitly made indexable, which 
 
 To check robots rules locally, append `?mockProductionEnv` to a URL in development.
 
+Analytics come from a self-hosted [Umami](https://umami.is) instance and are loaded only where both `NUXT_PUBLIC_UMAMI_WEBSITE_ID` and `NUXT_PUBLIC_UMAMI_SCRIPT_URL` (e.g. `https://umami.example.com/script.js`) are set, which only production does. Both are read at run time, so no rebuild is needed to change them.
+
 ## AMA Client certificate
 
 To convert the AMA client certificate to .crt and .key files for use with Node HTTPS Agent's `cert` and `key` properties, use the following:
