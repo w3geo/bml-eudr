@@ -10,6 +10,17 @@ useSeoMeta({
 
 const route = useRoute();
 const { data: statement, error } = await useFetch(`/api/statements/${route.params.sdId}`);
+// Unknown or not the user's own statement (indistinguishable on purpose), or no longer in TRACES.
+if (error.value?.statusCode === 404) {
+  throw createError({
+    statusCode: 404,
+    statusMessage: 'Nicht gefunden',
+    message:
+      /** @type {{ message?: string } | undefined} */ (error.value.data)?.message ??
+      'Diese Erklärung wurde nicht gefunden.',
+    fatal: true,
+  });
+}
 const { data: user } = await useFetch('/api/users/me');
 
 /** Descriptions of the Combined Nomenclature chapters and headings we submit. */

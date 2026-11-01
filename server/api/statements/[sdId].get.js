@@ -18,6 +18,7 @@ export default defineEventHandler(async (event) => {
     throw createError({
       status: 404,
       statusMessage: 'Not found',
+      message: 'Diese Erklärung wurde nicht gefunden.',
     });
   }
   delete sdInfo.internalReferenceNumber;
