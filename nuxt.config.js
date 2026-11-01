@@ -36,6 +36,7 @@ export default defineNuxtConfig({
     '/api/**': { robots: false },
     '/auth/**': { robots: false },
     '/print/**': { robots: false },
+    '/stats/**': { robots: false },
     '/statement': { robots: false },
   },
   runtimeConfig: {

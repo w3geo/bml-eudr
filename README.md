@@ -65,7 +65,7 @@ Search engines are kept out unless the site is explicitly made indexable, which 
 
 To check robots rules locally, append `?mockProductionEnv` to a URL in development.
 
-Analytics come from a self-hosted [Umami](https://umami.is) instance and are loaded only where both `NUXT_PUBLIC_UMAMI_WEBSITE_ID` and `NUXT_PUBLIC_UMAMI_SCRIPT_URL` (e.g. `https://umami.example.com/script.js`) are set, which only production does. Both are read at run time, so no rebuild is needed to change them.
+Analytics come from a self-hosted [Umami](https://umami.is) instance and are loaded only where both `NUXT_PUBLIC_UMAMI_WEBSITE_ID` and `NUXT_PUBLIC_UMAMI_SCRIPT_URL` (e.g. `https://umami.example.com/script.js`) are set, which only production does. Both are read at run time, so no rebuild is needed to change them. Browsers load the script and send their data through `/stats/` on this app (`server/routes/stats/[...path].js`), so they never contact the Umami server, and Cloudflare in front of it cannot set its `__cf_bm` cookie. The proxy passes the visitor's IP address in an `x-umami-client-ip` header, so the Umami instance needs `CLIENT_IP_HEADER=x-umami-client-ip`; without it, Umami sees the app server's address, and all visitors with the same browser count as one, all from the same country.
 
 ## AMA Client certificate
 

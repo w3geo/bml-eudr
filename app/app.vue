@@ -18,11 +18,12 @@ if (siteConfig.indexable) {
     ogImage: new URL('/logo.png', siteConfig.url).href,
   });
 }
-// Umami analytics, only where NUXT_PUBLIC_UMAMI_* is set (production)
+// Umami analytics, only where NUXT_PUBLIC_UMAMI_* is set (production). Proxied through
+// server/routes/stats, which the script also sends its data to.
 const { umami } = useRuntimeConfig().public;
 if (umami.websiteId && umami.scriptUrl) {
   useHead({
-    script: [{ 'src': umami.scriptUrl, 'defer': true, 'data-website-id': umami.websiteId }],
+    script: [{ 'src': '/stats/script.js', 'defer': true, 'data-website-id': umami.websiteId }],
   });
 }
 const theme = useColorMode();
