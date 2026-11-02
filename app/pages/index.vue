@@ -12,6 +12,8 @@ useSeoMeta({
   ogDescription: 'Vereinfachte Erklärung im Rahmen der EU-Entwaldungsverordnung (EUDR)',
 });
 
+const { xs } = useDisplay();
+
 const audience = [
   { included: true, text: 'Kleinst- und Kleinprimärerzeuger in Österreich' },
   { included: true, text: 'Holz, Sojabohnen und Rinder, die Sie in Verkehr bringen' },
@@ -113,16 +115,19 @@ function pauseOtherVideos(event) {
               :prepend-icon="mdiFileSign"
               color="primary"
               variant="flat"
-              size="large"
+              :size="xs ? 'default' : 'large'"
             >
               Erklärung erstellen
             </v-btn>
+            <!-- Same size as the main action next to it, smaller below it on phones -->
             <v-btn
               target="_blank"
-              href="https://environment.ec.europa.eu/topics/forests/deforestation/regulation-deforestation-free-products_en?prefLang=de&etrans=de"
+              href="https://www.bmluk.gv.at/im-fokus/eu-entwaldungsverordnung.html"
               color="primary"
               variant="outlined"
+              :size="xs ? 'default' : 'large'"
               :prepend-icon="mdiLightbulbOn"
+              aria-label="Weitere Informationen (öffnet in neuem Fenster)"
             >
               Weitere Informationen
             </v-btn>
