@@ -38,6 +38,11 @@ const items = routes
   .sort((a, b) => Number(a.meta.sort) - Number(b.meta.sort))
   .map((route) => ({ title: route.meta.title, to: route.path }));
 const legalItems = [
+  {
+    title: 'Informationen zur EUDR',
+    href: 'https://www.bmluk.gv.at/im-fokus/eu-entwaldungsverordnung.html',
+    target: '_blank',
+  },
   { title: 'Kontakt', href: 'mailto:service.entwaldung@bmluk.gv.at' },
   { title: 'Impressum', href: 'https://www.bmluk.gv.at/impressum.html' },
   { title: 'Datenschutz', to: '/privacy-statement' },
@@ -153,7 +158,8 @@ const logout = useLogout();
             class="pl-6"
             tabindex="0"
             link
-            v-bind="item.to ? { to: item.to } : { href: item.href }"
+            v-bind="item.to ? { to: item.to } : { href: item.href, target: item.target }"
+            :aria-label="item.target ? `${item.title} (öffnet in neuem Fenster)` : undefined"
           >
             {{ item.title }}
           </v-list-item>
