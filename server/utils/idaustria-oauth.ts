@@ -143,7 +143,7 @@ export function defineOAuthIdAustriaEventHandler({
       const error = createError({
         statusCode: 401,
         message:
-          'Kein Login mit diesem Account möglich. Österreichische Meldeadresse erforderlich. Bitte verwenden Sie einen anderen Account.',
+          'Kein Login mit diesem Account möglich. ID Austria mit Vollfunktion und österreichische Meldeadresse sind erforderlich. Bitte verwenden Sie einen anderen Account.',
       });
       if (onError) {
         return onError(event, error as H3Error);
