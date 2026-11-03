@@ -148,14 +148,12 @@ const userDataForm = ref(null);
 const { data: statements, error: statementsError } = await useFetch('/api/statements');
 const unwatch = watch(
   [userDataForm, statements, statementsError],
-  async ([form, statements, statementsError]) => {
+  ([form, statements, statementsError]) => {
     if (form) {
-      // Only validate to decide whether to expand the form; don't show errors before the user
-      // had a chance to fill it in
-      const formOk = await form.validate();
-      form.resetValidation();
+      // Check the saved data rather than validating the form, which would interfere with the
+      // errors the form marks itself for existing invalid data
       const noStatements = !statementsError && (statements?.length || 0) === 0;
-      expandUserData.value = !formOk || noStatements;
+      expandUserData.value = !form.valid || noStatements;
       unwatch();
     }
   },

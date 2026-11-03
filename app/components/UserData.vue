@@ -54,7 +54,7 @@ const addressEditable =
   !loginProvidedFields.includes('address') || !isValidAddress(userData.value?.address);
 canSave.value = loginProvidedFields.length < editableUserDataFields.length || addressEditable;
 watchEffect(() => {
-  valid.value = isUserDataValid(userData.value);
+  valid.value = isUserDataValid(userData.value, userData.value?.loginProvider);
 });
 
 const address = userData.value?.address || '';
@@ -65,6 +65,30 @@ const addressParts = reactive(
 watch(addressParts, (parts) => {
   if (editableUserData.value) {
     editableUserData.value.address = formatAddress(parts);
+  }
+});
+
+/** @type {Record<string, { validate: () => Promise<string[]> }|null>} */
+const fields = {};
+/**
+ * @param {string} key
+ * @returns {(el: any) => void}
+ */
+const fieldRef = (key) => (el) => {
+  fields[key] = el;
+};
+onMounted(() => {
+  if (!props.editable || valid.value || !editableUserData.value) {
+    return;
+  }
+  // Show what is wrong with existing data right away, instead of only on submit. Empty fields are
+  // left alone, so a new user does not start with a form full of errors.
+  /** @type {Record<string, string|null|undefined>} */
+  const values = { ...editableUserData.value, ...addressParts };
+  for (const [key, field] of Object.entries(fields)) {
+    if (values[key]?.trim()) {
+      field?.validate();
+    }
   }
 });
 
@@ -105,6 +129,7 @@ const idItems = computed(() => [
     <v-row>
       <v-col :cols="mdAndUp ? 4 : 12">
         <v-text-field
+          :ref="fieldRef('name')"
           v-model="editableUserData.name"
           density="compact"
           hide-details="auto"
@@ -117,6 +142,7 @@ const idItems = computed(() => [
       </v-col>
       <v-col :cols="mdAndUp ? 3 : xs ? 12 : 6">
         <v-select
+          :ref="fieldRef('identifierType')"
           v-model="editableUserData.identifierType"
           density="compact"
           hide-details="auto"
@@ -132,6 +158,7 @@ const idItems = computed(() => [
       </v-col>
       <v-col :cols="mdAndUp ? 5 : xs ? 12 : 6">
         <v-text-field
+          :ref="fieldRef('identifierValue')"
           v-model="editableUserData.identifierValue"
           density="compact"
           hide-details="auto"
@@ -139,11 +166,18 @@ const idItems = computed(() => [
           label="Nummer"
           :readonly="!props.editable || loginProvidedFields.includes('identifierValue')"
           :disabled="!props.editable || loginProvidedFields.includes('identifierValue')"
-          :rules="[(v) => !!v || 'Nummer ist erforderlich']"
+          :rules="[
+            (v) => !!v || 'Nummer ist erforderlich',
+            // Numbers provided by the login cannot be changed by the user, so they are not checked
+            (v) =>
+              loginProvidedFields.includes('identifierValue') ||
+              validateIdentifier(editableUserData?.identifierType, v),
+          ]"
         ></v-text-field>
       </v-col>
       <v-col :cols="mdAndUp ? 6 : 12">
         <v-text-field
+          :ref="fieldRef('street')"
           v-model="addressParts.street"
           density="compact"
           hide-details="auto"
@@ -156,6 +190,7 @@ const idItems = computed(() => [
       </v-col>
       <v-col cols="auto" class="postal-code">
         <v-text-field
+          :ref="fieldRef('postalCode')"
           v-model="addressParts.postalCode"
           density="compact"
           hide-details="auto"
@@ -170,6 +205,7 @@ const idItems = computed(() => [
       </v-col>
       <v-col>
         <v-text-field
+          :ref="fieldRef('city')"
           v-model="addressParts.city"
           density="compact"
           hide-details="auto"

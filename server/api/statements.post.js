@@ -20,7 +20,7 @@ export default defineEventHandler(async (event) => {
     !secure.address ||
     !secure.identifierType ||
     !secure.identifierValue ||
-    !isUserDataValid(secure)
+    !isUserDataValid(secure, session.loginProvider)
   ) {
     throw createError({
       status: 400,
