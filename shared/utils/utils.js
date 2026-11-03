@@ -1,5 +1,5 @@
 import { unref } from 'vue';
-import { COMMODITIES, HS_HEADING } from './constants.js';
+import { COMMODITIES, HS_HEADING, LOGIN_PROVIDED_FIELDS } from './constants.js';
 
 /**
  * @param {import('../../server/utils/soap-traces.js').CommodityDataWithKey} commodity
@@ -116,15 +116,83 @@ export function isValidAddress(address) {
 }
 
 /**
- * Whether the user data is complete and valid, so statements can be submitted.
- * @param {{ name?: string|null, address?: string|null, identifierType?: string|null, identifierValue?: string|null }|null|undefined} user
+ * Luhn checksum (0 for a valid number), used for the Austrian TIN and UID.
+ * @param {string} digits
+ * @returns {number}
+ */
+function luhnChecksum(digits) {
+  let sum = 0;
+  for (let i = digits.length - 1, double = false; i >= 0; --i, double = !double) {
+    const digit = Number(digits[i]) * (double ? 2 : 1);
+    sum += digit > 9 ? digit - 9 : digit;
+  }
+  return sum % 10;
+}
+
+/**
+ * GS1 mod-10 check digit test for a GLN (13 digits, weights 3 and 1 alternating from the right).
+ * @param {string} digits
  * @returns {boolean}
  */
-export function isUserDataValid(user) {
+function isValidGs1Checksum(digits) {
+  let sum = 0;
+  for (let i = digits.length - 1, weight = 1; i >= 0; --i, weight = 4 - weight) {
+    sum += Number(digits[i]) * weight;
+  }
+  return sum % 10 === 0;
+}
+
+/**
+ * Plausibility check of an identifier entered by the user. GLN, Austrian TIN (Steuernummer) and
+ * Austrian UID are checked for format and check digit. LFBIS numbers (ONI) are only provided by
+ * the login and not checked.
+ * @param {string|null|undefined} type
+ * @param {string|null|undefined} value
+ * @returns {true|string} `true` or an error message
+ */
+export function validateIdentifier(type, value) {
+  const trimmed = value?.trim() ?? '';
+  switch (type) {
+    case 'GLN':
+      return (
+        (/^\d{13}$/.test(trimmed) && isValidGs1Checksum(trimmed)) ||
+        'Keine gültige GLN (13 Ziffern)'
+      );
+    case 'TIN': {
+      // Separators like in "12-345/6789" are allowed, they are removed when submitting to TRACES
+      const digits = trimmed.replace(/[\s\-/]/g, '');
+      return (
+        (/^\d{9}$/.test(digits) && luhnChecksum(digits) === 0) ||
+        'Keine gültige Steuernummer (9 Ziffern, z.B. 12-345/6789)'
+      );
+    }
+    case 'VAT': {
+      const digits = trimmed.match(/^ATU(\d{8})$/)?.[1];
+      return (
+        (!!digits && Number(digits[7]) === (16 - luhnChecksum(digits.slice(0, 7))) % 10) ||
+        'Keine gültige UID (ATU und 8 Ziffern)'
+      );
+    }
+    default:
+      return true;
+  }
+}
+
+/**
+ * Whether the user data is complete and valid, so statements can be submitted.
+ * @param {{ name?: string|null, address?: string|null, identifierType?: string|null, identifierValue?: string|null }|null|undefined} user
+ * @param {import('./constants.js').LoginProvider} [loginProvider] Identifiers provided by the
+ * login of this provider are not checked for plausibility, because the user cannot change them.
+ * @returns {boolean}
+ */
+export function isUserDataValid(user, loginProvider) {
+  const identifierProvided =
+    !!loginProvider && LOGIN_PROVIDED_FIELDS[loginProvider]?.includes('identifierValue');
   return !!(
     user?.name?.trim() &&
     isValidAddress(user.address) &&
     user.identifierType &&
-    user.identifierValue?.trim()
+    user.identifierValue?.trim() &&
+    (identifierProvided || validateIdentifier(user.identifierType, user.identifierValue) === true)
   );
 }

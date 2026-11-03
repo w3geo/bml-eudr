@@ -54,7 +54,7 @@ export default defineEventHandler(async (event) => {
         editableUserDataFields.filter((key) => key in body).map((key) => [key, body[key]]),
       )
     );
-    if (!isUserDataValid(properties)) {
+    if (!isUserDataValid(properties, session.loginProvider)) {
       throw createError({ status: 400, statusMessage: 'Invalid user data' });
     }
     const loginProvidedFields = LOGIN_PROVIDED_FIELDS[session.loginProvider] || [];
