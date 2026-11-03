@@ -1,5 +1,5 @@
 #!/bin/sh
-# Builds the app icons from the white-on-transparent glyphs in this folder:
+# Builds the app icons from the white-on-transparent glyph in this folder:
 # logo-512.png (master icon), ../public/favicon.ico and ../public/logo.png (app bar logo).
 # Requires ImageMagick 7 (magick).
 set -e
@@ -15,11 +15,10 @@ tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 
 tile logo-glyph.png 440 logo-512.png
-# At 16px the three symbols are unreadable, so that size shows the cow only
-tile logo-glyph-cow.png 450 "$tmp/cow-512.png"
-magick "$tmp/cow-512.png" -resize 16x16 "$tmp/16.png"
+# At 16px the three symbols are unreadable, so that size uses the hand-pixeled logs in logo-16.png
 magick logo-512.png -resize 32x32 "$tmp/32.png"
 magick logo-512.png -resize 48x48 "$tmp/48.png"
-magick "$tmp/16.png" "$tmp/32.png" "$tmp/48.png" ../public/favicon.ico
+# Truecolor, because the ICO writer drops partial alpha (the rounded corners) of palette images
+magick \( logo-16.png -type TrueColorAlpha \) "$tmp/32.png" "$tmp/48.png" ../public/favicon.ico
 
 magick logo-glyph.png -resize 192x192 -trim +repage -strip ../public/logo.png
