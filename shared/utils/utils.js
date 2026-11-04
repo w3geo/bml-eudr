@@ -107,15 +107,18 @@ export const ADDRESS_RULES = {
 
 /**
  * @param {string|null|undefined} address Combined address string
+ * @param {boolean} [checkRules=true] Whether to check the `ADDRESS_RULES`. When `false`, the
+ * address only needs to be parseable, which is all we need for an address provided by the login.
  * @returns {boolean}
  */
-export function isValidAddress(address) {
+export function isValidAddress(address, checkRules = true) {
   const parsed = address ? parseAddress(address) : null;
   return (
     !!parsed &&
-    /** @type {Array<keyof typeof ADDRESS_RULES>} */ (Object.keys(ADDRESS_RULES)).every((key) =>
-      ADDRESS_RULES[key].every((rule) => rule(parsed[key]) === true),
-    )
+    (!checkRules ||
+      /** @type {Array<keyof typeof ADDRESS_RULES>} */ (Object.keys(ADDRESS_RULES)).every((key) =>
+        ADDRESS_RULES[key].every((rule) => rule(parsed[key]) === true),
+      ))
   );
 }
 
@@ -185,16 +188,17 @@ export function validateIdentifier(type, value) {
 /**
  * Whether the user data is complete and valid, so statements can be submitted.
  * @param {{ name?: string|null, address?: string|null, identifierType?: string|null, identifierValue?: string|null }|null|undefined} user
- * @param {import('./constants.js').LoginProvider} [loginProvider] Identifiers provided by the
- * login of this provider are not checked for plausibility, because the user cannot change them.
+ * @param {import('./constants.js').LoginProvider} [loginProvider] Identifiers and addresses
+ * provided by the login of this provider are not checked for plausibility, because the user
+ * cannot change them.
  * @returns {boolean}
  */
 export function isUserDataValid(user, loginProvider) {
-  const identifierProvided =
-    !!loginProvider && LOGIN_PROVIDED_FIELDS[loginProvider]?.includes('identifierValue');
+  const providedFields = (loginProvider && LOGIN_PROVIDED_FIELDS[loginProvider]) || [];
+  const identifierProvided = providedFields.includes('identifierValue');
   return !!(
     user?.name?.trim() &&
-    isValidAddress(user.address) &&
+    isValidAddress(user.address, !providedFields.includes('address')) &&
     user.identifierType &&
     user.identifierValue?.trim() &&
     (identifierProvided || validateIdentifier(user.identifierType, user.identifierValue) === true)

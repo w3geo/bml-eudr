@@ -49,9 +49,10 @@ editableUserData.value = userData.value ? structuredClone(toRaw(userData.value))
 const loginProvidedFields = userData.value
   ? (LOGIN_PROVIDED_FIELDS[userData.value.loginProvider] ?? [])
   : [];
-// A login-provided address that does not have the expected format can be corrected by the user
+// A login-provided address is not checked for plausibility, but one that cannot be parsed can be
+// corrected by the user
 const addressEditable =
-  !loginProvidedFields.includes('address') || !isValidAddress(userData.value?.address);
+  !loginProvidedFields.includes('address') || !isValidAddress(userData.value?.address, false);
 canSave.value = loginProvidedFields.length < editableUserDataFields.length || addressEditable;
 watchEffect(() => {
   valid.value = isUserDataValid(userData.value, userData.value?.loginProvider);
