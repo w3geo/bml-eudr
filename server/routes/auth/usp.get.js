@@ -3,7 +3,17 @@ import { decodeJwt } from 'jose';
 export default defineOAuthUSPEventHandler({
   async onSuccess(event, { user, tokens }) {
     const name = `${user.name}`;
-    const address = `${user.streetAddress} ${user.houseNumber}, ${user.postalCode} ${user.locality}`;
+    const address = {
+      street: [user.streetAddress, user.houseNumber]
+        .filter((part) => part?.trim())
+        .join(' ')
+        .trim(),
+      postalCode: user.postalCode?.trim() ?? '',
+      city: user.locality?.trim() ?? '',
+    };
+    if (!isValidAddress(address, false)) {
+      console.warn('Incomplete address from USP', getAddressShape(address));
+    }
     const identifierValue = user.enterpriseKeys
       ?.split(';')
       .find(/** @param {string} k */ (k) => k.startsWith('SE#'))

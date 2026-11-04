@@ -145,7 +145,8 @@ export default defineEventHandler(async (event) => {
     loginProvider,
     secure: {
       name: user.name ?? undefined,
-      address: user.address ?? undefined,
+      // Stored as a single string; one that cannot be parsed can be corrected under "Mein Konto"
+      address: toPostalAddress(user.address),
       identifierType: user.identifierType ?? undefined,
       identifierValue: user.identifierValue ?? undefined,
       lfbis,

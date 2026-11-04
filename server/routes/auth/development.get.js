@@ -5,7 +5,7 @@ export default defineEventHandler(async (event) => {
   if (process.env.NODE_ENV === 'development') {
     const id = 'Developer';
     const name = 'Dave Eloper';
-    const address = 'Rosengasse 7, 3424 Zeiselmauer-Wolfpassing';
+    const address = { street: 'Rosengasse 7', postalCode: '3424', city: 'Zeiselmauer-Wolfpassing' };
     await useDb()
       .insert(users)
       .values({

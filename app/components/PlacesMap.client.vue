@@ -18,7 +18,9 @@ const props = defineProps({
     required: true,
   },
   address: {
-    type: String,
+    type: /** @type {import('vue').PropType<import('~~/shared/utils/utils').PostalAddress>} */ (
+      Object
+    ),
     default: undefined,
   },
 });
@@ -125,7 +127,7 @@ onMounted(async () => {
   });
   view.fit(extent, { size: map.getSize(), maxZoom: 10, padding: [20, 20, 20, 20] });
   mapContainer.value.classList.add('spinner');
-  const addressParts = props.address ? parseAddress(props.address) : null;
+  const addressParts = isValidAddress(props.address, false) ? props.address : null;
   // Same order as the search result names ("3424 Zeiselmauer-Wolfpassing Rosengasse 7"); street
   // first finds nothing for some addresses
   const address = addressParts

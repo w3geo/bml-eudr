@@ -48,7 +48,7 @@ const IDENTIFIER_TYPES = {
 // so it is filled from the user data, which is what the statement was submitted with.
 const operator = computed(() => ({
   name: user.value?.name ?? '',
-  address: user.value?.address ?? '',
+  address: user.value?.address ? formatAddress(user.value.address) : '',
   identifierType: user.value?.identifierType ?? '',
   identifierValue: user.value?.identifierValue ?? '',
 }));

@@ -3,7 +3,7 @@
 /**
  * @typedef {Object} EditableUserData
  * @property {string} [name]
- * @property {string} [address]
+ * @property {import('~~/shared/utils/utils').PostalAddress|null} [address]
  * @property {IdentifierType} [identifierType]
  * @property {string} [identifierValue]
  */

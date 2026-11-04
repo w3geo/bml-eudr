@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm';
 import { editableUserDataFields, LOGIN_PROVIDED_FIELDS } from '~~/shared/utils/constants';
-import { isUserDataValid } from '~~/shared/utils/utils';
+import { formatAddress, getInvalidUserDataFields, toPostalAddress } from '~~/shared/utils/utils';
 import users from '~~/server/db/schema/users';
 
 export default defineEventHandler(async (event) => {
@@ -23,7 +23,7 @@ export default defineEventHandler(async (event) => {
       id: userId,
       loginProvider: session.loginProvider,
       name: session.secure.name,
-      address: session.secure.address,
+      address: toPostalAddress(session.secure.address) ?? null,
       identifierType: session.secure.identifierType,
       identifierValue: session.secure.identifierValue,
       lfbis: session.secure.lfbis,
@@ -45,54 +45,44 @@ export default defineEventHandler(async (event) => {
   }
 
   if (event.method === 'PUT' && event.headers.get('content-type') === 'application/json') {
-    /** @type {import('~~/server/db/schema/users.js').User} */
     /** @type {Record<string, any>} */
     const body = await readBody(event);
-    // Only editable fields, so e.g. lastLoginAt or otp cannot be set by the client
-    const properties = /** @type {import('~~/server/db/schema/users.js').User} */ (
-      Object.fromEntries(
-        editableUserDataFields.filter((key) => key in body).map((key) => [key, body[key]]),
-      )
+    const loginProvidedFields = LOGIN_PROVIDED_FIELDS[session.loginProvider] || [];
+    // Only editable fields, so e.g. lastLoginAt or otp cannot be set by the client. Fields provided
+    // by the login cannot be changed either, e.g. the LFBIS number of an SMS login, which is used
+    // for submitting cattle.
+    const userFields = editableUserDataFields.filter((key) => !loginProvidedFields.includes(key));
+    /** @type {Record<string, any>} */
+    const values = Object.fromEntries(userFields.map((key) => [key, body[key] ?? undefined]));
+    if (userFields.includes('address')) {
+      values.address = toPostalAddress(values.address);
+    }
+    // A login-provided field that is incomplete is not the user's fault, and does not prevent
+    // saving the other fields
+    const invalidFields = getInvalidUserDataFields(
+      { ...session.secure, address: toPostalAddress(session.secure.address), ...values },
+      session.loginProvider,
     );
-    if (!isUserDataValid(properties, session.loginProvider)) {
+    if (invalidFields.some((key) => userFields.includes(key))) {
       throw createError({ status: 400, statusMessage: 'Invalid user data' });
     }
-    const loginProvidedFields = LOGIN_PROVIDED_FIELDS[session.loginProvider] || [];
     await setUserSession(event, {
       user: session.user,
       loginProvider: session.loginProvider,
       loggedInAt: session.loggedInAt,
-      secure: {
-        ...session.secure,
-        // Fields provided by the login cannot be changed, e.g. the LFBIS number of an SMS login,
-        // which is used for submitting cattle
-        ...Object.fromEntries(
-          editableUserDataFields
-            .filter((key) => !loginProvidedFields.includes(/** @type {any} */ (key)))
-            .map((key) => [
-              key,
-              properties[/** @type {keyof typeof properties} */ (key)] ?? undefined,
-            ]),
-        ),
-      },
+      secure: { ...session.secure, ...values },
     });
-    for (const property of loginProvidedFields) {
-      // clear properties provided by login
-      delete properties[property];
-    }
-    let noProperties = true;
-    for (const key of editableUserDataFields) {
-      if (key in properties) {
-        noProperties = false;
-        break;
-      }
-    }
-    if (noProperties) {
+    if (userFields.length === 0) {
       return;
     }
     await db
       .update(users)
-      .set({ ...user, ...properties })
+      .set({
+        ...user,
+        ...values,
+        // Stored as a single string
+        ...(userFields.includes('address') ? { address: formatAddress(values.address) } : {}),
+      })
       .where(eq(users.id, userId));
   }
 });

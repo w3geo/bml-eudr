@@ -17,7 +17,20 @@ export default defineOAuthIdAustriaEventHandler({
     //   Tuer: '1-3',
     // };
     const name = `${user.firstName} ${user.lastName}`;
-    const address = `${user.Strasse} ${user.Hausnummer}${user.Stiege ? `/${user.Stiege}` : ''}${user.Tuer ? `/${user.Tuer}` : ''}, ${user.Postleitzahl} ${user.Ortschaft}`;
+    const address = {
+      street: [
+        user.Strasse,
+        [user.Hausnummer, user.Stiege, user.Tuer].filter((part) => part?.trim()).join('/'),
+      ]
+        .filter((part) => part?.trim())
+        .join(' ')
+        .trim(),
+      postalCode: user.Postleitzahl?.trim() ?? '',
+      city: user.Ortschaft?.trim() ?? '',
+    };
+    if (!isValidAddress(address, false)) {
+      console.warn('Incomplete address from ID Austria', getAddressShape(address));
+    }
     await useDb()
       .insert(users)
       .values({
