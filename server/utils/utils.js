@@ -24,6 +24,21 @@ export function getFieldsLfbis(session) {
 }
 
 /**
+ * What an address looks like, without its contents, for logging incomplete login addresses.
+ * @param {import('~~/shared/utils/utils').PostalAddress} address
+ * @returns {string}
+ */
+export function getAddressShape(address) {
+  const describe = (/** @type {string} */ value) =>
+    value
+      .trim()
+      .replace(/\p{L}+/gu, 'A')
+      .replace(/\d+/g, '9')
+      .replace(/\s+/g, ' ') || '(empty)';
+  return `street: ${describe(address.street)}; postalCode: ${describe(address.postalCode)}; city: ${describe(address.city)}`;
+}
+
+/**
  * Creates an eAMA login `cid` that carries the origin of the instance the login started on.
  * eAMA only calls back production, which uses the origin to forward the callback.
  * @param {string} origin

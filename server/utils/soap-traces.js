@@ -5,12 +5,11 @@ import {
   HS_HEADING,
   NET_WEIGHT_TOLERANCE_PERCENT,
 } from '~~/shared/utils/constants.js';
-import { parseAddress } from '~~/shared/utils/utils.js';
 import { removeHoles } from './remove-holes.js';
 
 /** @typedef {'AVAILABLE' | 'SUBMITTED' | 'REJECTED' | 'WITHDRAWN' | 'ARCHIVED' | 'SUSPENDED' | 'UPDATED' | 'GROUPED' | 'OBSOLETE' | 'UNKNOWN'} TracesStatus */
 
-/** @typedef {{id: string, name: string, address: string, identifierType: import('~/utils/utils').IdentifierType, identifierValue: string}} User */
+/** @typedef {{id: string, name: string, address: import('~~/shared/utils/utils.js').PostalAddress, identifierType: import('~/utils/utils').IdentifierType, identifierValue: string}} User */
 
 /**
  * @typedef {Object} StatementInfo
@@ -391,16 +390,13 @@ function getCommoditiesXML(commodities) {
  * @returns {string}
  */
 function getSubmitSdXML(commodities, geolocationVisible, user) {
-  const parsedAddress = parseAddress(user.address);
   const commoditiesXML = getCommoditiesXML(commodities);
-  const operatorAddress = parsedAddress
-    ? `<eudrCommon:operatorAddress>
+  const operatorAddress = `<eudrCommon:operatorAddress>
                 <eudrCommon:country>AT</eudrCommon:country>
-                <eudrCommon:street>${escapeXml(parsedAddress.street)}</eudrCommon:street>
-                <eudrCommon:postalCode>${escapeXml(parsedAddress.postalCode)}</eudrCommon:postalCode>
-                <eudrCommon:city>${escapeXml(parsedAddress.city)}</eudrCommon:city>
-              </eudrCommon:operatorAddress>`
-    : '';
+                <eudrCommon:street>${escapeXml(user.address.street)}</eudrCommon:street>
+                <eudrCommon:postalCode>${escapeXml(user.address.postalCode)}</eudrCommon:postalCode>
+                <eudrCommon:city>${escapeXml(user.address.city)}</eudrCommon:city>
+              </eudrCommon:operatorAddress>`;
   // TIN may have been entered with blanks or slashes (e.g. "12 345/6789"), TRACES wants digits only
   const identifierValue =
     user.identifierType === 'TIN' ? user.identifierValue?.replace(/\D/g, '') : user.identifierValue;

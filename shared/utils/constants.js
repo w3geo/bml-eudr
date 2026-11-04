@@ -97,7 +97,9 @@ export const COMMODITY_KEYS = /** @type {Array<Commodity>} */ (Object.keys(COMMO
 
 /** @typedef {'OTP' | 'SMS' | 'IDA' | 'AMA' | 'USP'} LoginProvider */
 
-/** @type {Record<LoginProvider, Array<keyof import('~~/server/db/schema/users.js').User>>} */
+/** @typedef {'name' | 'address' | 'identifierType' | 'identifierValue'} UserDataField */
+
+/** @type {Record<LoginProvider, Array<UserDataField>>} */
 export const LOGIN_PROVIDED_FIELDS = {
   OTP: [],
   SMS: ['identifierType', 'identifierValue'],
@@ -118,6 +120,7 @@ export const CATTLE_LOGIN_PROVIDERS = ['AMA', 'SMS'];
  */
 export const FIELDS_LOGIN_PROVIDERS = ['AMA', 'USP'];
 
+/** @type {Array<UserDataField>} */
 export const editableUserDataFields = ['name', 'address', 'identifierType', 'identifierValue'];
 
 const VALID_EMAIL_REGEX =

@@ -70,6 +70,15 @@ export default defineEventHandler(async (event) => {
       req.end();
     });
 
+    // eAMA only provides the address as a single string
+    const address = toPostalAddress(user.bewadr);
+    if (!isValidAddress(address, false)) {
+      console.warn(
+        'Incomplete address from eAMA',
+        address ? getAddressShape(address) : '(no address)',
+      );
+    }
+
     await setUserSession(event, {
       user: {
         login: user.betriebsnummern,
@@ -78,7 +87,7 @@ export default defineEventHandler(async (event) => {
       loginProvider: 'AMA',
       secure: {
         name: user.bewname,
-        address: user.bewadr,
+        address,
         identifierType: 'GLN',
         identifierValue: user.GLN,
         lfbis: user.betriebsnummern,

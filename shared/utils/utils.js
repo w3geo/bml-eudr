@@ -42,6 +42,8 @@ export function getCommoditiesSummary(commodities) {
     : '';
 }
 
+/** @typedef {{ street: string, postalCode: string, city: string }} PostalAddress */
+
 /**
  * Parse a combined address string ("Street HouseNo, PostalCode City") into structured components.
  * Also accepts addresses without the comma or with an "A-" prefix on the postal code
@@ -106,19 +108,33 @@ export const ADDRESS_RULES = {
 };
 
 /**
- * @param {string|null|undefined} address Combined address string
- * @param {boolean} [checkRules=true] Whether to check the `ADDRESS_RULES`. When `false`, the
- * address only needs to be parseable, which is all we need for an address provided by the login.
+ * Turn a combined address string (as stored in the database or provided by eAMA) into a
+ * `PostalAddress`. A string that cannot be parsed goes into `street`, so nothing is lost and the
+ * address counts as incomplete.
+ * @param {string|PostalAddress|null|undefined} address A string, or an address that is already
+ * split, which is returned as is (e.g. from a session created before addresses were split).
+ * @returns {PostalAddress|undefined}
+ */
+export function toPostalAddress(address) {
+  if (!address) return undefined;
+  if (typeof address !== 'string') return address;
+  return parseAddress(address) ?? { street: address.trim(), postalCode: '', city: '' };
+}
+
+/**
+ * @param {PostalAddress|null|undefined} address
+ * @param {boolean} [checkRules=true] Whether to check the `ADDRESS_RULES`. When `false`, street,
+ * postal code and city only need to be present, which is all we can ask of an address provided by
+ * the login, because the user cannot change it.
  * @returns {boolean}
  */
 export function isValidAddress(address, checkRules = true) {
-  const parsed = address ? parseAddress(address) : null;
-  return (
-    !!parsed &&
-    (!checkRules ||
-      /** @type {Array<keyof typeof ADDRESS_RULES>} */ (Object.keys(ADDRESS_RULES)).every((key) =>
-        ADDRESS_RULES[key].every((rule) => rule(parsed[key]) === true),
-      ))
+  if (!address) return false;
+  return /** @type {Array<keyof typeof ADDRESS_RULES>} */ (Object.keys(ADDRESS_RULES)).every(
+    (key) =>
+      checkRules
+        ? ADDRESS_RULES[key].every((rule) => rule(address[key]) === true)
+        : !!address[key]?.trim(),
   );
 }
 
@@ -186,21 +202,40 @@ export function validateIdentifier(type, value) {
 }
 
 /**
- * Whether the user data is complete and valid, so statements can be submitted.
- * @param {{ name?: string|null, address?: string|null, identifierType?: string|null, identifierValue?: string|null }|null|undefined} user
+ * @typedef {{ name?: string|null, address?: PostalAddress|null, identifierType?: string|null, identifierValue?: string|null }} UserDataToValidate
+ */
+
+/**
+ * The user data fields that are missing or invalid.
+ * @param {UserDataToValidate|null|undefined} user
  * @param {import('./constants.js').LoginProvider} [loginProvider] Identifiers and addresses
  * provided by the login of this provider are not checked for plausibility, because the user
  * cannot change them.
+ * @returns {Array<import('./constants.js').UserDataField>}
+ */
+export function getInvalidUserDataFields(user, loginProvider) {
+  const providedFields = (loginProvider && LOGIN_PROVIDED_FIELDS[loginProvider]) || [];
+  /** @type {Array<import('./constants.js').UserDataField>} */
+  const invalid = [];
+  if (!user?.name?.trim()) invalid.push('name');
+  if (!isValidAddress(user?.address, !providedFields.includes('address'))) invalid.push('address');
+  if (!user?.identifierType) invalid.push('identifierType');
+  if (
+    !user?.identifierValue?.trim() ||
+    (!providedFields.includes('identifierValue') &&
+      validateIdentifier(user.identifierType, user.identifierValue) !== true)
+  ) {
+    invalid.push('identifierValue');
+  }
+  return invalid;
+}
+
+/**
+ * Whether the user data is complete and valid, so statements can be submitted.
+ * @param {UserDataToValidate|null|undefined} user
+ * @param {import('./constants.js').LoginProvider} [loginProvider] See `getInvalidUserDataFields`.
  * @returns {boolean}
  */
 export function isUserDataValid(user, loginProvider) {
-  const providedFields = (loginProvider && LOGIN_PROVIDED_FIELDS[loginProvider]) || [];
-  const identifierProvided = providedFields.includes('identifierValue');
-  return !!(
-    user?.name?.trim() &&
-    isValidAddress(user.address, !providedFields.includes('address')) &&
-    user.identifierType &&
-    user.identifierValue?.trim() &&
-    (identifierProvided || validateIdentifier(user.identifierType, user.identifierValue) === true)
-  );
+  return getInvalidUserDataFields(user, loginProvider).length === 0;
 }

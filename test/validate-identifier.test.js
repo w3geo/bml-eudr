@@ -32,7 +32,7 @@ test('ONI is not checked', () => {
 test('isUserDataValid skips the check for login provided identifiers', () => {
   const user = {
     name: 'Test',
-    address: 'Hauptstraße 1, 1010 Wien',
+    address: { street: 'Hauptstraße 1', postalCode: '1010', city: 'Wien' },
     identifierType: 'GLN',
     identifierValue: '1234567890123',
   };

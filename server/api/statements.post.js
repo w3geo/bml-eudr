@@ -1,5 +1,5 @@
 import amaCattle from '../db/schema/ama_cattle';
-import { isUserDataValid } from '~~/shared/utils/utils';
+import { isUserDataValid, toPostalAddress } from '~~/shared/utils/utils';
 import { CATTLE_LOGIN_PROVIDERS } from '~~/shared/utils/constants';
 
 export default defineEventHandler(async (event) => {
@@ -14,13 +14,14 @@ export default defineEventHandler(async (event) => {
   const db = useDb();
 
   const secure = session.secure;
+  const address = toPostalAddress(secure?.address);
   if (
     !secure ||
     !secure.name ||
-    !secure.address ||
+    !address ||
     !secure.identifierType ||
     !secure.identifierValue ||
-    !isUserDataValid(secure, session.loginProvider)
+    !isUserDataValid({ ...secure, address }, session.loginProvider)
   ) {
     throw createError({
       status: 400,
@@ -32,7 +33,7 @@ export default defineEventHandler(async (event) => {
   const user = {
     id: userId,
     name: secure.name,
-    address: secure.address,
+    address,
     identifierType: secure.identifierType,
     identifierValue: secure.identifierValue,
   };

@@ -49,23 +49,35 @@ editableUserData.value = userData.value ? structuredClone(toRaw(userData.value))
 const loginProvidedFields = userData.value
   ? (LOGIN_PROVIDED_FIELDS[userData.value.loginProvider] ?? [])
   : [];
-// A login-provided address is not checked for plausibility, but one that cannot be parsed can be
-// corrected by the user
-const addressEditable =
-  !loginProvidedFields.includes('address') || !isValidAddress(userData.value?.address, false);
-canSave.value = loginProvidedFields.length < editableUserDataFields.length || addressEditable;
+const addressEditable = !loginProvidedFields.includes('address');
+canSave.value = loginProvidedFields.length < editableUserDataFields.length;
 watchEffect(() => {
   valid.value = isUserDataValid(userData.value, userData.value?.loginProvider);
 });
-
-const address = userData.value?.address || '';
-// An address that cannot be parsed goes into the street field, for the user to split up
-const addressParts = reactive(
-  parseAddress(address) ?? { street: address, postalCode: '', city: '' },
+/** Login-provided fields that are incomplete, and can only be fixed at the login provider */
+const incompleteProvidedFields = computed(() =>
+  getInvalidUserDataFields(userData.value, userData.value?.loginProvider).filter((key) =>
+    loginProvidedFields.includes(key),
+  ),
 );
+
+/** @type {Record<import('~~/shared/utils/constants').LoginProvider, string>} */
+const PROVIDER_FIX_HINTS = {
+  OTP: '',
+  SMS: '',
+  IDA: 'Die Adresse kommt aus dem Zentralen Melderegister und kann bei Ihrer Meldebehörde (Gemeinde bzw. Magistrat) berichtigt werden.',
+  AMA: 'Die Adresse kommt aus eAMA und kann bei der AMA berichtigt werden.',
+  USP: 'Die Adresse kommt aus den Unternehmensdaten im Unternehmensserviceportal (USP) und kann dort berichtigt werden.',
+};
+
+const addressParts = reactive({
+  street: userData.value?.address?.street ?? '',
+  postalCode: userData.value?.address?.postalCode ?? '',
+  city: userData.value?.address?.city ?? '',
+});
 watch(addressParts, (parts) => {
   if (editableUserData.value) {
-    editableUserData.value.address = formatAddress(parts);
+    editableUserData.value.address = { ...parts };
   }
 });
 
@@ -85,7 +97,12 @@ onMounted(() => {
   // Show what is wrong with existing data right away, instead of only on submit. Empty fields are
   // left alone, so a new user does not start with a form full of errors.
   /** @type {Record<string, string|null|undefined>} */
-  const values = { ...editableUserData.value, ...addressParts };
+  const values = {
+    name: editableUserData.value.name,
+    identifierType: editableUserData.value.identifierType,
+    identifierValue: editableUserData.value.identifierValue,
+    ...addressParts,
+  };
   for (const [key, field] of Object.entries(fields)) {
     if (values[key]?.trim()) {
       field?.validate();
@@ -216,6 +233,18 @@ const idItems = computed(() => [
           :disabled="!props.editable || !addressEditable"
           :rules="ADDRESS_RULES.city"
         ></v-text-field>
+      </v-col>
+      <v-col v-if="props.editable && incompleteProvidedFields.length > 0" cols="12">
+        <v-alert type="warning" variant="tonal">
+          <template v-if="incompleteProvidedFields.includes('address')">
+            Ihre Adresse ist beim Anmeldedienst unvollständig (Straße und Hausnummer, PLZ und Ort
+            werden benötigt).
+          </template>
+          <template v-else>Ihre Daten sind beim Anmeldedienst unvollständig.</template>
+          {{ PROVIDER_FIX_HINTS[userData?.loginProvider ?? 'OTP'] }}
+          Bis dahin können Sie keine vereinfachten Erklärungen abgeben. Alternativ können Sie sich
+          mit Ihrer E-Mail-Adresse anmelden und Ihre Daten selbst eingeben.
+        </v-alert>
       </v-col>
       <v-col v-if="props.editable && canSave" cols="12" class="text-body-1 mb-2">
         <v-alert v-if="loginProvidedFields.length > 0" :icon="mdiInformationOutline" class="mb-4">

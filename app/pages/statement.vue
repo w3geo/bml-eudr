@@ -155,11 +155,9 @@ function openEditor(commodity) {
   // it. The snapshot taken right after captures the pre-fill as the editing
   // baseline, so opening the editor is not treated as an unsaved change.
   if (!address.value) {
-    address.value = parseAddress(user.value?.address || '') ?? {
-      street: '',
-      postalCode: '',
-      city: '',
-    };
+    address.value = user.value?.address
+      ? { ...user.value.address }
+      : { street: '', postalCode: '', city: '' };
   }
   createSnapshot();
 }
