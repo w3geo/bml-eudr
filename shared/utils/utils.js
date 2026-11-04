@@ -88,6 +88,10 @@ export const ADDRESS_RULES = {
   street: [
     /** @param {string} [v] */
     (v) => !!v?.trim() || 'Straße und Hausnummer ist erforderlich',
+    /** @param {string} [v] */
+    (v) =>
+      /\S\s+\d/.test(v?.trim() ?? '') ||
+      'Hausnummer fehlt oder ist nicht durch ein Leerzeichen getrennt',
   ],
   postalCode: [
     /** @param {string} [v] */
