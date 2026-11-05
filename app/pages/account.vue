@@ -14,8 +14,12 @@ definePageMeta({
   middleware: ['redirect-if-authenticated'],
   sort: 20,
 });
+const description =
+  'Anmelden mit eAMA, USP, ID Austria oder E-Mail, die Angaben zum Betrieb verwalten und die Identifikationsnummern Ihrer vereinfachten Erklärungen abrufen.';
 useSeoMeta({
   title: 'Mein Konto',
+  description,
+  ogDescription: description,
 });
 const { loggedIn } = useUserSession();
 const theme = useColorMode();

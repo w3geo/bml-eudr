@@ -1,6 +1,10 @@
 <script setup>
+const description =
+  'Erklärung zur Barrierefreiheit der EUDR Meldung: Stand der Vereinbarkeit, nicht barrierefreie Inhalte und Kontakt für Feedback.';
 useSeoMeta({
   title: 'Barrierefreiheit',
+  description,
+  ogDescription: description,
 });
 </script>
 

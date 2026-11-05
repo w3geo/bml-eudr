@@ -57,7 +57,6 @@ const logout = useLogout();
   <NuxtLoadingIndicator color="blue" :height="2" />
   <v-app :theme="theme.value">
     <a class="skip-link" href="#main">Zum Inhalt springen</a>
-    <DisclaimerDialog />
     <v-app-bar class="d-print-none" color="green-darken-3" flat density="compact">
       <template #prepend>
         <v-app-bar-nav-icon
@@ -88,7 +87,7 @@ const logout = useLogout();
             "
           />
           <v-divider />
-          <v-list-item class="text-medium-emphasis" link to="/account">Meine Konto</v-list-item>
+          <v-list-item class="text-medium-emphasis" link to="/account">Mein Konto</v-list-item>
           <v-list-item :append-icon="mdiLogout" class="text-medium-emphasis" @click="logout"
             >Abmelden</v-list-item
           >

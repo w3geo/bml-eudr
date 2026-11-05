@@ -1,6 +1,10 @@
 <script setup>
+const description =
+  'Datenschutzerklärung der EUDR Meldung: welche Daten bei der Abgabe der vereinfachten Erklärung verarbeitet werden, wie lange und welche Rechte Sie haben.';
 useSeoMeta({
   title: 'Datenschutz',
+  description,
+  ogDescription: description,
 });
 </script>
 
