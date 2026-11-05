@@ -39,6 +39,8 @@ useHead({
 });
 
 const { xs } = useDisplay();
+const { loggedIn } = useUserSession();
+const redirect = useCookie('redirect');
 
 const audience = [
   { included: true, text: 'Kleinst- und Kleinprimärerzeuger in Österreich' },
@@ -138,11 +140,12 @@ function pauseOtherVideos(event) {
           </v-card-text>
           <v-card-actions class="justify-center flex-wrap ga-2 pb-4">
             <v-btn
-              to="/statement"
+              :to="loggedIn ? '/statement' : '/account'"
               :prepend-icon="mdiFileSign"
               color="primary"
               variant="flat"
               :size="xs ? 'default' : 'large'"
+              @click="loggedIn || (redirect = '/statement')"
             >
               Erklärung erstellen
             </v-btn>
