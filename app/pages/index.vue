@@ -5,11 +5,37 @@ definePageMeta({
   title: 'Startseite',
   sort: 10,
 });
+// No title, so the titleTemplate in app.vue makes it just the site name, which search engines
+// show for the site.
+const description =
+  'Portal des BMLUK für die vereinfachte Erklärung nach der EU-Entwaldungsverordnung (EUDR): für Kleinst- und Kleinprimärerzeuger von Holz, Sojabohnen und Rindern in Österreich.';
 useSeoMeta({
-  title: 'Startseite',
-  description: 'Vereinfachte Erklärung im Rahmen der EU-Entwaldungsverordnung (EUDR)',
+  description,
   ogTitle: 'EUDR Meldung',
-  ogDescription: 'Vereinfachte Erklärung im Rahmen der EU-Entwaldungsverordnung (EUDR)',
+  ogDescription: description,
+});
+// Site name for search results, see https://developers.google.com/search/docs/appearance/site-names
+const siteConfig = useSiteConfig();
+useHead({
+  script: [
+    {
+      type: 'application/ld+json',
+      innerHTML: JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'WebSite',
+        'name': siteConfig.name,
+        'alternateName': 'eudr-meldung.at',
+        'url': new URL('/', siteConfig.url || useRequestURL().origin).href,
+        'inLanguage': 'de-AT',
+        'publisher': {
+          '@type': 'GovernmentOrganization',
+          'name':
+            'Bundesministerium für Land- und Forstwirtschaft, Klima- und Umweltschutz, Regionen und Wasserwirtschaft',
+          'url': 'https://www.bmluk.gv.at/',
+        },
+      }),
+    },
+  ],
 });
 
 const { xs } = useDisplay();
@@ -94,6 +120,7 @@ function pauseOtherVideos(event) {
       <v-col cols="12">
         <v-card>
           <v-card-text>
+            <h1 class="text-h5 mb-3">EUDR Meldung – Vereinfachte Erklärung</h1>
             <div class="text-body-1 mb-2">
               Herzlich willkommen auf der Seite zur Erstellung Ihrer vereinfachten Erklärung im
               Rahmen der EU-Entwaldungsverordnung (EUDR,

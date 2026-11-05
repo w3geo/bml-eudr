@@ -37,7 +37,6 @@ export default defineNuxtConfig({
     '/auth/**': { robots: false },
     '/print/**': { robots: false },
     '/stats/**': { robots: false },
-    '/statement': { robots: false },
   },
   runtimeConfig: {
     // See server/utils/database.js and server/plugins/storage.js

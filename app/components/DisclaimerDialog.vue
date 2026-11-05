@@ -1,10 +1,16 @@
 <script setup>
-const { loggedIn } = useUserSession();
-const showDisclaimer = ref(!loggedIn.value);
+// Shown before using the statement editor, once per browser session. Not on page load: search
+// engines would take the text for the content of every page.
+const accepted = useCookie('disclaimer-accepted');
+const showDisclaimer = ref(!accepted.value);
+function accept() {
+  accepted.value = '1';
+  showDisclaimer.value = false;
+}
 </script>
 <template>
   <v-dialog v-model="showDisclaimer" persistent scrollable>
-    <v-card title="Haftungsausschluss">
+    <v-card title="Haftungsausschluss" data-nosnippet>
       <v-card-text>
         <div class="text-subtitle-1 mb-2">Sehr geehrte Benutzerin, sehr geehrter Benutzer,</div>
 
@@ -41,7 +47,7 @@ const showDisclaimer = ref(!loggedIn.value);
         </div>
       </v-card-text>
       <v-card-actions class="justify-center">
-        <v-btn color="primary" @click="showDisclaimer = false">Akzeptieren</v-btn>
+        <v-btn color="primary" @click="accept">Akzeptieren</v-btn>
       </v-card-actions>
     </v-card>
   </v-dialog>
