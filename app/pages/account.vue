@@ -331,7 +331,13 @@ if (!statementsError.value) {
             <v-img alt="eAMA" height="80" :src="`./logo_eama_${theme.value}.png`" />
           </v-card-actions>
           <v-card-text class="text-center text-medium-emphasis pt-0">
-            mit ID Austria oder Betriebsnummer/Passwort – alle Daten werden übernommen:
+            mit
+            <img
+              class="inline-logo"
+              alt="ID Austria"
+              :src="`./id-austria-logo-${theme.value}.png`"
+            />
+            oder Betriebsnummer/Passwort – alle Daten werden übernommen:
           </v-card-text>
           <v-card-text class="pt-0 pb-6">
             <LoginFeatures :features="features.eama" />
@@ -341,7 +347,7 @@ if (!statementsError.value) {
       <v-col cols="12" class="d-flex align-center mt-2">
         <v-divider />
         <span class="divider-label mx-4 text-medium-emphasis text-center">
-          Kein eAMA Login? Weitere Anmeldemöglichkeiten:
+          Keine AMA-Betriebsnummer? Weitere Anmeldemöglichkeiten:
         </span>
         <v-divider />
       </v-col>
@@ -378,9 +384,10 @@ if (!statementsError.value) {
           href="./auth/idaustria"
         >
           <v-card-title class="text-center"> Anmelden mit </v-card-title>
-          <v-card-actions class="d-flex justify-center">
-            <v-img alt="ID Austria" height="36" :src="`./id-austria-logo-${theme.value}.png`" />
+          <v-card-actions class="d-flex justify-center min-h-0 pb-1">
+            <v-img alt="ID Austria" height="28" :src="`./id-austria-logo-${theme.value}.png`" />
           </v-card-actions>
+          <v-card-subtitle class="text-center"> ohne AMA-Betriebsnummer </v-card-subtitle>
           <v-card-text>
             <LoginFeatures :features="features.idaustria" />
           </v-card-text>
@@ -471,6 +478,16 @@ if (!statementsError.value) {
 .divider-label {
   flex-shrink: 0;
   max-width: 70%;
+}
+.min-h-0 {
+  min-height: 0;
+}
+.inline-logo {
+  height: 1.4em;
+  vertical-align: middle;
+  position: relative;
+  top: -1px;
+  margin: 0 0.15em;
 }
 .recommended {
   position: absolute;
