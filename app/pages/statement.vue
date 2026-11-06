@@ -69,7 +69,7 @@ const steps = [
               size="large"
               @click="redirect = '/statement'"
             >
-              Anmelden und Erklärung erstellen
+              Erklärung erstellen
             </v-btn>
             <v-btn to="/" color="primary" variant="outlined" size="large">
               Anleitungen in Videos
