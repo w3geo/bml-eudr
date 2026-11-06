@@ -387,7 +387,7 @@ if (!statementsError.value) {
           <v-card-actions class="d-flex justify-center min-h-0 pb-1">
             <v-img alt="ID Austria" height="28" :src="`./id-austria-logo-${theme.value}.png`" />
           </v-card-actions>
-          <v-card-subtitle class="text-center"> ohne AMA-Betriebsnummer </v-card-subtitle>
+          <v-card-subtitle class="text-center"> ohne eAMA </v-card-subtitle>
           <v-card-text>
             <LoginFeatures :features="features.idaustria" />
           </v-card-text>
