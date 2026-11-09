@@ -19,11 +19,15 @@ const userDataComplete = ref(null);
 const { data: user, refresh: refetchUserData } = await useFetch('/api/users/me');
 const incomplete = computed(() => !isUserDataValid(user.value, user.value?.loginProvider));
 
-/** @type {import('vue').Ref<import('~/components/UserData.vue').default|null>} */
-const userDataSubmit = ref(null);
-
 /** @type {import('vue').Ref<boolean>} */
 const geolocationVisible = ref(true);
+
+/**
+ * Whether a submission is in progress. Guards against repeated clicks on the submit button,
+ * each of which would otherwise create a separate statement in TRACES.
+ * @type {import('vue').Ref<boolean>}
+ */
+const submitting = ref(false);
 
 /** @type {import('vue').Ref<null|import('~~/shared/utils/constants').Commodity>} */
 const editCommodity = ref(null);
@@ -187,10 +191,10 @@ async function completeUserData() {
 }
 
 async function submit() {
-  if (!(await userDataSubmit.value?.validate())) {
+  if (submitting.value) {
     return;
   }
-  await userDataSubmit.value?.save();
+  submitting.value = true;
   try {
     start();
     await $fetch('/api/statements', {
@@ -221,6 +225,7 @@ async function submit() {
   } finally {
     finish();
     clear();
+    submitting.value = false;
   }
 }
 
@@ -315,7 +320,8 @@ async function validate() {
         <v-card v-if="!incomplete">
           <v-card-title>Vereinfachte Erklärung</v-card-title>
           <v-card-text v-if="canSend">
-            <UserData ref="userDataSubmit" />
+            <!-- Read-only: Betriebsdaten are edited and saved under "Mein Konto" -->
+            <UserData />
             <v-row class="mt-2">
               <v-col
                 v-for="item in commoditiesInStatement"
@@ -405,7 +411,13 @@ async function validate() {
             </div>
           </v-card-text>
           <v-card-actions v-if="canSend">
-            <v-btn :prepend-icon="mdiCheckDecagram" color="primary" @click="submit">
+            <v-btn
+              :prepend-icon="mdiCheckDecagram"
+              color="primary"
+              :loading="submitting"
+              :disabled="submitting"
+              @click="submit"
+            >
               Bestätigen und übermitteln
             </v-btn>
           </v-card-actions>
