@@ -36,6 +36,7 @@ export const STATUS_LABELS = {
   UPDATED: 'Aktualisiert',
   GROUPED: 'Gruppiert',
   OBSOLETE: 'Veraltet',
+  CANCELLED: 'Storniert',
   UNKNOWN: 'Unbekannt',
 };
 
