@@ -52,7 +52,7 @@ test('isUserDataValid skips the address rules for login provided addresses', () 
     name: 'Test',
     address: { street: 'Hart', postalCode: '5321', city: 'Koppl' },
     identifierType: 'GLN',
-    identifierValue: '4006381333931',
+    identifierValue: '9001234567896',
   };
   assert.equal(isUserDataValid(user, 'OTP'), false);
   assert.equal(isUserDataValid(user, 'SMS'), false);

@@ -166,8 +166,8 @@ function isValidGs1Checksum(digits) {
 }
 
 /**
- * Plausibility check of an identifier entered by the user. GLN, Austrian TIN (Steuernummer) and
- * Austrian UID are checked for format and check digit. LFBIS numbers (ONI) are only provided by
+ * Plausibility check of an identifier entered by the user. Austrian GLN, Austrian TIN
+ * (Steuernummer) and Austrian UID are checked for format and check digit. LFBIS numbers (ONI) are only provided by
  * the login and not checked.
  * @param {string|null|undefined} type
  * @param {string|null|undefined} value
@@ -178,8 +178,9 @@ export function validateIdentifier(type, value) {
   switch (type) {
     case 'GLN':
       return (
-        (/^\d{13}$/.test(trimmed) && isValidGs1Checksum(trimmed)) ||
-        'Keine gültige GLN (13 Ziffern)'
+        // GS1 Austria prefixes are 900-919
+        (/^9[01]\d{11}$/.test(trimmed) && isValidGs1Checksum(trimmed)) ||
+        'Keine gültige österreichische GLN (13 Ziffern, beginnend mit 900 bis 919)'
       );
     case 'TIN': {
       // Separators like in "12-345/6789" are allowed, they are removed when submitting to TRACES
