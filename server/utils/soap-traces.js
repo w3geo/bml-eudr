@@ -7,7 +7,7 @@ import {
 } from '~~/shared/utils/constants.js';
 import { removeHoles } from './remove-holes.js';
 
-/** @typedef {'AVAILABLE' | 'SUBMITTED' | 'REJECTED' | 'WITHDRAWN' | 'ARCHIVED' | 'SUSPENDED' | 'UPDATED' | 'GROUPED' | 'OBSOLETE' | 'UNKNOWN'} TracesStatus */
+/** @typedef {'AVAILABLE' | 'SUBMITTED' | 'REJECTED' | 'WITHDRAWN' | 'ARCHIVED' | 'SUSPENDED' | 'UPDATED' | 'GROUPED' | 'OBSOLETE' | 'CANCELLED' | 'UNKNOWN'} TracesStatus */
 
 /** @typedef {{id: string, name: string, address: import('~~/shared/utils/utils.js').PostalAddress, identifierType: import('~/utils/utils').IdentifierType, identifierValue: string}} User */
 
@@ -61,17 +61,19 @@ import { removeHoles } from './remove-holes.js';
 // https://circabc.europa.eu/ui/group/34861680-e799-4d7c-bbad-da83c45da458/library/3819b9e2-b889-4714-9bb3-b4dde1ebe649
 
 const errorNS = 'http://ec.europa.eu/sanco/tracesnt/error/v01';
-const sdNS = 'http://ec.europa.eu/tracesnt/certificate/eudr/simplified-declaration/v3';
-const commonNS = 'http://ec.europa.eu/tracesnt/certificate/eudr/common/v3';
-// WSDL quirk: submitSd/updateSd/withdrawSd carry a SOAPAction in the simplified-declaration
-// namespace, but the getSd* operations carry one in the due-diligence-statement namespace.
-// Verified against the published EUDRSimplifiedDeclarationServiceV3 WSDL.
-const ddsNS = 'http://ec.europa.eu/tracesnt/certificate/eudr/due-diligence-statement/v3';
+// All operations (including getSd*) use SOAPActions in the simplified-declaration namespace;
+// the V3 quirk of getSd* using the due-diligence-statement namespace is gone in V4.
+const sdNS = 'http://ec.europa.eu/tracesnt/certificate/eudr/simplified-declaration/v4';
+const commonNS = 'http://ec.europa.eu/tracesnt/certificate/eudr/common/v4';
+// The base header namespace (WS-Security, WebServiceClientId) stays at v4 for all service versions.
+const baseNS = 'http://ec.europa.eu/sanco/tracesnt/base/v4';
 // WSDL (drop "acceptance." for production):
-// https://acceptance.eudr.webcloud.ec.europa.eu/tracesnt/ws/EUDRSimplifiedDeclarationServiceV3?wsdl
+// https://acceptance.eudr.webcloud.ec.europa.eu/tracesnt/ws/EUDRSimplifiedDeclarationServiceV4?wsdl
+// Migration guide:
+// https://eudr.webcloud.ec.europa.eu/tracesnt/help/eudr-documentation/operator/migration/sd-v3-to-v4-migration.html
 // In the schema, `referenceNumber` is the "declaration identifier" (Identifikationsnummer) of a
 // simplified declaration; `uuid`/`sdIdentifier` is the technical TRACES id.
-const tracesV3Endpoint = `${process.env.TRACES_WS_URL}EUDRSimplifiedDeclarationServiceV3`;
+const tracesEndpoint = `${process.env.TRACES_WS_URL}EUDRSimplifiedDeclarationServiceV4`;
 const soapEnvNS = 'http://schemas.xmlsoap.org/soap/envelope/';
 
 // TRACES limits: 5 calls/s per IP, 10,000 calls/min globally (Operator API Reference v1.2, §2.3).
@@ -161,7 +163,7 @@ async function tracesRequest(soapAction, getBody, { submit = false } = {}) {
     /** @type {boolean} */
     let maybeProcessed;
     try {
-      const response = await fetch(tracesV3Endpoint, {
+      const response = await fetch(tracesEndpoint, {
         method: 'POST',
         body: getBody(),
         headers: {
@@ -410,10 +412,10 @@ function getSubmitSdXML(commodities, geolocationVisible, user) {
             </sd:representedOperator>`;
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-    <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
-      xmlns:sd="http://ec.europa.eu/tracesnt/certificate/eudr/simplified-declaration/v3"
-      xmlns:eudrCommon="http://ec.europa.eu/tracesnt/certificate/eudr/common/v3"
-      xmlns:v4="http://ec.europa.eu/sanco/tracesnt/base/v4">
+    <soapenv:Envelope xmlns:soapenv="${soapEnvNS}"
+      xmlns:sd="${sdNS}"
+      xmlns:eudrCommon="${commonNS}"
+      xmlns:v4="${baseNS}">
       ${getHeader()}
       <soapenv:Body>
         <sd:SubmitSdRequest>
@@ -444,10 +446,10 @@ function getRetrieveSdXML(sdIds) {
     .join('\n');
 
   return `<?xml version="1.0" encoding="UTF-8"?>
-    <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
-      xmlns:sd="http://ec.europa.eu/tracesnt/certificate/eudr/simplified-declaration/v3"
-      xmlns:eudrCommon="http://ec.europa.eu/tracesnt/certificate/eudr/common/v3"
-      xmlns:v4="http://ec.europa.eu/sanco/tracesnt/base/v4">
+    <soapenv:Envelope xmlns:soapenv="${soapEnvNS}"
+      xmlns:sd="${sdNS}"
+      xmlns:eudrCommon="${commonNS}"
+      xmlns:v4="${baseNS}">
       ${getHeader()}
       <soapenv:Body>
         <sd:GetSdRequest>
@@ -490,9 +492,7 @@ export async function submitSD(commodities, geolocationVisible, user) {
  * @returns {Promise<{statements?: Array<StatementInfo>, error?: string}>}
  */
 export async function retrieveSd(sdIds) {
-  const { status, text, xml } = await tracesRequest(`${ddsNS}/getSd`, () =>
-    getRetrieveSdXML(sdIds),
-  );
+  const { status, text, xml } = await tracesRequest(`${sdNS}/getSd`, () => getRetrieveSdXML(sdIds));
   if (!xml) {
     console.error('TRACES getSd: invalid response:', status, text);
     return { error: UNEXPECTED_MESSAGE };
@@ -540,9 +540,9 @@ export async function retrieveSd(sdIds) {
  * @returns {Promise<{statements?: Array<StatementInfo>, error?: string | undefined}>}
  */
 export async function retrieveSdByInternalReference(internalReference) {
-  const getBody = () => `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
-    xmlns:sd="http://ec.europa.eu/tracesnt/certificate/eudr/simplified-declaration/v3"
-    xmlns:v4="http://ec.europa.eu/sanco/tracesnt/base/v4">
+  const getBody = () => `<soapenv:Envelope xmlns:soapenv="${soapEnvNS}"
+    xmlns:sd="${sdNS}"
+    xmlns:v4="${baseNS}">
         ${getHeader()}
         <soapenv:Body>
             <sd:GetSdByInternalReferenceRequest>
@@ -551,7 +551,7 @@ export async function retrieveSdByInternalReference(internalReference) {
         </soapenv:Body>
     </soapenv:Envelope>`;
 
-  const { status, text, xml } = await tracesRequest(`${ddsNS}/getSdByInternalReference`, getBody);
+  const { status, text, xml } = await tracesRequest(`${sdNS}/getSdByInternalReference`, getBody);
   if (!xml) {
     console.error('TRACES getSdByInternalReference: invalid response:', status, text);
     return { error: UNEXPECTED_MESSAGE };
