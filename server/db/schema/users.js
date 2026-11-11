@@ -11,6 +11,11 @@ const users = pgTable('users', {
   otpExpiresAt: timestamp({ withTimezone: true }),
   /** Verification attempts for the current `otp`, including the successful one */
   otpAttempts: smallint().notNull().default(0),
+  /** When the last code was sent, for the minimum time between codes */
+  otpRequestedAt: timestamp({ withTimezone: true }),
+  /** Start of the window in which `otpRequestCount` codes were sent */
+  otpRequestWindowStart: timestamp({ withTimezone: true }),
+  otpRequestCount: smallint().notNull().default(0),
   createdAt: timestamp({ withTimezone: true }).notNull().defaultNow(),
   /** null until the first successful login, e.g. when only an OTP code was requested */
   lastLoginAt: timestamp({ withTimezone: true }),

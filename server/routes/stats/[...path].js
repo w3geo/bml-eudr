@@ -28,8 +28,7 @@ export default defineEventHandler(async (event) => {
   // Umami identifies visitors by IP address and user agent, and derives the country from the IP.
   // Cloudflare in front of Umami overwrites the usual IP headers, so the visitor's IP goes into a
   // header with a secret name, which Umami's CLIENT_IP_HEADER is set to.
-  const ip =
-    getRequestHeader(event, 'do-connecting-ip') || getRequestIP(event, { xForwardedFor: true });
+  const ip = getClientIp(event);
   if (ip && config.umamiClientIpHeader) {
     headers[config.umamiClientIpHeader] = ip;
   }

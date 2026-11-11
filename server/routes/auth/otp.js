@@ -1,4 +1,4 @@
-import { and, eq, gt, isNotNull, lt, sql } from 'drizzle-orm';
+import { and, eq, gt, isNotNull, lt, or, sql } from 'drizzle-orm';
 import { generate } from 'otp-generator';
 import lfbisFarm from '~~/server/db/schema/lfbis_farm';
 import lfbisField from '~~/server/db/schema/lfbis_field';
@@ -19,6 +19,22 @@ const OTP_VALIDITY_MINUTES = 15;
 
 /** Verification attempts per code, so the code cannot be found by trying */
 const OTP_MAX_ATTEMPTS = 5;
+
+/** Minimum time between two codes for the same account */
+const OTP_REQUEST_COOLDOWN_SECONDS = 60;
+
+/** Codes per account and window, so new codes cannot be used to get more verification attempts */
+const OTP_REQUESTS_PER_WINDOW = 5;
+const OTP_REQUEST_WINDOW_MINUTES = 60;
+
+/** Codes per IP address and hour */
+const OTP_REQUESTS_PER_IP_AND_HOUR = 30;
+const ipRateLimit = createRateLimiter(OTP_REQUESTS_PER_IP_AND_HOUR, 60 * 60 * 1000);
+
+/** @param {string} message */
+function tooManyRequests(message) {
+  return createError({ status: 429, statusMessage: 'Too Many Requests', message });
+}
 
 /**
  * @param {import('h3').H3Event} event
@@ -67,6 +83,14 @@ export default defineEventHandler(async (event) => {
     });
   }
 
+  // Before the LFBIS check, so LFBIS numbers cannot be probed without limit either
+  const ip = getClientIp(event);
+  if (!data.code && ip && !ipRateLimit(ip)) {
+    throw tooManyRequests(
+      'Von Ihrem Netzwerk wurden zu viele Codes angefordert. Bitte versuchen Sie es später noch einmal.',
+    );
+  }
+
   const lfbis = phone ? data.lfbis?.trim() : undefined;
   if (phone && (!lfbis || !(await lfbisExists(lfbis)))) {
     throw createError({
@@ -86,9 +110,11 @@ export default defineEventHandler(async (event) => {
       digits: true,
     });
 
-    // A new code replaces an unused one, along with its expiry and attempts
+    // A new code replaces an unused one, along with its expiry and attempts. The limits are
+    // checked in the same statement, so parallel requests cannot get more codes than allowed.
     const otpExpiresAt = new Date(Date.now() + OTP_VALIDITY_MINUTES * 60 * 1000);
-    await useDb()
+    const windowExpired = sql`(${users.otpRequestWindowStart} IS NULL OR ${users.otpRequestWindowStart} <= now() - make_interval(mins => ${OTP_REQUEST_WINDOW_MINUTES}))`;
+    const [requested] = await useDb()
       .insert(users)
       .values({
         id,
@@ -96,6 +122,9 @@ export default defineEventHandler(async (event) => {
         otp: code,
         otpExpiresAt,
         otpAttempts: 0,
+        otpRequestedAt: sql`now()`,
+        otpRequestWindowStart: sql`now()`,
+        otpRequestCount: 1,
       })
       .onConflictDoUpdate({
         target: users.id,
@@ -103,8 +132,22 @@ export default defineEventHandler(async (event) => {
           otp: code,
           otpExpiresAt,
           otpAttempts: 0,
+          otpRequestedAt: sql`now()`,
+          otpRequestWindowStart: sql`CASE WHEN ${windowExpired} THEN now() ELSE ${users.otpRequestWindowStart} END`,
+          otpRequestCount: sql`CASE WHEN ${windowExpired} THEN 1 ELSE ${users.otpRequestCount} + 1 END`,
         },
-      });
+        setWhere: and(
+          sql`(${users.otpRequestedAt} IS NULL OR ${users.otpRequestedAt} <= now() - make_interval(secs => ${OTP_REQUEST_COOLDOWN_SECONDS}))`,
+          or(windowExpired, lt(users.otpRequestCount, OTP_REQUESTS_PER_WINDOW)),
+        ),
+      })
+      .returning();
+
+    if (!requested) {
+      throw tooManyRequests(
+        'Es wurde vor Kurzem bereits ein Code angefordert. Bitte verwenden Sie diesen oder warten Sie etwas, bevor Sie einen neuen anfordern.',
+      );
+    }
 
     if (phone) {
       // "Code" as a separate word helps Safari (iOS/macOS) offer the code for AutoFill. The
