@@ -145,7 +145,7 @@ export default defineEventHandler(async (event) => {
 
     if (!requested) {
       throw tooManyRequests(
-        'Es wurde vor Kurzem bereits ein Code angefordert. Bitte verwenden Sie diesen oder warten Sie etwas, bevor Sie einen neuen anfordern.',
+        'Es wurden zu viele Codes angefordert. Bitte warten Sie etwas, bevor Sie einen neuen Code anfordern.',
       );
     }
 
