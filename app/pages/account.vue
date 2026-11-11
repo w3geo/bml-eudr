@@ -62,8 +62,6 @@ const features = {
 const email = ref();
 const otp = ref();
 const emailSubmitted = ref(false);
-/** @type {import('vue').Ref<string|undefined>} */
-const emailError = ref();
 const expandUserData = ref(false);
 
 // Hidden feature: entering a phone number (e.g. +436601234567) instead of an e-mail address asks
@@ -77,37 +75,57 @@ const lfbisError = ref();
 /** @param {string} value */
 const validateEmailOrPhone = (value) => isPhoneNumber(value) || validateEmail(value);
 
+/** A code request is running, so further clicks are ignored */
+const requesting = ref(false);
+
+/** Whether the code entry asks for a code that was sent before, because no new one was sent */
+const codeAlreadySent = ref(false);
+
+/**
+ * @param {{ email?: string, phone?: string, lfbis?: string }} body
+ * @param {boolean} [acceptPending] treat a refused request as success if a sent code is still valid
+ * @returns {Promise<string|undefined>} error message, if the code cannot be entered
+ */
+async function requestCode(body, acceptPending = true) {
+  codeAlreadySent.value = false;
+  requesting.value = true;
+  try {
+    await $fetch('/auth/otp', { method: 'POST', body });
+  } catch (e) {
+    const data = /** @type {import('ofetch').FetchError} */ (e).data;
+    if (acceptPending && data?.data?.codePending) {
+      codeAlreadySent.value = true;
+      return;
+    }
+    return data?.message || 'Code konnte nicht gesendet werden';
+  } finally {
+    requesting.value = false;
+  }
+}
+
 async function submitEmail() {
+  if (requesting.value) {
+    return;
+  }
   if (isPhoneNumber(email.value)) {
     phone.value = email.value;
     return;
   }
-  emailError.value = undefined;
-  try {
-    await $fetch('/auth/otp', {
-      method: 'POST',
-      body: { email: email.value },
-    });
-  } catch (e) {
-    emailError.value =
-      /** @type {import('ofetch').FetchError} */ (e).data?.message ||
-      'Code konnte nicht gesendet werden';
-    return;
+  // Not about the address itself, so not shown at the field, where it would make the card grow
+  const error = await requestCode({ email: email.value });
+  if (error) {
+    errorMessage.value = error;
+  } else {
+    emailSubmitted.value = true;
   }
-  emailSubmitted.value = true;
 }
 
 async function submitLfbis() {
-  lfbisError.value = undefined;
-  try {
-    await $fetch('/auth/otp', {
-      method: 'POST',
-      body: { phone: phone.value, lfbis: lfbis.value },
-    });
-  } catch (e) {
-    lfbisError.value =
-      /** @type {import('ofetch').FetchError} */ (e).data?.message ||
-      'Code konnte nicht gesendet werden';
+  if (requesting.value) {
+    return;
+  }
+  lfbisError.value = await requestCode({ phone: phone.value, lfbis: lfbis.value });
+  if (lfbisError.value) {
     return;
   }
   emailSubmitted.value = true;
@@ -145,15 +163,79 @@ async function receiveSmsOtp() {
   }
 }
 
+/** @type {import('vue').Ref<string|undefined>} */
+const otpError = ref();
+/** @type {import('vue').Ref<import('vuetify/components').VOtpInput|null>} */
+const otpField = ref(null);
+const verifying = ref(false);
+
 async function submitOtp() {
-  const params = new URLSearchParams({ code: otp.value });
-  if (phone.value) {
-    params.set('phone', phone.value);
-    params.set('lfbis', lfbis.value);
-  } else {
-    params.set('email', email.value);
+  if (verifying.value) {
+    return;
   }
-  window.location.href = `/auth/otp?${params}`;
+  otpError.value = undefined;
+  verifying.value = true;
+  try {
+    await $fetch('/auth/otp', {
+      method: 'POST',
+      body: phone.value
+        ? { code: otp.value, phone: phone.value, lfbis: lfbis.value }
+        : { code: otp.value, email: email.value },
+    });
+  } catch (e) {
+    verifying.value = false;
+    otp.value = '';
+    const data = /** @type {import('ofetch').FetchError} */ (e).data;
+    const message = data?.message || 'Anmeldung fehlgeschlagen.';
+    if (data?.data?.codeInvalid) {
+      // Back to requesting a new code
+      emailSubmitted.value = false;
+      errorMessage.value = message;
+    } else {
+      otpError.value = message;
+      // Enabled again only after the next render
+      nextTick(() => otpField.value?.focus());
+    }
+    return;
+  }
+  // Reload, so the page starts with the new session
+  window.location.href = '/account';
+}
+
+const codeResent = ref(false);
+
+/** For a code that did not arrive. The server refuses while the last code is less than a minute old. */
+async function resendCode() {
+  if (requesting.value) {
+    return;
+  }
+  otpError.value = undefined;
+  codeResent.value = false;
+  // The code entry is already shown, so a pending code is no reason to show it
+  const error = await requestCode(
+    phone.value ? { phone: phone.value, lfbis: lfbis.value } : { email: email.value },
+    false,
+  );
+  if (error) {
+    otpError.value = error;
+  } else {
+    codeResent.value = true;
+    if (phone.value) {
+      smsOtpAbort?.abort();
+      receiveSmsOtp();
+    }
+  }
+}
+
+/** Back to entering the e-mail address or phone number, e.g. to correct a typo */
+function changeAddress() {
+  smsOtpAbort?.abort();
+  phone.value = undefined;
+  otp.value = '';
+  otpError.value = undefined;
+  codeAlreadySent.value = false;
+  codeResent.value = false;
+  emailSubmitted.value = false;
 }
 
 /** @type {import('vue').Ref<import('~/components/UserData.vue').default|null>} */
@@ -429,6 +511,7 @@ if (!statementsError.value) {
                 density="compact"
                 :icon="mdiEmailFastOutline"
                 aria-label="Einmalcode anfordern"
+                :loading="requesting"
                 color="primary"
                 type="submit"
               />
@@ -446,26 +529,66 @@ if (!statementsError.value) {
                 hide-details="auto"
                 validate-on="submit lazy"
                 :rules="[validateEmailOrPhone(email)]"
-                :error-messages="emailError"
-                @update:model-value="emailError = undefined"
               /><v-btn
                 class="ml-2"
                 density="compact"
                 :icon="mdiEmailFastOutline"
                 aria-label="Einmalcode anfordern"
+                :loading="requesting"
                 color="primary"
                 type="submit"
               />
             </v-form>
             <v-form v-else>
-              <v-otp-input v-model="otp" autofocus length="6" @finish="submitOtp" />
+              <v-otp-input
+                ref="otpField"
+                v-model="otp"
+                class="pa-0"
+                autofocus
+                length="6"
+                density="compact"
+                :disabled="verifying"
+                :error="!!otpError"
+                @finish="submitOtp"
+                @update:model-value="otpError = undefined"
+              />
             </v-form>
           </v-card-actions>
           <v-card-text v-if="!emailSubmitted">
             <LoginFeatures :features="features.email" />
           </v-card-text>
-          <v-card-text v-else class="text-center">
-            Bitte geben Sie den per {{ phone ? 'SMS' : 'E-Mail' }} erhaltenen Code ein.
+          <v-card-text v-else class="text-center pt-0">
+            <span v-if="otpError" class="text-error">{{ otpError }}</span>
+            <template v-else-if="codeResent">Neuer Code gesendet an {{ phone || email }}.</template>
+            <template v-else-if="codeAlreadySent">
+              Bereits vor Kurzem gesendet an {{ phone || email }}.
+            </template>
+            <template v-else>Gesendet an {{ phone || email }}.</template>
+            <v-menu location="bottom" :disabled="verifying">
+              <template #activator="{ props }">
+                <button
+                  v-bind="props"
+                  type="button"
+                  class="text-primary text-decoration-underline ml-1"
+                >
+                  Kein Code erhalten?
+                </button>
+              </template>
+              <v-card max-width="320">
+                <v-card-text v-if="!phone"> Bitte sehen Sie auch im Spam-Ordner nach. </v-card-text>
+                <v-list density="compact">
+                  <v-list-item
+                    title="Neuen Code senden"
+                    :disabled="requesting"
+                    @click="resendCode"
+                  />
+                  <v-list-item
+                    :title="`Andere ${phone ? 'Nummer' : 'Adresse'} verwenden`"
+                    @click="changeAddress"
+                  />
+                </v-list>
+              </v-card>
+            </v-menu>
           </v-card-text>
         </v-card>
       </v-col>

@@ -20,7 +20,7 @@ const OTP_VALIDITY_MINUTES = 15;
 /** Verification attempts per code, so the code cannot be found by trying */
 const OTP_MAX_ATTEMPTS = 5;
 
-/** Minimum time between two codes for the same account */
+/** Minimum time between two codes for the same account, while the previous one is unused */
 const OTP_REQUEST_COOLDOWN_SECONDS = 60;
 
 /** Codes per account and window, so new codes cannot be used to get more verification attempts */
@@ -31,22 +31,34 @@ const OTP_REQUEST_WINDOW_MINUTES = 60;
 const OTP_REQUESTS_PER_IP_AND_HOUR = 30;
 const ipRateLimit = createRateLimiter(OTP_REQUESTS_PER_IP_AND_HOUR, 60 * 60 * 1000);
 
-/** @param {string} message */
-function tooManyRequests(message) {
-  return createError({ status: 429, statusMessage: 'Too Many Requests', message });
+/**
+ * The same message for all request limits, because users can only wait either way.
+ * @param {number} waitMs time until a new code can be requested
+ * @param {{ codePending?: boolean }} [data] `codePending` lets the client ask for the code that
+ * was already sent
+ */
+function tooManyRequests(waitMs, data) {
+  const minutes = Math.max(1, Math.ceil(waitMs / 60000));
+  const when = minutes === 1 ? 'in einer Minute' : `in ${minutes} Minuten`;
+  return createError({
+    status: 429,
+    statusMessage: 'Too Many Requests',
+    message: `Zu viele Anfragen, bitte ${when} erneut versuchen.`,
+    data,
+  });
 }
 
 /**
- * @param {import('h3').H3Event} event
- * @param {string} [message] shown instead of the generic retry message
+ * @param {string} message
+ * @param {boolean} [codeInvalid] the code cannot be used any more, so a new one is needed
  */
-function failLogin(event, message) {
-  const cookieOptions = { expires: new Date(Date.now() + 10000), secure: true };
-  setCookie(event, 'login-retry', 'true', cookieOptions);
-  if (message) {
-    setCookie(event, 'login-error', message, cookieOptions);
-  }
-  return sendRedirect(event, '/account');
+function failLogin(message, codeInvalid) {
+  return createError({
+    status: 400,
+    statusMessage: 'Bad Request',
+    message,
+    data: codeInvalid ? { codeInvalid } : undefined,
+  });
 }
 
 /**
@@ -69,11 +81,10 @@ async function lfbisExists(lfbis) {
 }
 
 export default defineEventHandler(async (event) => {
+  // Verification is a POST as well, so a wrong code can be corrected without leaving the page
+  assertMethod(event, 'POST');
   /** @type {UserPayload} */
-  const data = event.method === 'POST' ? await readBody(event) : await getQuery(event);
-  if (event.method === 'GET' && !data.code) {
-    throw createError({ status: 400, statusMessage: 'Bad Request' });
-  }
+  const data = await readBody(event);
   const phone = data?.phone && isPhoneNumber(data.phone) ? data.phone : undefined;
   const id = data?.email || phone;
   if (!id) {
@@ -85,10 +96,9 @@ export default defineEventHandler(async (event) => {
 
   // Before the LFBIS check, so LFBIS numbers cannot be probed without limit either
   const ip = getClientIp(event);
-  if (!data.code && ip && !ipRateLimit(ip)) {
-    throw tooManyRequests(
-      'Von Ihrem Netzwerk wurden zu viele Codes angefordert. Bitte versuchen Sie es später noch einmal.',
-    );
+  const ipWaitMs = !data.code && ip ? ipRateLimit(ip) : 0;
+  if (ipWaitMs) {
+    throw tooManyRequests(ipWaitMs);
   }
 
   const lfbis = phone ? data.lfbis?.trim() : undefined;
@@ -137,16 +147,32 @@ export default defineEventHandler(async (event) => {
           otpRequestCount: sql`CASE WHEN ${windowExpired} THEN 1 ELSE ${users.otpRequestCount} + 1 END`,
         },
         setWhere: and(
-          sql`(${users.otpRequestedAt} IS NULL OR ${users.otpRequestedAt} <= now() - make_interval(secs => ${OTP_REQUEST_COOLDOWN_SECONDS}))`,
+          // No cooldown after a successful login, which clears the code, e.g. to log in again
+          sql`(${users.otp} IS NULL OR ${users.otpRequestedAt} IS NULL OR ${users.otpRequestedAt} <= now() - make_interval(secs => ${OTP_REQUEST_COOLDOWN_SECONDS}))`,
           or(windowExpired, lt(users.otpRequestCount, OTP_REQUESTS_PER_WINDOW)),
         ),
       })
       .returning();
 
     if (!requested) {
-      throw tooManyRequests(
-        'Es wurden zu viele Codes angefordert. Bitte warten Sie etwas, bevor Sie einen neuen Code anfordern.',
+      // E.g. after going back from the code entry, the code that was just sent can still be used
+      const [user] = await useDb().select().from(users).where(eq(users.id, id));
+      const now = Date.now();
+      const cooldownEnd =
+        user?.otp && user.otpRequestedAt
+          ? user.otpRequestedAt.getTime() + OTP_REQUEST_COOLDOWN_SECONDS * 1000
+          : 0;
+      const windowEnd =
+        user && user.otpRequestCount >= OTP_REQUESTS_PER_WINDOW && user.otpRequestWindowStart
+          ? user.otpRequestWindowStart.getTime() + OTP_REQUEST_WINDOW_MINUTES * 60 * 1000
+          : 0;
+      const codePending = Boolean(
+        user?.otp &&
+        user.otpExpiresAt &&
+        user.otpExpiresAt.getTime() > now &&
+        user.otpAttempts < OTP_MAX_ATTEMPTS,
       );
+      throw tooManyRequests(Math.max(cooldownEnd, windowEnd) - now, { codePending });
     }
 
     if (phone) {
@@ -174,8 +200,9 @@ export default defineEventHandler(async (event) => {
     return sendNoContent(event, 201);
   }
 
+  const wrongCode = 'Falscher Code, bitte erneut versuchen.';
   if (!/^\d{6}$/.test(String(data.code))) {
-    return failLogin(event);
+    throw failLogin(wrongCode);
   }
 
   // Count the attempt in the same statement that checks expiry and attempts, so parallel requests
@@ -195,19 +222,16 @@ export default defineEventHandler(async (event) => {
 
   if (!user) {
     // Also for unknown users, so the message does not reveal whether an account exists
-    return failLogin(
-      event,
-      'Der Code ist nicht mehr gültig. Bitte fordern Sie einen neuen Code an.',
-    );
+    throw failLogin('Code ungültig, bitte neu anfordern.', true);
   }
 
   if (user.otp !== String(data.code)) {
-    return failLogin(
-      event,
-      user.otpAttempts >= OTP_MAX_ATTEMPTS
-        ? 'Der Code wurde zu oft falsch eingegeben. Bitte fordern Sie einen neuen Code an.'
-        : undefined,
-    );
+    if (user.otpAttempts < OTP_MAX_ATTEMPTS) {
+      throw failLogin(wrongCode);
+    }
+    // Without a pending code, a new one can be requested without the cooldown
+    await useDb().update(users).set({ otp: null, otpExpiresAt: null }).where(eq(users.id, user.id));
+    throw failLogin('Zu viele Fehlversuche, bitte neuen Code anfordern.', true);
   }
 
   // The LFBIS number is only stored after the code was verified, so requesting a code for a
@@ -247,5 +271,5 @@ export default defineEventHandler(async (event) => {
     },
   });
 
-  return sendRedirect(event, '/account');
+  return sendNoContent(event);
 });
