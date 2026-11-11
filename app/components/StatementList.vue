@@ -155,6 +155,15 @@ const getCommodities = async (statement) => {
 const getOperatorName = () => userData.value?.name;
 
 /**
+ * Address line as in the print preview, or an empty string if there is no address.
+ * @returns {string}
+ */
+const getOperatorAddressLine = () =>
+  userData.value?.address
+    ? `Anschrift: ${formatAddress(userData.value.address)}, Österreich\n`
+    : '';
+
+/**
  * @param href {string}
  */
 const createAndClickLink = (href) => {
@@ -177,7 +186,7 @@ const sendEmail = async (statement) => {
   }
   createAndClickLink(
     `mailto:?subject=EUDR Vereinfachte Erklärung von ${getOperatorName()}&body=${encodeURIComponent(
-      `Ersteller: ${getOperatorName()}\nIdentifikationsnummer: ${statement.referenceNumber}\nPrüfnummer: ${statement.verificationNumber}\nErklärungsdatum: ${formatDate(statement.date)}\n${getCommoditiesSummary(
+      `Ersteller: ${getOperatorName()}\n${getOperatorAddressLine()}Identifikationsnummer: ${statement.referenceNumber}\nPrüfnummer: ${statement.verificationNumber}\nErklärungsdatum: ${formatDate(statement.date)}\n${getCommoditiesSummary(
         commodities,
       )}`,
     )}`,
