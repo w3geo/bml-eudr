@@ -1,5 +1,5 @@
 import { randomUUID } from 'crypto';
-import { getRequestURL } from 'h3';
+import { getRequestHeader, getRequestIP, getRequestURL } from 'h3';
 import { FetchError } from 'ofetch';
 import { snakeCase, upperFirst } from 'scule';
 import { createError } from '#imports';
@@ -12,6 +12,18 @@ import { FIELDS_LOGIN_PROVIDERS } from '~~/shared/utils/constants';
  */
 export function getPublicOrigin(event) {
   return getRequestURL(event, { xForwardedHost: true, xForwardedProto: true }).origin;
+}
+
+/**
+ * The client's IP address. DigitalOcean App Platform sets `do-connecting-ip`. Clients can set
+ * `x-forwarded-for` themselves, so it is only a fallback for other environments.
+ * @param {import('h3').H3Event} event
+ * @returns {string|undefined}
+ */
+export function getClientIp(event) {
+  return (
+    getRequestHeader(event, 'do-connecting-ip') || getRequestIP(event, { xForwardedFor: true })
+  );
 }
 
 /**

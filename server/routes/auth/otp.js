@@ -1,4 +1,4 @@
-import { and, eq } from 'drizzle-orm';
+import { and, eq, gt, isNotNull, lt, or, sql } from 'drizzle-orm';
 import { generate } from 'otp-generator';
 import lfbisFarm from '~~/server/db/schema/lfbis_farm';
 import lfbisField from '~~/server/db/schema/lfbis_field';
@@ -13,6 +13,41 @@ import users from '~~/server/db/schema/users';
  * @property {string} [lfbis]
  * @property {string} [code]
  */
+
+/** How long a code can be used after it was requested */
+const OTP_VALIDITY_MINUTES = 15;
+
+/** Verification attempts per code, so the code cannot be found by trying */
+const OTP_MAX_ATTEMPTS = 5;
+
+/** Minimum time between two codes for the same account */
+const OTP_REQUEST_COOLDOWN_SECONDS = 60;
+
+/** Codes per account and window, so new codes cannot be used to get more verification attempts */
+const OTP_REQUESTS_PER_WINDOW = 5;
+const OTP_REQUEST_WINDOW_MINUTES = 60;
+
+/** Codes per IP address and hour */
+const OTP_REQUESTS_PER_IP_AND_HOUR = 30;
+const ipRateLimit = createRateLimiter(OTP_REQUESTS_PER_IP_AND_HOUR, 60 * 60 * 1000);
+
+/** @param {string} message */
+function tooManyRequests(message) {
+  return createError({ status: 429, statusMessage: 'Too Many Requests', message });
+}
+
+/**
+ * @param {import('h3').H3Event} event
+ * @param {string} [message] shown instead of the generic retry message
+ */
+function failLogin(event, message) {
+  const cookieOptions = { expires: new Date(Date.now() + 10000), secure: true };
+  setCookie(event, 'login-retry', 'true', cookieOptions);
+  if (message) {
+    setCookie(event, 'login-error', message, cookieOptions);
+  }
+  return sendRedirect(event, '/account');
+}
 
 /**
  * @param {string} lfbis
@@ -48,6 +83,14 @@ export default defineEventHandler(async (event) => {
     });
   }
 
+  // Before the LFBIS check, so LFBIS numbers cannot be probed without limit either
+  const ip = getClientIp(event);
+  if (!data.code && ip && !ipRateLimit(ip)) {
+    throw tooManyRequests(
+      'Von Ihrem Netzwerk wurden zu viele Codes angefordert. Bitte versuchen Sie es später noch einmal.',
+    );
+  }
+
   const lfbis = phone ? data.lfbis?.trim() : undefined;
   if (phone && (!lfbis || !(await lfbisExists(lfbis)))) {
     throw createError({
@@ -67,19 +110,44 @@ export default defineEventHandler(async (event) => {
       digits: true,
     });
 
-    await useDb()
+    // A new code replaces an unused one, along with its expiry and attempts. The limits are
+    // checked in the same statement, so parallel requests cannot get more codes than allowed.
+    const otpExpiresAt = new Date(Date.now() + OTP_VALIDITY_MINUTES * 60 * 1000);
+    const windowExpired = sql`(${users.otpRequestWindowStart} IS NULL OR ${users.otpRequestWindowStart} <= now() - make_interval(mins => ${OTP_REQUEST_WINDOW_MINUTES}))`;
+    const [requested] = await useDb()
       .insert(users)
       .values({
         id,
         loginProvider,
         otp: code,
+        otpExpiresAt,
+        otpAttempts: 0,
+        otpRequestedAt: sql`now()`,
+        otpRequestWindowStart: sql`now()`,
+        otpRequestCount: 1,
       })
       .onConflictDoUpdate({
         target: users.id,
         set: {
           otp: code,
+          otpExpiresAt,
+          otpAttempts: 0,
+          otpRequestedAt: sql`now()`,
+          otpRequestWindowStart: sql`CASE WHEN ${windowExpired} THEN now() ELSE ${users.otpRequestWindowStart} END`,
+          otpRequestCount: sql`CASE WHEN ${windowExpired} THEN 1 ELSE ${users.otpRequestCount} + 1 END`,
         },
-      });
+        setWhere: and(
+          sql`(${users.otpRequestedAt} IS NULL OR ${users.otpRequestedAt} <= now() - make_interval(secs => ${OTP_REQUEST_COOLDOWN_SECONDS}))`,
+          or(windowExpired, lt(users.otpRequestCount, OTP_REQUESTS_PER_WINDOW)),
+        ),
+      })
+      .returning();
+
+    if (!requested) {
+      throw tooManyRequests(
+        'Es wurde vor Kurzem bereits ein Code angefordert. Bitte verwenden Sie diesen oder warten Sie etwas, bevor Sie einen neuen anfordern.',
+      );
+    }
 
     if (phone) {
       // "Code" as a separate word helps Safari (iOS/macOS) offer the code for AutoFill. The
@@ -106,17 +174,40 @@ export default defineEventHandler(async (event) => {
     return sendNoContent(event, 201);
   }
 
+  if (!/^\d{6}$/.test(String(data.code))) {
+    return failLogin(event);
+  }
+
+  // Count the attempt in the same statement that checks expiry and attempts, so parallel requests
+  // cannot get more attempts than allowed
   const [user] = await useDb()
-    .select()
-    .from(users)
-    .where(and(eq(users.id, id), eq(users.otp, data.code)));
+    .update(users)
+    .set({ otpAttempts: sql`${users.otpAttempts} + 1` })
+    .where(
+      and(
+        eq(users.id, id),
+        isNotNull(users.otp),
+        gt(users.otpExpiresAt, new Date()),
+        lt(users.otpAttempts, OTP_MAX_ATTEMPTS),
+      ),
+    )
+    .returning();
 
   if (!user) {
-    setCookie(event, 'login-retry', 'true', {
-      expires: new Date(Date.now() + 10000),
-      secure: true,
-    });
-    return sendRedirect(event, '/account');
+    // Also for unknown users, so the message does not reveal whether an account exists
+    return failLogin(
+      event,
+      'Der Code ist nicht mehr gültig. Bitte fordern Sie einen neuen Code an.',
+    );
+  }
+
+  if (user.otp !== String(data.code)) {
+    return failLogin(
+      event,
+      user.otpAttempts >= OTP_MAX_ATTEMPTS
+        ? 'Der Code wurde zu oft falsch eingegeben. Bitte fordern Sie einen neuen Code an.'
+        : undefined,
+    );
   }
 
   // The LFBIS number is only stored after the code was verified, so requesting a code for a
@@ -129,7 +220,10 @@ export default defineEventHandler(async (event) => {
   await useDb()
     .update(users)
     .set({
-      otp: null, // Clear the OTP after successful login
+      // Clear the OTP after successful login
+      otp: null,
+      otpExpiresAt: null,
+      otpAttempts: 0,
       lastLoginAt: new Date(),
       loginProvider,
       identifierType: user.identifierType,

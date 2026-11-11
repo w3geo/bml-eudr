@@ -62,6 +62,8 @@ const features = {
 const email = ref();
 const otp = ref();
 const emailSubmitted = ref(false);
+/** @type {import('vue').Ref<string|undefined>} */
+const emailError = ref();
 const expandUserData = ref(false);
 
 // Hidden feature: entering a phone number (e.g. +436601234567) instead of an e-mail address asks
@@ -80,10 +82,18 @@ async function submitEmail() {
     phone.value = email.value;
     return;
   }
-  await $fetch('/auth/otp', {
-    method: 'POST',
-    body: { email: email.value },
-  });
+  emailError.value = undefined;
+  try {
+    await $fetch('/auth/otp', {
+      method: 'POST',
+      body: { email: email.value },
+    });
+  } catch (e) {
+    emailError.value =
+      /** @type {import('ofetch').FetchError} */ (e).data?.message ||
+      'Code konnte nicht gesendet werden';
+    return;
+  }
   emailSubmitted.value = true;
 }
 
@@ -436,6 +446,8 @@ if (!statementsError.value) {
                 hide-details="auto"
                 validate-on="submit lazy"
                 :rules="[validateEmailOrPhone(email)]"
+                :error-messages="emailError"
+                @update:model-value="emailError = undefined"
               /><v-btn
                 class="ml-2"
                 density="compact"
