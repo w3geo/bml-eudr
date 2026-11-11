@@ -273,7 +273,8 @@ if (!statementsError.value) {
         <v-card>
           <v-card-title>Konto löschen</v-card-title>
           <v-card-text>
-            Löscht Ihr Konto und alle Daten, die diese Applikation zu Ihnen gespeichert hat.
+            Löscht Ihr Konto und alle Daten, die diese Applikation zu Ihnen gespeichert hat. Ihre
+            vereinfachten Erklärungen bleiben gültig.
           </v-card-text>
           <v-card-actions>
             <v-btn color="error" :prepend-icon="mdiAccountRemove" @click="deleteDialog = true">
