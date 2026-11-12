@@ -1,6 +1,11 @@
 import amaCattle from '../db/schema/ama_cattle';
-import { isUserDataValid, toPostalAddress } from '~~/shared/utils/utils';
-import { CATTLE_LOGIN_PROVIDERS } from '~~/shared/utils/constants';
+import {
+  isUserDataValid,
+  isValidAddress,
+  normalizeAddress,
+  toPostalAddress,
+} from '~~/shared/utils/utils';
+import { CATTLE_LOGIN_PROVIDERS, COMMODITIES } from '~~/shared/utils/constants';
 
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event);
@@ -33,7 +38,7 @@ export default defineEventHandler(async (event) => {
   const user = {
     id: userId,
     name: secure.name,
-    address,
+    address: normalizeAddress(address),
     identifierType: secure.identifierType,
     identifierValue: secure.identifierValue,
   };
@@ -45,6 +50,22 @@ export default defineEventHandler(async (event) => {
       statusMessage: 'Bad Request',
       message: 'Mengen dürfen nicht negativ sein.',
     });
+  }
+  for (const commodity of commodities) {
+    // The postal address is only submitted when there is no geolocation, see getCommoditiesXML()
+    const hasGeometry =
+      commodity.geolocation && commodity.geojson?.features?.some((f) => f.geometry);
+    if (hasGeometry || !commodity.address) {
+      continue;
+    }
+    if (!isValidAddress(commodity.address)) {
+      throw createError({
+        status: 400,
+        statusMessage: 'Bad Request',
+        message: `Bitte überprüfen Sie die Postanschrift bei ${COMMODITIES[commodity.key]?.title ?? commodity.key}.`,
+      });
+    }
+    commodity.address = normalizeAddress(commodity.address);
   }
   const cattleCount = commodities.reduce((sum, c) => {
     const quantity = c.quantity;

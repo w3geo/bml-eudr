@@ -1,6 +1,11 @@
 import { eq } from 'drizzle-orm';
 import { editableUserDataFields, LOGIN_PROVIDED_FIELDS } from '~~/shared/utils/constants';
-import { formatAddress, getInvalidUserDataFields, toPostalAddress } from '~~/shared/utils/utils';
+import {
+  formatAddress,
+  getInvalidUserDataFields,
+  normalizeAddress,
+  toPostalAddress,
+} from '~~/shared/utils/utils';
 import users from '~~/server/db/schema/users';
 
 export default defineEventHandler(async (event) => {
@@ -55,7 +60,8 @@ export default defineEventHandler(async (event) => {
     /** @type {Record<string, any>} */
     const values = Object.fromEntries(userFields.map((key) => [key, body[key] ?? undefined]));
     if (userFields.includes('address')) {
-      values.address = toPostalAddress(values.address);
+      const address = toPostalAddress(values.address);
+      values.address = address && normalizeAddress(address);
     }
     // A login-provided field that is incomplete is not the user's fault, and does not prevent
     // saving the other fields
