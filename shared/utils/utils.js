@@ -83,27 +83,81 @@ export function formatAddress({ street = '', postalCode = '', city = '' }) {
 }
 
 /**
- * Validation rules for the structured address fields, usable as Vuetify `rules`.
+ * Normalize an address part the way it is submitted to TRACES: Unicode spaces (e.g. non-breaking
+ * spaces from copy-paste), tabs and line breaks become a single blank, invisible characters (soft
+ * hyphen, zero-width spaces) are removed, dashes become a hyphen and typographic apostrophes a
+ * plain one, because TRACES rejects all of these in the producer address.
+ * @param {string} [value]
+ * @returns {string}
+ */
+export function normalizeAddressPart(value = '') {
+  return value
+    .replace(/[\u00ad\u200b-\u200d\u2060]/g, '')
+    .replace(/\s+/g, ' ')
+    .replace(/[\u2010-\u2015\u2212]/g, '-')
+    .replace(/[\u2018\u2019\u201a\u201b\u00b4`\u02bc]/g, "'")
+    .trim();
+}
+
+/**
+ * @param {PostalAddress} address
+ * @returns {PostalAddress}
+ */
+export function normalizeAddress(address) {
+  return {
+    street: normalizeAddressPart(address.street),
+    postalCode: normalizeAddressPart(address.postalCode),
+    city: normalizeAddressPart(address.city),
+  };
+}
+
+/** Characters TRACES accepts in the producer street and city (determined by probing, the schema
+ * does not tell): letters and numbers of any script, blanks and `. , - ' / :` */
+const DISALLOWED_ADDRESS_CHARS = /[^\p{L}\p{N} .,'/:-]/gu;
+
+/**
+ * @param {string} [v]
+ * @returns {true|string}
+ */
+function allowedAddressChars(v) {
+  const invalid = [...new Set(normalizeAddressPart(v).match(DISALLOWED_ADDRESS_CHARS))];
+  return (
+    !invalid.length ||
+    `Nicht erlaubt: ${invalid.join(' ')} (erlaubt sind Buchstaben, Ziffern, Leerzeichen und . , - ' / :)`
+  );
+}
+
+/**
+ * Validation rules for the structured address fields, usable as Vuetify `rules`. Values are
+ * checked as they will be submitted, i.e. after `normalizeAddressPart`. They are at least as strict
+ * as TRACES' business rules for the producer address.
  * Each rule returns `true` or an error message.
  */
 export const ADDRESS_RULES = {
   street: [
     /** @param {string} [v] */
-    (v) => !!v?.trim() || 'Straße und Hausnummer ist erforderlich',
+    (v) => !!normalizeAddressPart(v) || 'Straße und Hausnummer ist erforderlich',
     /** @param {string} [v] */
     (v) =>
-      /\S\s+\d/.test(v?.trim() ?? '') ||
+      /\S \d/.test(normalizeAddressPart(v)) ||
       'Hausnummer fehlt oder ist nicht durch ein Leerzeichen getrennt',
+    allowedAddressChars,
   ],
   postalCode: [
     /** @param {string} [v] */
-    (v) => !!v?.trim() || 'PLZ ist erforderlich',
+    (v) => !!normalizeAddressPart(v) || 'PLZ ist erforderlich',
     /** @param {string} [v] */
-    (v) => /^\d{4}$/.test(v?.trim() ?? '') || 'PLZ muss vierstellig sein',
+    (v) => /^\d{4}$/.test(normalizeAddressPart(v)) || 'PLZ muss vierstellig sein',
   ],
   city: [
     /** @param {string} [v] */
-    (v) => !!v?.trim() || 'Ort ist erforderlich',
+    (v) => !!normalizeAddressPart(v) || 'Ort ist erforderlich',
+    /** @param {string} [v] */
+    (v) => {
+      const city = normalizeAddressPart(v);
+      return (city.length >= 2 && /\p{L}/u.test(city)) || 'Ort ist zu kurz';
+    },
+    allowedAddressChars,
   ],
 };
 
