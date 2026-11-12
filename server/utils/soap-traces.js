@@ -476,6 +476,19 @@ export async function submitSD(commodities, geolocationVisible, user) {
   const error = xml ? getFaultMessage(xml) : '';
   if (status >= 400 || !xml) {
     console.error('TRACES submit error:', text);
+    // The submitted data, to find out which values TRACES rejects. Not the XML body, which carries
+    // the credentials in its header; geometries are summarized, they can be large.
+    console.error(
+      'TRACES submit error data:',
+      JSON.stringify({
+        operatorAddress: user.address,
+        commodities: commodities.map(({ geojson, ...commodity }) => ({
+          ...commodity,
+          geojson: geojson ? `${geojson.features?.length ?? 0} feature(s)` : geojson,
+        })),
+        geolocationVisible,
+      }),
+    );
     return {
       sdId: undefined,
       error: error || UNEXPECTED_MESSAGE,
