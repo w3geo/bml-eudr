@@ -7,7 +7,8 @@ export default defineEventHandler(async (event) => {
     secure: true,
     // The callback is a cross-site POST from eAMA (and from production, when forwarded).
     sameSite: 'none',
-    expires: new Date(Date.now() + 120000),
+    // Switching apps on a phone (e.g. for ID Austria) can take a while
+    expires: new Date(Date.now() + 5 * 60 * 1000),
   });
   return sendRedirect(
     event,
