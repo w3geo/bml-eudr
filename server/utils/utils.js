@@ -180,9 +180,14 @@ export async function requestAccessToken(url, options) {
     body,
   }).catch((error) => {
     /**
-     * For a better error handling, only unauthorized errors are intercepted, and other errors are re-thrown.
+     * OAuth error responses (400, or 401 for invalid_client) are returned for the caller to
+     * handle, other errors are re-thrown.
      */
-    if (error instanceof FetchError && error.status === 401) {
+    if (
+      error instanceof FetchError &&
+      (error.status === 400 || error.status === 401) &&
+      error.data?.error
+    ) {
       return error.data;
     }
     throw error;
@@ -209,6 +214,35 @@ export function handleAccessTokenErrorResponse(event, oauthProvider, oauthError,
 
   if (!onError) throw error;
   return onError(event, /** @type {import('h3').H3Error} */ (error));
+}
+
+/**
+ * Handles an OAuth login callback whose code the provider rejected as `invalid_grant`, because it
+ * was already used (e.g. the callback URL was loaded again) or expired. Already logged in users
+ * just go to their account, others get the message to try again.
+ * @param {import('h3').H3Event} event
+ * @param {string} provider
+ * @param {import('h3').H3Error} error
+ * @returns {Promise<boolean>} whether the error was handled
+ */
+export async function handleInvalidGrant(event, provider, error) {
+  if (/** @type {any} */ (error.data)?.error !== 'invalid_grant') {
+    return false;
+  }
+  const loggedIn = Boolean((await getUserSession(event)).user);
+  console.warn(`${provider} login code rejected as invalid_grant`, {
+    loggedIn,
+    description: /** @type {any} */ (error.data).error_description,
+    userAgent: getRequestHeader(event, 'user-agent'),
+  });
+  if (!loggedIn) {
+    setCookie(event, 'login-retry', 'true', {
+      maxAge: 10,
+      secure: true,
+    });
+  }
+  await sendRedirect(event, '/account');
+  return true;
 }
 
 /**
