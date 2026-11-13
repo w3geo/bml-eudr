@@ -61,6 +61,49 @@ export function createAmaCid(origin) {
 }
 
 /**
+ * Whether `cid` was created by `createAmaCid` for the given origin.
+ * @param {unknown} cid
+ * @param {string} origin
+ * @returns {cid is string}
+ */
+export function isAmaCidFor(cid, origin) {
+  if (typeof cid !== 'string' || !/^[\w-]+\.[\da-f]{8}(?:-[\da-f]{4}){3}-[\da-f]{12}$/.test(cid)) {
+    return false;
+  }
+  return Buffer.from(cid.slice(0, cid.indexOf('.')), 'base64url').toString() === origin;
+}
+
+/** How long a restarted eAMA login is remembered, longer than the eama-cid cookie lives */
+const AMA_RESTART_TTL_MS = 10 * 60 * 1000;
+
+/**
+ * Remembers an eAMA `cid` that a login was restarted for, or that a restarted login started
+ * with, so a login is restarted only once. Stored in the database, because the callback can reach
+ * any instance.
+ * @param {string} cid
+ */
+export async function rememberAmaRestart(cid) {
+  const storage = useStorage('db:ama-restart');
+  const now = Date.now();
+  for (const key of await storage.getKeys()) {
+    if (now - Number(await storage.getItem(key)) > AMA_RESTART_TTL_MS) {
+      await storage.removeItem(key);
+    }
+  }
+  await storage.setItem(cid, now);
+}
+
+/**
+ * Whether a login was already restarted for or with `cid`, see `rememberAmaRestart`.
+ * @param {string} cid
+ * @returns {Promise<boolean>}
+ */
+export async function isAmaRestart(cid) {
+  const time = await useStorage('db:ama-restart').getItem(cid);
+  return time !== null && Date.now() - Number(time) <= AMA_RESTART_TTL_MS;
+}
+
+/**
  * Returns the origin that the eAMA login callback with the given `cid` has to be forwarded
  * to, if it is one of the origins listed in `AMA_LOGIN_FORWARD_ORIGINS` (comma-separated).
  * @param {string|undefined} cid
