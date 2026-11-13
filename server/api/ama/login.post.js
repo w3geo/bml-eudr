@@ -33,7 +33,8 @@ export default defineEventHandler(async (event) => {
         'Authorization': `Basic ${base64}`,
       },
     };
-    const { partnerseitenDaten: user } = await new Promise((resolve, reject) => {
+    /** @type {string} */
+    const responseBody = await new Promise((resolve, reject) => {
       const req = request(options, (res) => {
         if (res.statusCode !== 200) {
           console.error(`AMA login request failed: ${res}`);
@@ -45,11 +46,7 @@ export default defineEventHandler(async (event) => {
           chunks.push(d);
         });
         res.on('end', () => {
-          try {
-            resolve(JSON.parse(Buffer.concat(chunks).toString()));
-          } catch (e) {
-            reject(e);
-          }
+          resolve(Buffer.concat(chunks).toString());
           // {
           //   partnerseitenDaten: {
           //     betriebsnummern: 1234567,
@@ -69,6 +66,16 @@ export default defineEventHandler(async (event) => {
       );
       req.end();
     });
+    const { partnerseitenDaten: user } = JSON.parse(responseBody);
+
+    // Some eAMA accounts have no GLN. Use the LFBIS number as identifier instead, like for SMS login
+    const gln = user.GLN ? String(user.GLN).trim() : '';
+    if (!gln) {
+      console.warn('No GLN from eAMA, using LFBIS number as ONI', {
+        responseBody,
+        decoded: user,
+      });
+    }
 
     // eAMA only provides the address as a single string
     const address = toPostalAddress(user.bewadr);
@@ -88,8 +95,8 @@ export default defineEventHandler(async (event) => {
       secure: {
         name: user.bewname,
         address,
-        identifierType: 'GLN',
-        identifierValue: user.GLN,
+        identifierType: gln ? 'GLN' : 'ONI',
+        identifierValue: gln || String(user.betriebsnummern),
         lfbis: user.betriebsnummern,
       },
     });
