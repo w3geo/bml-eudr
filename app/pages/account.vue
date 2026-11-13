@@ -287,6 +287,17 @@ watch(
   { immediate: true },
 );
 
+// From the URL, because a browser that blocks cookies would not keep the login-error cookie
+const route = useRoute();
+if (route.query.loginError === 'cookies') {
+  errorMessage.value =
+    'Anmeldung fehlgeschlagen. Bitte Cookies erlauben und die Anmeldung innerhalb von 5 Minuten abschließen.';
+  // So the message does not come back on reload
+  onMounted(() =>
+    navigateTo({ query: { ...route.query, loginError: undefined } }, { replace: true }),
+  );
+}
+
 const logout = useLogout();
 const deleteDialog = ref(false);
 const deleting = ref(false);
