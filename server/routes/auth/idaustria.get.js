@@ -58,6 +58,9 @@ export default defineOAuthIdAustriaEventHandler({
     return sendRedirect(event, '/account');
   },
   async onError(event, error) {
+    if (await handleInvalidGrant(event, 'ID Austria', error)) {
+      return;
+    }
     setCookie(event, 'login-error', error.message, {
       maxAge: 10,
       secure: true,

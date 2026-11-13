@@ -38,6 +38,9 @@ export default defineOAuthUSPEventHandler({
     return sendRedirect(event, '/account');
   },
   async onError(event, error) {
+    if (await handleInvalidGrant(event, 'USP', error)) {
+      return;
+    }
     console.error('LOGIN ERROR USP', error);
     setCookie(event, 'login-error', error.message, {
       maxAge: 10,
