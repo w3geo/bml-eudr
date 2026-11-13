@@ -10,11 +10,31 @@ export default defineEventHandler(async (event) => {
       // instance checks the cid.
       return sendRedirect(event, `${forwardOrigin}/api/ama/login`, 307);
     }
-    if (!body.cid || body.cid !== getCookie(event, 'eama-cid')) {
+    const expectedCid = getCookie(event, 'eama-cid');
+    if (!body.cid || body.cid !== expectedCid) {
+      const reason = !body.cid
+        ? 'no cid from eAMA'
+        : !expectedCid
+          ? 'no eama-cid cookie (expired, or login finished in another browser)'
+          : 'cid does not match eama-cid cookie';
+      console.warn(`eAMA login rejected: ${reason}`, {
+        userAgent: getRequestHeader(event, 'user-agent'),
+      });
       setCookie(event, 'login-retry', 'true', {
         expires: new Date(Date.now() + 10000),
         secure: true,
       });
+      if (body.cid && !expectedCid) {
+        setCookie(
+          event,
+          'login-error',
+          'Anmeldung fehlgeschlagen. Bitte schließen Sie die Anmeldung innerhalb von 5 Minuten im selben Browser ab, in dem Sie sie begonnen haben.',
+          {
+            expires: new Date(Date.now() + 10000),
+            secure: true,
+          },
+        );
+      }
       return sendRedirect(event, '/account');
     }
 
