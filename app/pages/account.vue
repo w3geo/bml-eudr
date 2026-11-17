@@ -111,6 +111,8 @@ async function submitEmail() {
     phone.value = email.value;
     return;
   }
+  // E-mail addresses are the user id, so different spellings must not create different users.
+  email.value = email.value.trim().toLowerCase();
   // Not about the address itself, so not shown at the field, where it would make the card grow
   const error = await requestCode({ email: email.value });
   if (error) {
