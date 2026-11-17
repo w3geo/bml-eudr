@@ -73,27 +73,6 @@ export function isAmaCidFor(cid, origin) {
   return Buffer.from(cid.slice(0, cid.indexOf('.')), 'base64url').toString() === origin;
 }
 
-/**
- * Details of an eAMA login callback for the log, to match it with the "eAMA login started" entry
- * that has the same cid. The token is a credential, so only its length is logged.
- * @param {import('h3').H3Event} event
- * @param {any} body
- * @param {string|undefined} cookieCid
- */
-export function getAmaCallbackDetails(event, body, cookieCid) {
-  return {
-    receivedAt: new Date().toISOString(),
-    cid: body?.cid,
-    cookieCid,
-    bodyFields: body && typeof body === 'object' ? Object.keys(body) : typeof body,
-    tokenLength: typeof body?.token === 'string' ? body.token.length : undefined,
-    contentType: getRequestHeader(event, 'content-type'),
-    origin: getRequestHeader(event, 'origin'),
-    referer: getRequestHeader(event, 'referer'),
-    userAgent: getRequestHeader(event, 'user-agent'),
-  };
-}
-
 /** How long a restarted eAMA login is remembered, longer than the eama-cid cookie lives */
 const AMA_RESTART_TTL_MS = 10 * 60 * 1000;
 
