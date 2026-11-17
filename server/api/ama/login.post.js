@@ -14,14 +14,13 @@ export default defineEventHandler(async (event) => {
       return sendRedirect(event, `${forwardOrigin}/api/ama/login`, 307);
     }
     const expectedCid = getCookie(event, 'eama-cid');
+    const details = getAmaCallbackDetails(event, body, expectedCid);
     //TODO
     // eAMA logins on phones sometimes post back without the cid. The cookie still shows that this
     // browser started the login within the last minutes, so accept it until eAMA fixes that.
     const acceptWithoutCid = !body.cid && Boolean(expectedCid);
     if (acceptWithoutCid) {
-      console.warn('eAMA login without cid, accepted because of eama-cid cookie', {
-        userAgent: getRequestHeader(event, 'user-agent'),
-      });
+      console.warn('eAMA login without cid, accepted because of eama-cid cookie', details);
     }
     /** Why a login without eama-cid cookie was not restarted */
     let noCookieReason = '';
@@ -30,12 +29,9 @@ export default defineEventHandler(async (event) => {
       // The eama-cid cookie expired, because the login took longer than the cookie lives. Starting
       // the login again sets a new cookie, and eAMA should come back right away, because the user
       // just logged in there.
-      const userAgent = getRequestHeader(event, 'user-agent');
       if ((await getUserSession(event)).user) {
         // E.g. a repeated callback after a successful login, which deleted the cookie
-        console.warn('eAMA login without eama-cid cookie ignored, already logged in', {
-          userAgent,
-        });
+        console.warn('eAMA login without eama-cid cookie ignored, already logged in', details);
         return sendRedirect(event, '/account');
       }
       const ip = getClientIp(event);
@@ -48,7 +44,7 @@ export default defineEventHandler(async (event) => {
         // Checked last, because it counts the restart
         noCookieReason = 'restart limit reached';
       } else {
-        console.warn('eAMA login without eama-cid cookie, restarting login', { userAgent });
+        console.warn('eAMA login without eama-cid cookie, restarting login', details);
         await rememberAmaRestart(body.cid);
         return sendRedirect(event, '/auth/ama?restart');
       }
@@ -59,9 +55,7 @@ export default defineEventHandler(async (event) => {
         : !expectedCid
           ? `no eama-cid cookie, ${noCookieReason}`
           : 'cid does not match eama-cid cookie';
-      console.warn(`eAMA login rejected: ${reason}`, {
-        userAgent: getRequestHeader(event, 'user-agent'),
-      });
+      console.warn(`eAMA login rejected: ${reason}`, details);
       setCookie(event, 'login-retry', 'true', {
         maxAge: 10,
         secure: true,
@@ -89,6 +83,7 @@ export default defineEventHandler(async (event) => {
         'Authorization': `Basic ${base64}`,
       },
     };
+    const requestedAt = new Date().toISOString();
     /** @type {string} */
     const responseBody = await new Promise((resolve, reject) => {
       const req = request(options, (res) => {
@@ -123,6 +118,14 @@ export default defineEventHandler(async (event) => {
       req.end();
     });
     const { partnerseitenDaten: user } = JSON.parse(responseBody);
+    if (acceptWithoutCid) {
+      console.warn('eAMA metadatenHolen for login without cid', {
+        cid: expectedCid,
+        requestedAt,
+        respondedAt: new Date().toISOString(),
+        responseFields: user && typeof user === 'object' ? Object.keys(user) : typeof user,
+      });
+    }
 
     // Some eAMA accounts have no GLN. Use the LFBIS number as identifier instead, like for SMS login
     const gln = user.GLN ? String(user.GLN).trim() : '';

@@ -2,7 +2,15 @@ export default defineEventHandler(async (event) => {
   // eAMA only knows the production callback URL. The origin in the cid tells production
   // to forward the callback here (see server/api/ama/login.post.js).
   const cid = createAmaCid(getPublicOrigin(event));
-  if (getQuery(event).restart !== undefined) {
+  const restart = getQuery(event).restart !== undefined;
+  // Logged with the cid, so failed callbacks can be traced back to the login they belong to
+  console.info('eAMA login started', {
+    startedAt: new Date().toISOString(),
+    cid,
+    restart,
+    userAgent: getRequestHeader(event, 'user-agent'),
+  });
+  if (restart) {
     // Restarted by the callback because the eama-cid cookie was missing (see
     // server/api/ama/login.post.js). If this one comes back without the cookie too, it is not
     // restarted again.
