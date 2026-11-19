@@ -1,5 +1,5 @@
 <script setup>
-import { mdiAccountCircle, mdiLogout } from '@mdi/js';
+import { mdiAccountCircle, mdiAlert, mdiContentCopy, mdiLogout } from '@mdi/js';
 
 useHead({
   titleTemplate: (titleChunk) => (titleChunk ? `${titleChunk} | EUDR Meldung` : 'EUDR Meldung'),
@@ -51,6 +51,17 @@ const legalItems = [
 const { data: userData } = await useFetch('/api/users/me');
 
 const logout = useLogout();
+
+// TODO Remove when eAMA fixed logins without cid (see server/api/ama/login.post.js)
+const amaDebugDialog = ref(false);
+const amaDebugText = computed(() =>
+  userData.value?.amaDebug ? JSON.stringify(userData.value.amaDebug, null, 2) : '',
+);
+const amaDebugCopied = ref(false);
+async function copyAmaDebug() {
+  await navigator.clipboard.writeText(amaDebugText.value);
+  amaDebugCopied.value = true;
+}
 </script>
 
 <template>
@@ -87,6 +98,13 @@ const logout = useLogout();
             "
           />
           <v-divider />
+          <v-list-item
+            v-if="amaDebugText"
+            :prepend-icon="mdiAlert"
+            class="text-warning"
+            @click="amaDebugDialog = true"
+            >eAMA-Diagnose</v-list-item
+          >
           <v-list-item class="text-medium-emphasis" link to="/account">Mein Konto</v-list-item>
           <v-list-item :append-icon="mdiLogout" class="text-medium-emphasis" @click="logout"
             >Abmelden</v-list-item
@@ -168,6 +186,24 @@ const logout = useLogout();
     <v-main id="main" tabindex="-1" scrollable>
       <NuxtPage />
     </v-main>
+    <v-dialog v-if="amaDebugText" v-model="amaDebugDialog" max-width="800" scrollable>
+      <v-card title="eAMA-Diagnose">
+        <v-card-text>
+          <p class="mb-2">
+            Ihre Anmeldung über eAMA war unvollständig, hat aber trotzdem funktioniert. Diese Daten
+            helfen der AMA bei der Fehlersuche.
+          </p>
+          <pre class="text-caption ama-debug">{{ amaDebugText }}</pre>
+        </v-card-text>
+        <v-card-actions>
+          <v-btn :prepend-icon="mdiContentCopy" @click="copyAmaDebug">{{
+            amaDebugCopied ? 'Kopiert' : 'Kopieren'
+          }}</v-btn>
+          <v-spacer />
+          <v-btn @click="amaDebugDialog = false">Schließen</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
     <v-snackbar v-model="displayErrorMessage" color="warning" timeout="6000">
       <v-alert class="pa-0" density="compact" type="warning">{{ errorMessage }}</v-alert>
     </v-snackbar>
@@ -180,6 +216,10 @@ const logout = useLogout();
 }
 .fit-content {
   width: fit-content;
+}
+.ama-debug {
+  white-space: pre-wrap;
+  word-break: break-all;
 }
 .skip-link {
   position: absolute;

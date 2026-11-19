@@ -21,6 +21,11 @@ declare module '#auth-utils' {
     /** LFBIS number provided by the login (eAMA, SMS, USP) */
     lfbis?: string;
     sid?: string;
+    /**
+     * Diagnostics of an eAMA login without cid, shown to the user for eAMA support.
+     * TODO Remove when eAMA fixed logins without cid (see server/api/ama/login.post.js)
+     */
+    amaDebug?: Record<string, unknown>;
   }
 }
 
