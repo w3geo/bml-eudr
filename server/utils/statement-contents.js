@@ -1,12 +1,11 @@
 import { createCipheriv, createDecipheriv, randomBytes } from 'crypto';
-import { eq, inArray, lt } from 'drizzle-orm';
+import { eq, inArray } from 'drizzle-orm';
 import statementContents from '../db/schema/statement_contents';
 
 // TRACES no longer returns the contents of a statement, so we keep an encrypted copy of what was
 // submitted. The key is not stored in the database, so a database dump alone reveals nothing.
-
-/** Copies are kept as long as operators have to keep their records (EUDR). */
-export const RETENTION_YEARS = 5;
+// Copies are only deleted along with the user's account, because simplified declarations do not
+// expire and a deleted copy cannot be restored (see deleteStaleUsers() and DELETE /api/users/me).
 
 /**
  * @typedef {Object} StoredContents
@@ -110,28 +109,26 @@ export async function loadStatementContents(sdId) {
 }
 
 /**
- * @param {Array<string>} sdIds
+ * @param {Array<import('./soap-traces').StatementInfo>} statements
+ * @param {string} reason logged along with the statements, so lost copies can be traced
  */
-export async function deleteStatementContents(sdIds) {
-  if (sdIds.length === 0) {
+export async function deleteStatementContents(statements, reason) {
+  if (statements.length === 0) {
     return;
   }
-  await useDb().delete(statementContents).where(inArray(statementContents.sdId, sdIds));
-}
-
-/**
- * Delete copies older than the retention period.
- */
-export async function deleteExpiredStatementContents() {
-  const cutoff = new Date();
-  cutoff.setFullYear(cutoff.getFullYear() - RETENTION_YEARS);
-  await useDb().delete(statementContents).where(lt(statementContents.createdAt, cutoff));
-}
-
-/**
- * @returns {Promise<Array<string>>}
- */
-export async function listStatementContentIds() {
-  const rows = await useDb().select({ sdId: statementContents.sdId }).from(statementContents);
-  return rows.map((row) => row.sdId);
+  const sdIds = statements.map((s) => s.sdId);
+  const deleted = await useDb()
+    .delete(statementContents)
+    .where(inArray(statementContents.sdId, sdIds))
+    .returning();
+  if (deleted.length > 0) {
+    const deletedIds = new Set(deleted.map((row) => row.sdId));
+    console.log(
+      `Deleted statement contents (${reason}):`,
+      statements
+        .filter((s) => deletedIds.has(s.sdId))
+        .map((s) => `${s.sdId} ${s.status} ${s.referenceNumber ?? '-'}`)
+        .join(', '),
+    );
+  }
 }
