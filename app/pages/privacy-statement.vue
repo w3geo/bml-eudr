@@ -71,11 +71,9 @@ useSeoMeta({
               weitergeben können, speichert das BMLUK eine Kopie der übermittelten Erzeugnisse,
               Mengen und Erzeugungsorte (Postanschrift bzw. Flächen- und Punktdaten). Die Kopie wird
               verschlüsselt und ohne direkte Verknüpfung mit Ihrem Benutzerkonto gespeichert; die
-              Zuordnung zu Ihnen ist nur über die TRACES-Datenbank möglich. Sie wird fünf Jahre nach
-              Übermittlung der vereinfachten Erklärung gelöscht, entsprechend der Aufbewahrungsfrist
-              der Verordnung (EU) 2023/1115, oder früher, wenn die vereinfachte Erklärung in der
-              TRACES-Datenbank nicht mehr als verfügbar geführt wird (etwa weil sie zurückgezogen
-              wurde) oder Ihr Konto gelöscht wird.
+              Zuordnung zu Ihnen ist nur über die TRACES-Datenbank möglich. Da vereinfachte
+              Erklärungen nicht ablaufen, wird die Kopie so lange gespeichert, wie Ihr Konto
+              besteht.
             </div>
             <div class="text-body-1 mb-2">
               Enthält Ihre vereinfachte Erklärung Rinder, werden nach Vergabe der
@@ -117,7 +115,8 @@ useSeoMeta({
               allerdings ohne die gelöschten Kopien. Ebenfalls unberührt bleibt die Übermittlung von
               Rinderzahlen an die AMA. Ansonsten bleiben Ihre Zugangsdaten gespeichert, solange Ihr
               Konto aktiv ist. Konten, mit denen Sie sich fünf Jahre lang nicht angemeldet haben,
-              werden automatisch gelöscht.
+              werden samt den gespeicherten Kopien Ihrer vereinfachten Erklärungen automatisch
+              gelöscht.
             </div>
             <div class="text-body-1 mb-2">
               Bei Klicken der Schaltfläche „Bestätigen und übermitteln“ auf der Seite „Vereinfachte

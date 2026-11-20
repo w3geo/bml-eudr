@@ -24,7 +24,6 @@ export default defineEventHandler(async (event) => {
   delete sdInfo.internalReferenceNumber;
 
   if (isInvalidated(sdInfo)) {
-    await deleteStatementContents([sdId]);
     throw createError({
       status: 404,
       statusMessage: 'Not found',

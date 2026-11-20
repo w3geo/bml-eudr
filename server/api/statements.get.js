@@ -9,13 +9,6 @@ export default defineEventHandler(async (event) => {
   if (error) {
     throw createError({ status: 500, statusMessage: 'Internal Server Error', message: error });
   }
-  const invalidated = statements?.filter(isInvalidated) ?? [];
-  try {
-    await deleteStatementContents(invalidated.map((sd) => sd.sdId));
-  } catch (error) {
-    // The cleanup task will try again.
-    console.error('Failed to delete contents of invalidated statements', error);
-  }
 
   return statements?.filter((sd) => !isInvalidated(sd));
 });

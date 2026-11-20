@@ -45,7 +45,7 @@ export default defineEventHandler(async (event) => {
     if (error) {
       throw createError({ status: 500, statusMessage: 'Internal Server Error', message: error });
     }
-    await deleteStatementContents(statements?.map((s) => s.sdId) ?? []);
+    await deleteStatementContents(statements ?? [], 'account deleted');
     await db.delete(users).where(eq(users.id, userId));
     // The client logs out, because a USP logout needs the session.
     return sendNoContent(event);
