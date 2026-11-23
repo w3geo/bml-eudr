@@ -5,7 +5,8 @@ import {
   HS_HEADING,
   NET_WEIGHT_TOLERANCE_PERCENT,
 } from '~~/shared/utils/constants.js';
-import { removeHoles } from './remove-holes.js';
+import { removeHoles } from '~~/shared/utils/remove-holes.js';
+import { repairGeometry } from '~~/shared/utils/repair-geometry.js';
 
 /** @typedef {'AVAILABLE' | 'SUBMITTED' | 'REJECTED' | 'WITHDRAWN' | 'ARCHIVED' | 'SUSPENDED' | 'UPDATED' | 'GROUPED' | 'OBSOLETE' | 'CANCELLED' | 'UNKNOWN'} TracesStatus */
 
@@ -297,6 +298,24 @@ function getHeader() {
 }
 
 /**
+ * @param {import('geojson').FeatureCollection<import('geojson').Geometry | null>} geojson
+ * @returns {import('geojson').FeatureCollection<import('geojson').Geometry | null>}
+ */
+function getTracesGeojson(geojson) {
+  const withoutHoles = removeHoles(geojson);
+  return {
+    ...withoutHoles,
+    features: withoutHoles.features.flatMap((feature) => {
+      const { geometry, changed } = repairGeometry(feature.geometry, { allowHoles: false });
+      if (!changed) {
+        return [feature];
+      }
+      return geometry ? [{ ...feature, geometry }] : [];
+    }),
+  };
+}
+
+/**
  * @param {Array<PlainCommodityDataWithKey>} commodities
  */
 function getCommoditiesXML(commodities) {
@@ -356,10 +375,11 @@ function getCommoditiesXML(commodities) {
         </sd:descriptors>`;
       const hsHeading = `<sd:hsHeading>${hsCode}</sd:hsHeading>`;
 
-      const hasGeometry = commodity.geolocation && geojson?.features?.some((f) => f.geometry);
+      const tracesGeojson = commodity.geolocation && geojson ? getTracesGeojson(geojson) : null;
+      const hasGeometry = tracesGeojson?.features.some((f) => f.geometry);
       const producerLocation = hasGeometry
         ? `<sd:producerLocation>
-              <sd:geometryGeojson>${btoa(JSON.stringify(removeHoles(geojson)))}</sd:geometryGeojson>
+              <sd:geometryGeojson>${btoa(JSON.stringify(tracesGeojson))}</sd:geometryGeojson>
             </sd:producerLocation>`
         : producerAddress
           ? `<sd:producerLocation>

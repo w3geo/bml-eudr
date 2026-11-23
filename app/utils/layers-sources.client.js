@@ -11,6 +11,7 @@ import ImageTileSource from 'ol/source/ImageTile';
 import VectorSource from 'ol/source/Vector.js';
 import { getArea } from 'ol/sphere';
 import { fetch as pmtilesFetch } from 'pmtiles-protocol';
+import { repairGeometry } from '~~/shared/utils/repair-geometry.js';
 
 /** @type {GeoJSON<import('ol/Feature.js').default<import('ol/geom/Polygon.js').default>>} */
 const geojsonFormat = new GeoJSON({ featureProjection: 'EPSG:3857' });
@@ -309,6 +310,63 @@ export function createGeolocationSource(geojson) {
     });
   }
 
+  let repairedCount = 0;
+  let removedCount = 0;
+
+  function notifyRepairs() {
+    const { errorMessage } = useErrorMessage();
+    const messages = [];
+    if (repairedCount) {
+      messages.push(
+        repairedCount === 1
+          ? 'Die Geometrie eines Ortes wurde automatisch korrigiert, damit das EU-Informationssystem TRACES sie akzeptiert.'
+          : `Die Geometrie von ${repairedCount} Orten wurde automatisch korrigiert, damit das EU-Informationssystem TRACES sie akzeptiert.`,
+      );
+    }
+    if (removedCount) {
+      messages.push(
+        removedCount === 1
+          ? 'Ein Ort ohne Fläche wurde entfernt.'
+          : `${removedCount} Orte ohne Fläche wurden entfernt.`,
+      );
+    }
+    errorMessage.value = messages.join(' ');
+    repairedCount = 0;
+    removedCount = 0;
+  }
+
+  /**
+   * Must run before calculateArea().
+   * @param {import('ol/source/Vector.js').VectorSourceEvent<import('ol/Feature.js').default<import('ol/geom/Polygon.js').default|import('ol/geom/MultiPolygon.js').default>>} e
+   */
+  function repairFeature(e) {
+    const feature = e.feature;
+    const geometry = feature?.getGeometry();
+    if (!feature || !geometry || !geometry.getType().endsWith('Polygon')) {
+      return;
+    }
+    const { geometry: repaired, changed } = repairGeometry(
+      geojsonFormat.writeGeometryObject(geometry, { decimals: 6 }),
+    );
+    if (!changed) {
+      return;
+    }
+    if (!repairedCount && !removedCount) {
+      setTimeout(notifyRepairs);
+    }
+    if (repaired) {
+      feature.setGeometry(
+        /** @type {import('ol/geom/Polygon.js').default} */ (geojsonFormat.readGeometry(repaired)),
+      );
+      ++repairedCount;
+    } else {
+      ++removedCount;
+      // After the remaining addfeature listeners have run
+      setTimeout(() => geolocationSource.removeFeature(feature));
+    }
+  }
+
+  geolocationSource.on('addfeature', repairFeature);
   geolocationSource.on('addfeature', calculateArea);
   geolocationSource.on('changefeature', calculateArea);
   geolocationSource.on('change', updateGeolocation);

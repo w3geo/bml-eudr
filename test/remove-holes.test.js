@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { removeHoles } from '../server/utils/remove-holes.js';
+import { removeHoles } from '../shared/utils/remove-holes.js';
 
 /**
  * @param {import('geojson').Position[]} ring
