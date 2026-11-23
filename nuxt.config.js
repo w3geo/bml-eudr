@@ -83,7 +83,7 @@ export default defineNuxtConfig({
       tasks: true,
     },
     scheduledTasks: {
-      '30 3 * * *': ['statement-contents', 'users'],
+      '30 3 * * *': ['users'],
       ...(process.env.AMA_CATTLE_PATH ? { '*/5 * * * *': ['ama-cattle'] } : {}),
     },
   },
