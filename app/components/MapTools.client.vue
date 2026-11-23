@@ -10,6 +10,7 @@ import Modify from 'ol/interaction/Modify';
 import Map from 'ol/Map.js';
 import VectorSource from 'ol/source/Vector';
 import GeoJSON from 'ol/format/GeoJSON.js';
+import { getGeometryError } from '~~/shared/utils/polygon-validity.js';
 
 const props = defineProps({
   map: {
@@ -81,6 +82,45 @@ const edit = new Modify({
   source: props.geolocationSource,
 });
 
+const { errorMessage } = useErrorMessage();
+const wgs84Format = new GeoJSON({ featureProjection: 'EPSG:3857' });
+
+/** @type {Array<{feature: import('ol/Feature.js').default, coordinates: any}>} */
+let geometriesBeforeModify = [];
+
+edit.on('modifystart', (event) => {
+  geometriesBeforeModify = event.features.getArray().map((feature) => ({
+    feature,
+    coordinates: /** @type {import('ol/geom/SimpleGeometry.js').default} */ (
+      feature.getGeometry()
+    )?.getCoordinates(),
+  }));
+});
+
+edit.on('modifyend', () => {
+  /** @type {string | null} */
+  let error = null;
+  for (const { feature, coordinates } of geometriesBeforeModify) {
+    const geometry = /** @type {import('ol/geom/SimpleGeometry.js').default | undefined} */ (
+      feature.getGeometry()
+    );
+    if (!geometry || !coordinates) {
+      continue;
+    }
+    const featureError = getGeometryError(
+      wgs84Format.writeGeometryObject(geometry, { decimals: 6 }),
+    );
+    if (featureError) {
+      error = featureError;
+      geometry.setCoordinates(coordinates);
+    }
+  }
+  geometriesBeforeModify = [];
+  if (error) {
+    errorMessage.value = `Die Änderung wurde rückgängig gemacht. ${error}`;
+  }
+});
+
 watch(
   mapMode,
   (value) => {
@@ -108,6 +148,7 @@ function saveGeoJSON() {
   const features = props.geolocationSource.getFeatures();
   const geojson = new GeoJSON().writeFeatures(features, {
     featureProjection: props.map.getView().getProjection(),
+    decimals: 6,
   });
   const link = document.createElement('a');
   link.setAttribute('type', 'hidden');

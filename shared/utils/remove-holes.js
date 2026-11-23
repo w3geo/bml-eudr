@@ -27,7 +27,7 @@ function getExtent(ring) {
  * @param {PolygonCoordinates} polygon
  * @returns {Array<PolygonCoordinates>}
  */
-function splitAtHoles(polygon) {
+export function splitAtHoles(polygon) {
   const [exterior, hole] = polygon;
   if (!exterior || !hole) {
     return [polygon];
