@@ -2,7 +2,7 @@
 const description =
   'Erklärung zur Barrierefreiheit der EUDR Meldung: Stand der Vereinbarkeit, nicht barrierefreie Inhalte und Kontakt für Feedback.';
 useSeoMeta({
-  title: 'Barrierefreiheit',
+  title: 'Erklärung zur Barrierefreiheit',
   description,
   ogDescription: description,
 });
