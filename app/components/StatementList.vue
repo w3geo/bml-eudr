@@ -224,12 +224,15 @@ const sendTextMessage = async (statement) => {
   );
 };
 
+const copied = ref(false);
+
 /**
  * @param {import('~~/server/utils/soap-traces').StatementInfo} statement
  * @returns {Promise<void>}
  */
 const copyToClipboard = async (statement) => {
   errorMessage.value = null;
+  copied.value = false;
   const commodities = await getCommodities(statement);
   if (!commodities) {
     return;
@@ -240,6 +243,7 @@ const copyToClipboard = async (statement) => {
         commodities,
       )}`,
     );
+    copied.value = true;
   } catch {
     errorMessage.value =
       'Die Erklärung konnte nicht in die Zwischenablage kopiert werden. Bitte klicken Sie erneut auf „Kopieren“.';
@@ -358,21 +362,40 @@ const copyToClipboard = async (statement) => {
           </v-table>
         </v-card-text>
         <v-card-actions v-if="item.referenceNumber" class="statement-actions">
-          <v-btn stacked size="small" :prepend-icon="mdiEmailFastOutline" @click="sendEmail(item)">
+          <v-btn
+            stacked
+            size="small"
+            :prepend-icon="mdiEmailFastOutline"
+            :aria-label="`Erklärung ${item.referenceNumber} per E-Mail teilen`"
+            @click="sendEmail(item)"
+          >
             E-Mail
           </v-btn>
           <v-btn
             stacked
             size="small"
             :prepend-icon="mdiMessageTextOutline"
+            :aria-label="`Erklärung ${item.referenceNumber} per SMS teilen`"
             @click="sendTextMessage(item)"
           >
             SMS
           </v-btn>
-          <v-btn stacked size="small" :prepend-icon="mdiContentCopy" @click="copyToClipboard(item)">
+          <v-btn
+            stacked
+            size="small"
+            :prepend-icon="mdiContentCopy"
+            :aria-label="`Erklärung ${item.referenceNumber} kopieren`"
+            @click="copyToClipboard(item)"
+          >
             Kopieren
           </v-btn>
-          <v-btn stacked size="small" :prepend-icon="mdiPrinter" :to="`/print/${item.sdId}`">
+          <v-btn
+            stacked
+            size="small"
+            :prepend-icon="mdiPrinter"
+            :aria-label="`Erklärung ${item.referenceNumber} drucken`"
+            :to="`/print/${item.sdId}`"
+          >
             Drucken
           </v-btn>
           <v-btn
@@ -381,6 +404,7 @@ const copyToClipboard = async (statement) => {
             stacked
             size="small"
             :prepend-icon="mdiPencil"
+            :aria-label="`Erklärung ${item.referenceNumber} ändern`"
             :to="`/statement?edit=${item.sdId}`"
           >
             Ändern
@@ -401,6 +425,9 @@ const copyToClipboard = async (statement) => {
       <NuxtLink to="/statement"> vereinfachte Erklärung </NuxtLink>.
     </v-col>
   </v-row>
+  <v-snackbar v-model="copied" timeout="3000">
+    Die Erklärung wurde in die Zwischenablage kopiert.
+  </v-snackbar>
   <geolocations-dialog
     v-model="mapDialog.open"
     :geojson="mapDialog.geojson"
@@ -418,5 +445,10 @@ const copyToClipboard = async (statement) => {
   padding: 0 4px;
   letter-spacing: normal;
   text-transform: none;
+}
+/* Vuetify's focus overlay is barely visible on the dark green card */
+.statement-actions .v-btn:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: -2px;
 }
 </style>
