@@ -1,5 +1,12 @@
-import { randomUUID } from 'crypto';
-import { getRequestHeader, getRequestIP, getRequestURL } from 'h3';
+import { createHash, randomBytes, randomUUID } from 'crypto';
+import {
+  deleteCookie,
+  getCookie,
+  getRequestHeader,
+  getRequestIP,
+  getRequestURL,
+  setCookie,
+} from 'h3';
 import { FetchError } from 'ofetch';
 import { snakeCase, upperFirst } from 'scule';
 import { createError } from '#imports';
@@ -155,6 +162,46 @@ export function getOAuthRedirectURL(event) {
 }
 
 /**
+ * Creates the `state` and PKCE parameters for an OAuth authorization request, and remembers them
+ * in a cookie for `verifyOAuthCallback`.
+ * @param {import('h3').H3Event} event
+ * @param {string} provider
+ */
+export function startOAuthLogin(event, provider) {
+  const state = randomBytes(32).toString('base64url');
+  const verifier = randomBytes(32).toString('base64url');
+  setCookie(event, `${provider}-oauth`, `${state}.${verifier}`, {
+    httpOnly: true,
+    secure: !import.meta.dev,
+    sameSite: 'lax',
+    maxAge: 10 * 60,
+  });
+  return {
+    state,
+    code_challenge: createHash('sha256').update(verifier).digest('base64url'),
+    code_challenge_method: 'S256',
+  };
+}
+
+/**
+ * Returns the PKCE code verifier for an OAuth callback, if its `state` matches the one from
+ * `startOAuthLogin`.
+ * @param {import('h3').H3Event} event
+ * @param {string} provider
+ * @param {unknown} state
+ * @returns {string|undefined}
+ */
+export function verifyOAuthCallback(event, provider, state) {
+  const cookie = getCookie(event, `${provider}-oauth`);
+  deleteCookie(event, `${provider}-oauth`);
+  const [expectedState, verifier] = cookie?.split('.') ?? [];
+  if (!expectedState || !verifier || state !== expectedState) {
+    return undefined;
+  }
+  return verifier;
+}
+
+/**
  * Request an access token body.
  * @see https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.3
  * @typedef {Object} RequestAccessTokenBody
@@ -163,6 +210,7 @@ export function getOAuthRedirectURL(event) {
  * @property {string} [redirect_uri]
  * @property {string} client_id
  * @property {string} [client_secret]
+ * @property {string} [code_verifier]
  * @property {Object<string, string>} [key]
  */
 
@@ -239,19 +287,21 @@ export function handleAccessTokenErrorResponse(event, oauthProvider, oauthError,
 
 /**
  * Handles an OAuth login callback whose code the provider rejected as `invalid_grant`, because it
- * was already used (e.g. the callback URL was loaded again) or expired. Already logged in users
- * just go to their account, others get the message to try again.
+ * was already used (e.g. the callback URL was loaded again) or expired, or whose state did not
+ * match (`invalid_state`). Already logged in users just go to their account, others get the
+ * message to try again.
  * @param {import('h3').H3Event} event
  * @param {string} provider
  * @param {import('h3').H3Error} error
  * @returns {Promise<boolean>} whether the error was handled
  */
 export async function handleInvalidGrant(event, provider, error) {
-  if (/** @type {any} */ (error.data)?.error !== 'invalid_grant') {
+  const code = /** @type {any} */ (error.data)?.error;
+  if (code !== 'invalid_grant' && code !== 'invalid_state') {
     return false;
   }
   const loggedIn = Boolean((await getUserSession(event)).user);
-  console.warn(`${provider} login code rejected as invalid_grant`, {
+  console.warn(`${provider} login code rejected as ${code}`, {
     loggedIn,
     description: /** @type {any} */ (error.data).error_description,
     userAgent: getRequestHeader(event, 'user-agent'),

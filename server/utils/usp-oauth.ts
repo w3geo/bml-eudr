@@ -7,6 +7,8 @@ import {
   handleAccessTokenErrorResponse,
   getOAuthRedirectURL,
   requestAccessToken,
+  startOAuthLogin,
+  verifyOAuthCallback,
 } from './utils';
 import { createError } from '#imports';
 import type { OAuthConfig } from '#auth-utils';
@@ -90,7 +92,7 @@ export function defineOAuthUSPEventHandler({
       return handleMissingConfiguration(event, 'usp', ['clientId', 'clientSecret'], onError);
     }
 
-    const query = getQuery<{ code?: string; error?: string }>(event);
+    const query = getQuery<{ code?: string; error?: string; state?: string }>(event);
 
     if ('logout' in query) {
       const requestURL = getRequestURL(event);
@@ -140,8 +142,20 @@ export function defineOAuthUSPEventHandler({
           redirect_uri: redirectURL,
           scope: config.scope?.join(' '),
           ...config.authorizationParams,
+          ...startOAuthLogin(event, 'usp'),
         }),
       );
+    }
+
+    const codeVerifier = verifyOAuthCallback(event, 'usp', query.state);
+    if (!codeVerifier) {
+      const error = createError({
+        statusCode: 401,
+        message: 'Anmeldung fehlgeschlagen, bitte versuchen Sie es noch einmal.',
+        data: { error: 'invalid_state' },
+      });
+      if (!onError) throw error;
+      return onError(event, error as H3Error);
     }
 
     const tokens = await requestAccessToken(config.tokenURL as string, {
@@ -151,6 +165,7 @@ export function defineOAuthUSPEventHandler({
         client_secret: config.clientSecret,
         redirect_uri: redirectURL,
         code: query.code,
+        code_verifier: codeVerifier,
       },
     });
 
