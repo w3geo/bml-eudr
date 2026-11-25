@@ -33,8 +33,6 @@ export default defineEventHandler(async (event) => {
       identifierValue: session.secure.identifierValue,
       lfbis: session.secure.lfbis,
       otp: user?.otp ?? null,
-      // TODO Remove when eAMA fixed logins without cid (see server/api/ama/login.post.js)
-      amaDebug: session.secure.amaDebug ?? null,
     };
   }
 
