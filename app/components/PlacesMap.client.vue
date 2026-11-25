@@ -109,6 +109,9 @@ watch(
 usePlaceSearch(map);
 
 const extent = [...fromLonLat([9.530952, 46.372276]), ...fromLonLat([17.160776, 49.020608])];
+const ADDRESS_SEARCH_TIMEOUT = 5000;
+// rendercomplete never fires while a map source keeps failing
+const SPINNER_MAX_DURATION = 3000;
 onMounted(async () => {
   await nextTick();
   map.setTarget(mapContainer.value);
@@ -139,6 +142,7 @@ onMounted(async () => {
     const locationData = address
       ? $fetch(
           `https://kataster.bev.gv.at/api/search/?layers=pg-adr-gn-rn-gst-kg-bl&term=${encodeURIComponent(address)}`,
+          { timeout: ADDRESS_SEARCH_TIMEOUT },
         )
       : null;
     const { features } = locationData
@@ -153,6 +157,8 @@ onMounted(async () => {
     if (feature) {
       animation = { center: fromLonLat(feature.geometry.coordinates), zoom: 16, duration: 500 };
     }
+  } catch (error) {
+    console.error('Address search failed', error);
   } finally {
     // Without a known address, stay at the full extent; the zoom hint tells the user how to
     // get to their fields
@@ -162,9 +168,9 @@ onMounted(async () => {
       updateZoomedOut();
     }
     map.on('moveend', updateZoomedOut);
-    map.once('rendercomplete', () => {
-      mapContainer.value.classList.remove('spinner');
-    });
+    const removeSpinner = () => mapContainer.value?.classList.remove('spinner');
+    map.once('rendercomplete', removeSpinner);
+    setTimeout(removeSpinner, SPINNER_MAX_DURATION);
   }
 });
 
