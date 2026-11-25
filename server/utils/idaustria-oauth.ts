@@ -7,6 +7,8 @@ import {
   handleAccessTokenErrorResponse,
   getOAuthRedirectURL,
   requestAccessToken,
+  startOAuthLogin,
+  verifyOAuthCallback,
 } from './utils';
 import { createError } from '#imports';
 import type { OAuthConfig } from '#auth-utils';
@@ -81,7 +83,7 @@ export function defineOAuthIdAustriaEventHandler({
       authorizationParams: {},
     }) as OAuthIdAustriaConfig;
 
-    const query = getQuery<{ code?: string; error?: string }>(event);
+    const query = getQuery<{ code?: string; error?: string; state?: string }>(event);
 
     if (query.error) {
       const error = createError({
@@ -113,8 +115,20 @@ export function defineOAuthIdAustriaEventHandler({
           redirect_uri: redirectURL,
           scope: config.scope.join(' '),
           ...config.authorizationParams,
+          ...startOAuthLogin(event, 'idaustria'),
         }),
       );
+    }
+
+    const codeVerifier = verifyOAuthCallback(event, 'idaustria', query.state);
+    if (!codeVerifier) {
+      const error = createError({
+        statusCode: 401,
+        message: 'Anmeldung fehlgeschlagen, bitte versuchen Sie es noch einmal.',
+        data: { error: 'invalid_state' },
+      });
+      if (!onError) throw error;
+      return onError(event, error as H3Error);
     }
 
     const tokens = await requestAccessToken(config.tokenURL as string, {
@@ -124,6 +138,7 @@ export function defineOAuthIdAustriaEventHandler({
         client_secret: config.clientSecret,
         redirect_uri: redirectURL,
         code: query.code,
+        code_verifier: codeVerifier,
       },
     });
 
