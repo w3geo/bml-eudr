@@ -7,8 +7,16 @@ import {
   mdiDeleteOutline,
   mdiHelpCircleOutline,
   mdiPlus,
+  mdiUndoVariant,
 } from '@mdi/js';
 import { FetchError } from 'ofetch';
+
+const { sdId } = defineProps({
+  /** Existing statement to edit; a new statement is created without it. */
+  sdId: { type: String, default: undefined },
+});
+const scope = sdId ?? 'new';
+provide(STATEMENT_SCOPE, scope);
 
 const { mdAndUp, xs } = useDisplay();
 const { start, finish, clear } = useLoadingIndicator();
@@ -17,6 +25,19 @@ const { errorMessage } = useErrorMessage();
 const userDataComplete = ref(null);
 
 const { data: user, refresh: refetchUserData } = await useFetch('/api/users/me');
+const { data: original, error: originalError } = sdId
+  ? await useFetch(`/api/statements/${sdId}`)
+  : { data: shallowRef(null), error: shallowRef(null) };
+const originalErrorMessage = computed(
+  () =>
+    /** @type {{ message?: string }|undefined} */ (originalError.value?.data)?.message ||
+    'Die Erklärung konnte nicht abgerufen werden. Bitte versuchen Sie es später erneut.',
+);
+const modifiable = computed(() => !sdId || original.value?.status === 'AVAILABLE');
+/** Statements submitted before copies were kept have no contents to edit. */
+const originalWithoutContents = computed(
+  () => !!original.value && !('geolocationVisible' in original.value),
+);
 const incomplete = computed(() => !isUserDataValid(user.value, user.value?.loginProvider));
 
 /** @type {import('vue').Ref<boolean>} */
@@ -86,9 +107,31 @@ const canSubmitCattle = computed(
 const statements =
   /** @type {Record<import('~~/shared/utils/constants').Commodity, ReturnType<typeof useStatement>>} */ (
     Object.fromEntries(
-      COMMODITY_KEYS.map((key) => [key, useStatement(key, user.value?.loginProvider)]),
+      COMMODITY_KEYS.map((key) => [key, useStatement(key, user.value?.loginProvider, scope)]),
     )
   );
+
+if (original.value) {
+  for (const key of COMMODITY_KEYS) {
+    const state = statements[key];
+    state.clear();
+    const commodity = original.value.commodities?.find((c) => c.key === key);
+    if (!commodity) {
+      continue;
+    }
+    const hasGeometry = !!commodity.geojson?.features?.some((f) => f.geometry);
+    state.quantity.value = structuredClone(commodity.quantity);
+    state.geojson.value = /** @type {import('geojson').FeatureCollection} */ (
+      hasGeometry ? structuredClone(commodity.geojson) : structuredClone(EMPTY_GEOJSON)
+    );
+    state.address.value = commodity.address ? { ...commodity.address } : null;
+    state.geolocation.value = hasGeometry;
+  }
+  geolocationVisible.value = original.value.geolocationVisible ?? true;
+}
+
+/** @type {import('vue').Ref<boolean>} */
+const confirmWithdraw = ref(false);
 
 /**
  * Whether the map editor is shown for the commodity currently being edited:
@@ -197,8 +240,8 @@ async function submit() {
   submitting.value = true;
   try {
     start();
-    await $fetch('/api/statements', {
-      method: 'POST',
+    await $fetch(sdId ? `/api/statements/${sdId}` : '/api/statements', {
+      method: sdId ? 'PUT' : 'POST',
       body: JSON.stringify({
         commodities: COMMODITY_KEYS.map((key) => ({
           key,
@@ -221,7 +264,34 @@ async function submit() {
     // in progress or may have succeeded.
     errorMessage.value =
       (error instanceof FetchError && error.data?.message) ||
-      'Die Erklärung konnte nicht übermittelt werden. Möglicherweise wurde sie trotzdem erstellt. Bitte prüfen Sie unter „Mein Konto“ — „Meine Identifikationsnummern“, ob sie dort aufscheint, bevor Sie es erneut versuchen.';
+      (sdId
+        ? 'Die Änderungen konnten nicht übermittelt werden. Möglicherweise wurden sie trotzdem übernommen. Bitte prüfen Sie unter „Mein Konto“ — „Meine Identifikationsnummern“ die Version der Erklärung, bevor Sie es erneut versuchen.'
+        : 'Die Erklärung konnte nicht übermittelt werden. Möglicherweise wurde sie trotzdem erstellt. Bitte prüfen Sie unter „Mein Konto“ — „Meine Identifikationsnummern“, ob sie dort aufscheint, bevor Sie es erneut versuchen.');
+  } finally {
+    finish();
+    clear();
+    submitting.value = false;
+  }
+}
+
+async function withdraw() {
+  if (submitting.value || !sdId) {
+    return;
+  }
+  submitting.value = true;
+  confirmWithdraw.value = false;
+  try {
+    start();
+    await $fetch(`/api/statements/${sdId}`, { method: 'DELETE' });
+    for (const key of COMMODITY_KEYS) {
+      statements[key].clear();
+    }
+    useRouter().push('/account');
+  } catch (error) {
+    console.error('Failed to withdraw statement', error);
+    errorMessage.value =
+      (error instanceof FetchError && error.data?.message) ||
+      'Die Erklärung konnte nicht zurückgezogen werden. Möglicherweise wurde sie trotzdem zurückgezogen. Bitte prüfen Sie unter „Mein Konto“ — „Meine Identifikationsnummern“, ob sie dort noch aufscheint, bevor Sie es erneut versuchen.';
   } finally {
     finish();
     clear();
@@ -270,6 +340,20 @@ async function validate() {
     </v-card>
   </v-dialog>
 
+  <v-dialog v-model="confirmWithdraw" max-width="400">
+    <v-card>
+      <v-card-text>
+        Erklärung {{ original?.referenceNumber }} zurückziehen? Sie ist danach im
+        EU-Informationssystem TRACES nicht mehr gültig und wird hier nicht mehr angezeigt. Das kann
+        nicht rückgängig gemacht werden.
+      </v-card-text>
+      <v-card-actions>
+        <v-btn @click="confirmWithdraw = false"> Abbrechen </v-btn>
+        <v-btn color="error" @click="withdraw"> Zurückziehen </v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+
   <v-dialog v-model="map" fullscreen>
     <v-card v-if="editCommodity" class="h-100">
       <v-toolbar>
@@ -302,7 +386,22 @@ async function validate() {
 
   <v-container>
     <v-row>
-      <v-col cols="12">
+      <v-col v-if="sdId && !modifiable" cols="12">
+        <v-card>
+          <v-card-title>Vereinfachte Erklärung ändern</v-card-title>
+          <v-card-text class="text-body-1">
+            <template v-if="originalError">{{ originalErrorMessage }}</template>
+            <template v-else>
+              Diese Erklärung kann derzeit nicht geändert werden. Das ist nur möglich, solange ihr
+              Status „{{ STATUS_LABELS.AVAILABLE }}“ ist.
+            </template>
+          </v-card-text>
+          <v-card-actions>
+            <v-btn to="/account">Zurück</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-col>
+      <v-col v-else cols="12">
         <v-card v-if="incomplete">
           <v-card-title>Vereinfachte Erklärung</v-card-title>
           <v-card-text class="text-body-1">
@@ -318,7 +417,19 @@ async function validate() {
           </v-card-actions>
         </v-card>
         <v-card v-if="!incomplete">
-          <v-card-title>Vereinfachte Erklärung</v-card-title>
+          <v-card-title>
+            {{ sdId ? 'Vereinfachte Erklärung ändern' : 'Vereinfachte Erklärung' }}
+          </v-card-title>
+          <v-card-subtitle v-if="original">
+            Identifikationsnummer {{ original.referenceNumber }}
+            <template v-if="(original.version ?? 1) > 1"> (v{{ original.version }})</template>
+          </v-card-subtitle>
+          <v-card-text v-if="originalWithoutContents">
+            <v-alert type="info" variant="tonal">
+              Für diese Erklärung sind keine Details gespeichert. Bitte geben Sie alle Rohstoffe
+              erneut an. Sie ersetzen die bisherigen Angaben.
+            </v-alert>
+          </v-card-text>
           <v-card-text v-if="canSend">
             <!-- Read-only: Betriebsdaten are edited and saved under "Mein Konto" -->
             <UserData />
@@ -410,8 +521,9 @@ async function validate() {
               b dieser Verordnung verstoßen.
             </div>
           </v-card-text>
-          <v-card-actions v-if="canSend">
+          <v-card-actions v-if="canSend || sdId" class="flex-wrap">
             <v-btn
+              v-if="canSend"
               :prepend-icon="mdiCheckDecagram"
               color="primary"
               :loading="submitting"
@@ -420,11 +532,23 @@ async function validate() {
             >
               Bestätigen und übermitteln
             </v-btn>
+            <template v-if="sdId">
+              <v-btn to="/account" :disabled="submitting">Abbrechen</v-btn>
+              <v-spacer />
+              <v-btn
+                :prepend-icon="mdiUndoVariant"
+                color="error"
+                :disabled="submitting"
+                @click="confirmWithdraw = true"
+              >
+                Erklärung zurückziehen
+              </v-btn>
+            </template>
           </v-card-actions>
         </v-card>
       </v-col>
       <!-- Nothing added yet: the heading card stays on its own, with the cards below it. -->
-      <template v-if="!incomplete && !canSend">
+      <template v-if="!incomplete && !canSend && modifiable">
         <v-col v-for="item in commoditiesToAdd" :key="item.key" :cols="mdAndUp ? 4 : xs ? 12 : 6">
           <CommodityCard :item="item" @open-editor="openEditor" />
         </v-col>

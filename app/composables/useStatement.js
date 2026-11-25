@@ -84,14 +84,27 @@ function clear(quantity, geojson, address, geolocation, defaultGeolocation) {
   geolocation.value = defaultGeolocation;
 }
 
+/** @type {import('vue').InjectionKey<string>} */
+export const STATEMENT_SCOPE = Symbol('statementScope');
+
+/**
+ * Scope of the statement being edited, provided by StatementEditor: 'new', or the sdId of an
+ * existing statement, so editing it leaves an unfinished new statement alone.
+ * @returns {string}
+ */
+export function useStatementScope() {
+  return inject(STATEMENT_SCOPE, 'new');
+}
+
 /**
  * @param {import('~~/shared/utils/constants').Commodity} commodity
  * @param {import('~~/shared/utils/constants').LoginProvider} [loginProvider] Login provider of
  * the logged in user. Only relevant for the first call per commodity, which sets the default
  * location type.
+ * @param {string} [scope] See useStatementScope(); must be passed when called outside of setup
  * @returns {UseStatement}
  */
-export function useStatement(commodity, loginProvider) {
+export function useStatement(commodity, loginProvider, scope = useStatementScope()) {
   // Holz always defaults to "Postanschrift"; soja and cattle for AMA users, whose fields are
   // known from MFA; all commodities for SMS (LFBIS) users.
   const defaultGeolocation = !(
@@ -101,15 +114,15 @@ export function useStatement(commodity, loginProvider) {
   );
 
   /** @type {import('vue').Ref<import('ol/format/GeoJSON').GeoJSONFeatureCollection>} */
-  const geojson = useState(`geojson-${commodity}`, () =>
+  const geojson = useState(`geojson-${scope}-${commodity}`, () =>
     shallowRef(structuredClone(EMPTY_GEOJSON)),
   );
 
   /** @type {import('vue').Ref<Quantity>} */
-  const quantity = useState(`quantity-${commodity}`, () => /** @type {Quantity} */ ({}));
+  const quantity = useState(`quantity-${scope}-${commodity}`, () => /** @type {Quantity} */ ({}));
 
   /** @type {import('vue').Ref<Address>} */
-  const address = useState(`address-${commodity}`, () => null);
+  const address = useState(`address-${scope}-${commodity}`, () => null);
 
   /**
    * Whether the production location is given as a drawn geolocation
@@ -117,10 +130,10 @@ export function useStatement(commodity, loginProvider) {
    * false). Governs which of the two is submitted to TRACES.
    * @type {import('vue').Ref<boolean>}
    */
-  const geolocation = useState(`geolocation-${commodity}`, () => defaultGeolocation);
+  const geolocation = useState(`geolocation-${scope}-${commodity}`, () => defaultGeolocation);
 
   /** @type {Snapshot} */
-  const snapshot = useState(`snapshot-${commodity}`, () => shallowRef(null));
+  const snapshot = useState(`snapshot-${scope}-${commodity}`, () => shallowRef(null));
 
   // Derive "modified" by comparing the current state against the snapshot rather
   // than flipping a flag from a watcher. A watcher would fire on the editor's

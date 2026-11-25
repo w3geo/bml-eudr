@@ -1,86 +1,15 @@
-import amaCattle from '../db/schema/ama_cattle';
-import {
-  isUserDataValid,
-  isValidAddress,
-  normalizeAddress,
-  toPostalAddress,
-} from '~~/shared/utils/utils';
-import { CATTLE_LOGIN_PROVIDERS, COMMODITIES } from '~~/shared/utils/constants';
-
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event);
   const userId = session.user.login;
   if (!userId) {
     throw createError({ status: 401, statusMessage: 'Unauthorized' });
   }
-  /** @type {import('~~/server/utils/soap-traces').StatementData} */
+  /** @type {import('~~/server/utils/soap-traces').StatementPayload} */
   const statement = await readBody(event);
+  const { user, cattleCount, lfbis } = validateStatement(session, statement);
+  const { commodities, geolocationVisible } = statement;
 
-  const db = useDb();
-
-  const secure = session.secure;
-  const address = toPostalAddress(secure?.address);
-  if (
-    !secure ||
-    !secure.name ||
-    !address ||
-    !secure.identifierType ||
-    !secure.identifierValue ||
-    !isUserDataValid({ ...secure, address }, session.loginProvider)
-  ) {
-    throw createError({
-      status: 400,
-      statusMessage: 'User is missing required fields',
-      message: 'Bitte vervollständigen Sie unter "Mein Konto" die Angaben zum Betrieb.',
-    });
-  }
-  /** @type {import('~~/server/utils/soap-traces').User} */
-  const user = {
-    id: userId,
-    name: secure.name,
-    address: normalizeAddress(address),
-    identifierType: secure.identifierType,
-    identifierValue: secure.identifierValue,
-  };
-
-  const commodities = statement.commodities;
-  if (commodities.some((c) => Object.values(c.quantity).some((v) => v < 0))) {
-    throw createError({
-      status: 400,
-      statusMessage: 'Bad Request',
-      message: 'Mengen dürfen nicht negativ sein.',
-    });
-  }
-  for (const commodity of commodities) {
-    // The postal address is only submitted when there is no geolocation, see getCommoditiesXML()
-    const hasGeometry =
-      commodity.geolocation && commodity.geojson?.features?.some((f) => f.geometry);
-    if (hasGeometry || !commodity.address) {
-      continue;
-    }
-    if (!isValidAddress(commodity.address)) {
-      throw createError({
-        status: 400,
-        statusMessage: 'Bad Request',
-        message: `Bitte überprüfen Sie die Postanschrift bei ${COMMODITIES[commodity.key]?.title ?? commodity.key}.`,
-      });
-    }
-    commodity.address = normalizeAddress(commodity.address);
-  }
-  const cattleCount = commodities.reduce((sum, c) => {
-    const quantity = c.quantity;
-    return (quantity['0102'] || 0) + sum;
-  }, 0);
-  const lfbis = CATTLE_LOGIN_PROVIDERS.includes(session.loginProvider) ? secure.lfbis : undefined;
-  if (cattleCount && !lfbis) {
-    throw createError({
-      status: 403,
-      statusMessage: 'Forbidden',
-      message: 'Die Erfassung von Rindern ist nur mit einem eAMA Login möglich.',
-    });
-  }
-
-  const { sdId, error } = await submitSD(commodities, statement.geolocationVisible, user);
+  const { sdId, error } = await submitSD(commodities, geolocationVisible, user);
   if (error) {
     throw createError({ status: 500, statusMessage: 'Internal Server Error', message: error });
   }
@@ -92,16 +21,12 @@ export default defineEventHandler(async (event) => {
     });
   }
 
-  if (cattleCount && lfbis && process.env.AMA_CATTLE_PATH) {
-    await db.insert(amaCattle).values({
-      sdId,
-      lfbis,
-      count: cattleCount,
-    });
+  if (cattleCount && lfbis) {
+    await queueCattle({ sdId, lfbis, count: cattleCount });
   }
 
   try {
-    await storeStatementContents(sdId, commodities, statement.geolocationVisible);
+    await storeStatementContents(sdId, commodities, geolocationVisible);
   } catch (error) {
     // The statement was submitted nevertheless, so don't report an error to the user.
     console.error('Failed to store statement contents', sdId, error);

@@ -11,6 +11,7 @@ import statementContents from '../db/schema/statement_contents';
  * @typedef {Object} StoredContents
  * @property {Array<import('./soap-traces').PlainCommodityDataWithKey>} commodities
  * @property {boolean} geolocationVisible
+ * @property {number} [version] TRACES version the contents were submitted as; absent for version 1
  */
 
 const ALGORITHM = 'aes-256-gcm';
@@ -71,12 +72,13 @@ export function isInvalidated(statement) {
 
 /**
  * Store a copy of what was submitted for each commodity: the geolocation or the postal address,
- * whichever getCommoditiesXML() sent.
+ * whichever getCommoditiesXML() sent. Replaces the copy of a previous version.
  * @param {string} sdId
  * @param {Array<import('./soap-traces').PlainCommodityDataWithKey>} commodities
  * @param {boolean} geolocationVisible
+ * @param {number} [version]
  */
-export async function storeStatementContents(sdId, commodities, geolocationVisible) {
+export async function storeStatementContents(sdId, commodities, geolocationVisible, version) {
   /** @type {StoredContents} */
   const contents = {
     commodities: commodities.map((c) => {
@@ -89,10 +91,13 @@ export async function storeStatementContents(sdId, commodities, geolocationVisib
       };
     }),
     geolocationVisible,
+    ...(version ? { version } : {}),
   };
+  const data = encrypt(sdId, contents);
   await useDb()
     .insert(statementContents)
-    .values({ sdId, data: encrypt(sdId, contents) });
+    .values({ sdId, data })
+    .onConflictDoUpdate({ target: statementContents.sdId, set: { data } });
 }
 
 /**
