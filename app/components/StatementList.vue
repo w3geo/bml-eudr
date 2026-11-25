@@ -5,10 +5,9 @@ import {
   mdiEmailFastOutline,
   mdiHelpCircleOutline,
   mdiMap,
-  mdiMenuDown,
   mdiMessageTextOutline,
+  mdiPencil,
   mdiPrinter,
-  mdiShareVariant,
   mdiTableArrowDown,
 } from '@mdi/js';
 import { FetchError } from 'ofetch';
@@ -87,6 +86,20 @@ onBeforeUnmount(() => {
 // Make sure server and browser use the same time zone when rendering dates
 /** @param {string} date */
 const formatDate = (date) => new Date(date).toLocaleString('sv-SE', { timeZone: 'Europe/Vienna' });
+
+/**
+ * @param {import('~~/server/utils/soap-traces').StatementInfo} statement
+ * @returns {string} e.g. "(v2)", empty for version 1
+ */
+const formatVersion = (statement) =>
+  (statement.version ?? 1) > 1 ? `(v${statement.version})` : '';
+
+/**
+ * @param {import('~~/server/utils/soap-traces').StatementInfo} statement
+ * @returns {string}
+ */
+const getNumberLines = (statement) =>
+  `Identifikationsnummer: ${[statement.referenceNumber, formatVersion(statement)].filter(Boolean).join(' ')}\nPrüfnummer: ${statement.verificationNumber}\nErklärungsdatum: ${formatDate(statement.date)}\n`;
 
 const DETAILS_ERROR_MESSAGE =
   'Details zu dieser Erklärung konnten nicht abgerufen werden. Bitte versuchen Sie es später erneut.';
@@ -186,7 +199,7 @@ const sendEmail = async (statement) => {
   }
   createAndClickLink(
     `mailto:?subject=EUDR Vereinfachte Erklärung von ${getOperatorName()}&body=${encodeURIComponent(
-      `Ersteller: ${getOperatorName()}\n${getOperatorAddressLine()}Identifikationsnummer: ${statement.referenceNumber}\nPrüfnummer: ${statement.verificationNumber}\nErklärungsdatum: ${formatDate(statement.date)}\n${getCommoditiesSummary(
+      `Ersteller: ${getOperatorName()}\n${getOperatorAddressLine()}${getNumberLines(statement)}${getCommoditiesSummary(
         commodities,
       )}`,
     )}`,
@@ -204,12 +217,14 @@ const sendTextMessage = async (statement) => {
   }
   createAndClickLink(
     `sms:?body=${encodeURIComponent(
-      `EUDR Vereinfachte Erklärung\n\nErsteller: ${getOperatorName()}\nIdentifikationsnummer: ${statement.referenceNumber}\nPrüfnummer: ${statement.verificationNumber}\nErklärungsdatum: ${formatDate(statement.date)}\n${getCommoditiesSummary(
+      `EUDR Vereinfachte Erklärung\n\nErsteller: ${getOperatorName()}\n${getNumberLines(statement)}${getCommoditiesSummary(
         commodities,
       )}`,
     )}`,
   );
 };
+
+const copied = ref(false);
 
 /**
  * @param {import('~~/server/utils/soap-traces').StatementInfo} statement
@@ -217,16 +232,18 @@ const sendTextMessage = async (statement) => {
  */
 const copyToClipboard = async (statement) => {
   errorMessage.value = null;
+  copied.value = false;
   const commodities = await getCommodities(statement);
   if (!commodities) {
     return;
   }
   try {
     await navigator.clipboard.writeText(
-      `EUDR Vereinfachte Erklärung\n\nErsteller: ${getOperatorName()}\nIdentifikationsnummer: ${statement.referenceNumber}\nPrüfnummer: ${statement.verificationNumber}\nErklärungsdatum: ${formatDate(statement.date)}\n${getCommoditiesSummary(
+      `EUDR Vereinfachte Erklärung\n\nErsteller: ${getOperatorName()}\n${getNumberLines(statement)}${getCommoditiesSummary(
         commodities,
       )}`,
     );
+    copied.value = true;
   } catch {
     errorMessage.value =
       'Die Erklärung konnte nicht in die Zwischenablage kopiert werden. Bitte klicken Sie erneut auf „Kopieren“.';
@@ -241,7 +258,12 @@ const copyToClipboard = async (statement) => {
         <v-card-item>
           <div class="text-caption">Identifikationsnummer</div>
           <v-card-title class="pa-0 d-flex align-center ga-1">
-            <template v-if="item.referenceNumber">{{ item.referenceNumber }}</template>
+            <template v-if="item.referenceNumber">
+              {{ item.referenceNumber }}
+              <span v-if="formatVersion(item)" class="text-medium-emphasis">
+                {{ formatVersion(item) }}
+              </span>
+            </template>
             <template v-else>
               Wird erstellt...
               <v-spacer />
@@ -263,7 +285,7 @@ const copyToClipboard = async (statement) => {
             </template>
           </v-card-title>
         </v-card-item>
-        <v-card-text>
+        <v-card-text :class="{ 'pb-0': item.referenceNumber }">
           <v-table density="compact">
             <tbody>
               <tr>
@@ -339,26 +361,54 @@ const copyToClipboard = async (statement) => {
             </tbody>
           </v-table>
         </v-card-text>
-        <v-card-actions v-if="item.referenceNumber">
-          <v-menu>
-            <template #activator="{ props }">
-              <v-btn v-bind="props" :prepend-icon="mdiShareVariant" :append-icon="mdiMenuDown">
-                Teilen
-              </v-btn>
-            </template>
-            <v-list density="compact">
-              <v-list-item :prepend-icon="mdiContentCopy" @click="copyToClipboard(item)">
-                Kopieren
-              </v-list-item>
-              <v-list-item :prepend-icon="mdiEmailFastOutline" @click="sendEmail(item)">
-                E-Mail
-              </v-list-item>
-              <v-list-item :prepend-icon="mdiMessageTextOutline" @click="sendTextMessage(item)">
-                SMS
-              </v-list-item>
-            </v-list>
-          </v-menu>
-          <v-btn :prepend-icon="mdiPrinter" :to="`/print/${item.sdId}`">Drucken</v-btn>
+        <v-card-actions v-if="item.referenceNumber" class="statement-actions">
+          <v-btn
+            stacked
+            size="small"
+            :prepend-icon="mdiEmailFastOutline"
+            :aria-label="`Erklärung ${item.referenceNumber} per E-Mail teilen`"
+            @click="sendEmail(item)"
+          >
+            E-Mail
+          </v-btn>
+          <v-btn
+            stacked
+            size="small"
+            :prepend-icon="mdiMessageTextOutline"
+            :aria-label="`Erklärung ${item.referenceNumber} per SMS teilen`"
+            @click="sendTextMessage(item)"
+          >
+            SMS
+          </v-btn>
+          <v-btn
+            stacked
+            size="small"
+            :prepend-icon="mdiContentCopy"
+            :aria-label="`Erklärung ${item.referenceNumber} kopieren`"
+            @click="copyToClipboard(item)"
+          >
+            Kopieren
+          </v-btn>
+          <v-btn
+            stacked
+            size="small"
+            :prepend-icon="mdiPrinter"
+            :aria-label="`Erklärung ${item.referenceNumber} drucken`"
+            :to="`/print/${item.sdId}`"
+          >
+            Drucken
+          </v-btn>
+          <v-btn
+            v-if="item.status === 'AVAILABLE'"
+            class="ml-auto"
+            stacked
+            size="small"
+            :prepend-icon="mdiPencil"
+            :aria-label="`Erklärung ${item.referenceNumber} ändern`"
+            :to="`/statement?edit=${item.sdId}`"
+          >
+            Ändern
+          </v-btn>
         </v-card-actions>
       </v-card>
     </v-col>
@@ -375,9 +425,30 @@ const copyToClipboard = async (statement) => {
       <NuxtLink to="/statement"> vereinfachte Erklärung </NuxtLink>.
     </v-col>
   </v-row>
+  <v-snackbar v-model="copied" timeout="3000">
+    Die Erklärung wurde in die Zwischenablage kopiert.
+  </v-snackbar>
   <geolocations-dialog
     v-model="mapDialog.open"
     :geojson="mapDialog.geojson"
     :commodity="mapDialog.commodity"
   />
 </template>
+
+<style scoped>
+/* Five labelled buttons have to fit into one row on a 320px wide phone */
+.statement-actions {
+  gap: 4px;
+}
+.statement-actions .v-btn {
+  min-width: 0;
+  padding: 0 4px;
+  letter-spacing: normal;
+  text-transform: none;
+}
+/* Vuetify's focus overlay is barely visible on the dark green card */
+.statement-actions .v-btn:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: -2px;
+}
+</style>

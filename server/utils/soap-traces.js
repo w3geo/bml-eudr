@@ -20,6 +20,7 @@ import { repairGeometry } from '~~/shared/utils/repair-geometry.js';
  * @property {string} [verificationNumber]
  * @property {TracesStatus} status
  * @property {string} date
+ * @property {number} [version] Incremented by TRACES with every update
  * @property {Array<PlainCommodityDataWithKey>} [commodities]
  * @property {boolean} [geolocationVisible] Whether the geolocations may be viewed by those who know the reference and verification numbers
  * @property {string} [commoditiesSummary] Short summary of commodities (for display in list)
@@ -92,6 +93,10 @@ const BUSY_MESSAGE =
   'Das EU-Informationssystem TRACES ist derzeit überlastet oder nicht erreichbar. Bitte versuchen Sie es in ein paar Minuten erneut.';
 const SUBMIT_UNCERTAIN_MESSAGE =
   'Das EU-Informationssystem TRACES hat nicht rechtzeitig geantwortet. Möglicherweise wurde die Erklärung trotzdem erstellt. Bitte prüfen Sie unter "Mein Konto" — "Meine Identifikationsnummern", ob sie dort aufscheint, bevor Sie es erneut versuchen.';
+const UPDATE_UNCERTAIN_MESSAGE =
+  'Das EU-Informationssystem TRACES hat nicht rechtzeitig geantwortet. Möglicherweise wurden die Änderungen trotzdem übernommen. Bitte prüfen Sie unter "Mein Konto" — "Meine Identifikationsnummern" die Version der Erklärung, bevor Sie es erneut versuchen.';
+const WITHDRAW_UNCERTAIN_MESSAGE =
+  'Das EU-Informationssystem TRACES hat nicht rechtzeitig geantwortet. Möglicherweise wurde die Erklärung trotzdem zurückgezogen. Bitte prüfen Sie unter "Mein Konto" — "Meine Identifikationsnummern", ob sie dort noch aufscheint, bevor Sie es erneut versuchen.';
 export const UNEXPECTED_MESSAGE =
   'Das EU-Informationssystem TRACES hat eine unerwartete Antwort geliefert. Bitte versuchen Sie es später erneut.';
 
@@ -147,10 +152,14 @@ function getRetryDelay(attempt, retryAfter) {
  * out may still have been processed.
  * @param {string} soapAction
  * @param {() => string} getBody Called per attempt, so every attempt gets a fresh nonce and timestamp
- * @param {{ submit?: boolean }} [options]
+ * @param {{ submit?: boolean, uncertainMessage?: string }} [options]
  * @returns {Promise<{ status: number, text: string, xml: import('@xmldom/xmldom').Document | null }>}
  */
-async function tracesRequest(soapAction, getBody, { submit = false } = {}) {
+async function tracesRequest(
+  soapAction,
+  getBody,
+  { submit = false, uncertainMessage = SUBMIT_UNCERTAIN_MESSAGE } = {},
+) {
   const attempts = submit ? 1 : READ_ATTEMPTS;
   const action = soapAction.split('/').pop();
   for (let attempt = 1; ; attempt++) {
@@ -197,7 +206,7 @@ async function tracesRequest(soapAction, getBody, { submit = false } = {}) {
       throw createError({
         status: 500,
         statusMessage: 'TRACES Unavailable',
-        message: submit && maybeProcessed ? SUBMIT_UNCERTAIN_MESSAGE : BUSY_MESSAGE,
+        message: submit && maybeProcessed ? uncertainMessage : BUSY_MESSAGE,
       });
     }
     await new Promise((resolve) => setTimeout(resolve, getRetryDelay(attempt, retryAfter)));
@@ -411,7 +420,7 @@ function getCommoditiesXML(commodities) {
  * @param {User} user
  * @returns {string}
  */
-function getSubmitSdXML(commodities, geolocationVisible, user) {
+function getStatementXML(commodities, geolocationVisible, user) {
   const commoditiesXML = getCommoditiesXML(commodities);
   const operatorAddress = `<eudrCommon:operatorAddress>
                 <eudrCommon:country>AT</eudrCommon:country>
@@ -431,6 +440,21 @@ function getSubmitSdXML(commodities, geolocationVisible, user) {
               <eudrCommon:operatorName>${escapeXml(user.name)}</eudrCommon:operatorName>
             </sd:representedOperator>`;
 
+  return `<sd:statement>
+            <sd:internalReferenceNumber>${getInternalReferenceHash(user.id)}</sd:internalReferenceNumber>
+            <sd:activityType>DOMESTIC</sd:activityType>
+            ${representedOperatorXML}
+            <sd:countryOfActivity>AT</sd:countryOfActivity>
+            ${commoditiesXML}
+            <sd:geoLocationConfidential>${!geolocationVisible}</sd:geoLocationConfidential>
+          </sd:statement>`;
+}
+
+/**
+ * @param {string} requestXML
+ * @returns {string}
+ */
+function getEnvelope(requestXML) {
   return `<?xml version="1.0" encoding="UTF-8"?>
     <soapenv:Envelope xmlns:soapenv="${soapEnvNS}"
       xmlns:sd="${sdNS}"
@@ -438,17 +462,7 @@ function getSubmitSdXML(commodities, geolocationVisible, user) {
       xmlns:v4="${baseNS}">
       ${getHeader()}
       <soapenv:Body>
-        <sd:SubmitSdRequest>
-          <sd:operatorRole>REPRESENTATIVE_MSPO</sd:operatorRole>
-          <sd:statement>
-            <sd:internalReferenceNumber>${getInternalReferenceHash(user.id)}</sd:internalReferenceNumber>
-            <sd:activityType>DOMESTIC</sd:activityType>
-            ${representedOperatorXML}
-            <sd:countryOfActivity>AT</sd:countryOfActivity>
-            ${commoditiesXML}
-            <sd:geoLocationConfidential>${!geolocationVisible}</sd:geoLocationConfidential>
-          </sd:statement>
-        </sd:SubmitSdRequest>
+        ${requestXML}
       </soapenv:Body>
     </soapenv:Envelope>`;
 }
@@ -480,6 +494,30 @@ function getRetrieveSdXML(sdIds) {
 }
 
 /**
+ * @param {string} operation
+ * @param {string} text
+ * @param {Array<PlainCommodityDataWithKey>} commodities
+ * @param {boolean} geolocationVisible
+ * @param {User} user
+ */
+function logSubmitError(operation, text, commodities, geolocationVisible, user) {
+  console.error(`TRACES ${operation} error:`, text);
+  // The submitted data, to find out which values TRACES rejects. Not the XML body, which carries
+  // the credentials in its header; geometries are summarized, they can be large.
+  console.error(
+    `TRACES ${operation} error data:`,
+    JSON.stringify({
+      operatorAddress: user.address,
+      commodities: commodities.map(({ geojson, ...commodity }) => ({
+        ...commodity,
+        geojson: geojson ? `${geojson.features?.length ?? 0} feature(s)` : geojson,
+      })),
+      geolocationVisible,
+    }),
+  );
+}
+
+/**
  * @param {Array<PlainCommodityDataWithKey>} commodities
  * @param {boolean} geolocationVisible
  * @param {User} user
@@ -489,26 +527,19 @@ export async function submitSD(commodities, geolocationVisible, user) {
   if (!user) {
     throw new Error('User is required for SD submission');
   }
-  const body = getSubmitSdXML(commodities, geolocationVisible, user);
-  const { status, text, xml } = await tracesRequest(`${sdNS}/submitSd`, () => body, {
-    submit: true,
-  });
+  const statementXML = getStatementXML(commodities, geolocationVisible, user);
+  const { status, text, xml } = await tracesRequest(
+    `${sdNS}/submitSd`,
+    () =>
+      getEnvelope(`<sd:SubmitSdRequest>
+          <sd:operatorRole>REPRESENTATIVE_MSPO</sd:operatorRole>
+          ${statementXML}
+        </sd:SubmitSdRequest>`),
+    { submit: true },
+  );
   const error = xml ? getFaultMessage(xml) : '';
   if (status >= 400 || !xml) {
-    console.error('TRACES submit error:', text);
-    // The submitted data, to find out which values TRACES rejects. Not the XML body, which carries
-    // the credentials in its header; geometries are summarized, they can be large.
-    console.error(
-      'TRACES submit error data:',
-      JSON.stringify({
-        operatorAddress: user.address,
-        commodities: commodities.map(({ geojson, ...commodity }) => ({
-          ...commodity,
-          geojson: geojson ? `${geojson.features?.length ?? 0} feature(s)` : geojson,
-        })),
-        geolocationVisible,
-      }),
-    );
+    logSubmitError('submit', text, commodities, geolocationVisible, user);
     return {
       sdId: undefined,
       error: error || UNEXPECTED_MESSAGE,
@@ -518,6 +549,75 @@ export async function submitSD(commodities, geolocationVisible, user) {
   const sdId = xml.getElementsByTagNameNS(sdNS, 'sdIdentifier').item(0)?.textContent || undefined;
 
   return { sdId, error };
+}
+
+/**
+ * @param {import('@xmldom/xmldom').Document} xml
+ * @returns {{ version: number | undefined, status: TracesStatus | undefined }}
+ */
+function getModificationResult(xml) {
+  const version = Number(xml.getElementsByTagNameNS(sdNS, 'version').item(0)?.textContent);
+  const status = xml.getElementsByTagNameNS(sdNS, 'status').item(0)?.textContent;
+  return {
+    version: Number.isInteger(version) ? version : undefined,
+    status: /** @type {TracesStatus | undefined} */ (status || undefined),
+  };
+}
+
+/**
+ * Only possible while the statement is AVAILABLE. TRACES keeps the sdId and assigns a new version.
+ * @param {string} sdId
+ * @param {Array<PlainCommodityDataWithKey>} commodities
+ * @param {boolean} geolocationVisible
+ * @param {User} user
+ * @returns {Promise<{ version?: number, status?: TracesStatus, error?: string }>}
+ */
+export async function updateSD(sdId, commodities, geolocationVisible, user) {
+  const statementXML = getStatementXML(commodities, geolocationVisible, user);
+  const { status, text, xml } = await tracesRequest(
+    `${sdNS}/updateSd`,
+    () =>
+      getEnvelope(`<sd:UpdateSdRequest>
+          <sd:sdIdentifier>${escapeXml(sdId)}</sd:sdIdentifier>
+          ${statementXML}
+        </sd:UpdateSdRequest>`),
+    { submit: true, uncertainMessage: UPDATE_UNCERTAIN_MESSAGE },
+  );
+  if (status >= 400 || !xml) {
+    logSubmitError('update', text, commodities, geolocationVisible, user);
+    return { error: (xml && getFaultMessage(xml)) || UNEXPECTED_MESSAGE };
+  }
+  return getModificationResult(xml);
+}
+
+/**
+ * Only possible while the statement is AVAILABLE.
+ * @param {string} sdId
+ * @returns {Promise<{ status?: TracesStatus, error?: string }>}
+ */
+export async function withdrawSD(sdId) {
+  const { status, text, xml } = await tracesRequest(
+    `${sdNS}/withdrawSd`,
+    () =>
+      getEnvelope(`<sd:WithdrawSdRequest>
+          <sd:sdIdentifier>${escapeXml(sdId)}</sd:sdIdentifier>
+        </sd:WithdrawSdRequest>`),
+    { submit: true, uncertainMessage: WITHDRAW_UNCERTAIN_MESSAGE },
+  );
+  if (status >= 400 || !xml) {
+    console.error('TRACES withdraw error:', text);
+    return { error: (xml && getFaultMessage(xml)) || UNEXPECTED_MESSAGE };
+  }
+  return { status: getModificationResult(xml).status };
+}
+
+/**
+ * @param {import('@xmldom/xmldom').Element} overview
+ * @returns {number | undefined}
+ */
+function getVersion(overview) {
+  const version = Number(overview.getElementsByTagNameNS(commonNS, 'version').item(0)?.textContent);
+  return Number.isInteger(version) && version > 0 ? version : undefined;
 }
 
 /**
@@ -563,6 +663,7 @@ export async function retrieveSd(sdIds) {
       verificationNumber,
       status: /** @type {TracesStatus} */ (status),
       date,
+      version: getVersion(overview),
     });
   }
   return { statements: statementInfos };
@@ -631,6 +732,7 @@ export async function retrieveSdByInternalReference(internalReference) {
           overview.getElementsByTagNameNS(commonNS, 'status').item(0)?.textContent
         ) || 'UNKNOWN',
       date,
+      version: getVersion(overview),
     });
   }
 

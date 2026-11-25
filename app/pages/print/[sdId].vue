@@ -137,6 +137,7 @@ onMounted(() => {
             <tr>
               <td class="font-weight-bold">
                 {{ statement.referenceNumber ?? 'Wird erstellt...' }}
+                <template v-if="(statement.version ?? 1) > 1">(v{{ statement.version }})</template>
               </td>
               <td>Inländisch – Österreich (AT)</td>
             </tr>
@@ -217,6 +218,14 @@ onMounted(() => {
           den Rohstoffen/Erzeugnissen aus der bei der Übermittlung gespeicherten Kopie, Name,
           Anschrift und {{ IDENTIFIER_TYPES[operator.identifierType] ?? 'Kennung' }} des
           Marktteilnehmers aus den aktuellen Angaben zum Betrieb in der Anwendung „EUDR Meldung“.
+          <template
+            v-if="
+              'contentsVersion' in statement &&
+              (statement.version ?? 1) > (statement.contentsVersion ?? 1)
+            "
+          >
+            Die gespeicherte Kopie stammt von Version {{ statement.contentsVersion }} der Erklärung.
+          </template>
           Maßgeblich ist die in TRACES gespeicherte Erklärung. Abnehmer können sie dort mit
           Identifikations- und Prüfnummer überprüfen.
           <template v-if="createdOn">Erstellt am {{ createdOn }}.</template>

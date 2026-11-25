@@ -87,6 +87,7 @@ const map = new Map({
   view: new View(login ? { ...useMapView().view.value } : undefined),
 });
 
+const scope = useStatementScope();
 watch(
   () => props.commodity,
   (newValue) => {
@@ -96,7 +97,7 @@ watch(
       geolocationLayer.value.getSource()?.dispose();
     }
     const commodityLayerset = createCommodityLayerset(newValue, farms, fields);
-    const { geojson } = useStatement(newValue);
+    const { geojson } = useStatement(newValue, undefined, scope);
     geolocationLayer.value = new VectorLayer({ source: createGeolocationSource(geojson) });
     commodityLayer.value = commodityLayerset.layerGroup;
     getFeatureAtPixel.value = commodityLayerset.getFeatureAtPixel;

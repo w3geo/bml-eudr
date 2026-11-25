@@ -26,16 +26,26 @@ export default defineTask({
       },
     };
     const queue = await useDb().select().from(amaCattle);
-    /** @type {Map<string, import('~~/server/utils/soap-traces').StatementInfo>} */
+    /** @type {Map<string, Pick<import('~~/server/utils/soap-traces').StatementInfo, 'referenceNumber' | 'verificationNumber' | 'date'>>} */
     const sdInfos = new Map();
+    for (const entry of queue) {
+      if (entry.referenceNumber && entry.date) {
+        sdInfos.set(entry.sdId, {
+          referenceNumber: entry.referenceNumber,
+          verificationNumber: entry.verificationNumber ?? undefined,
+          date: entry.date.toISOString(),
+        });
+      }
+    }
+    const toRetrieve = queue.filter((e) => !sdInfos.has(e.sdId)).map((e) => e.sdId);
     // TRACES returns at most 100 statements per getSd call.
-    for (let i = 0; i < queue.length; i += 100) {
+    for (let i = 0; i < toRetrieve.length; i += 100) {
       try {
-        const { statements, error } = await retrieveSd(queue.slice(i, i + 100).map((e) => e.sdId));
+        const { statements, error } = await retrieveSd(toRetrieve.slice(i, i + 100));
         if (error) {
           console.error('AMA Rinder: retrieving statements from TRACES failed:', error);
         }
-        for (const statement of statements ?? []) {
+        for (const statement of latestVersions(statements ?? [])) {
           sdInfos.set(statement.sdId, statement);
         }
       } catch (e) {

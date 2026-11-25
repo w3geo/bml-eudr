@@ -10,5 +10,5 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 500, statusMessage: 'Internal Server Error', message: error });
   }
 
-  return statements?.filter((sd) => !isInvalidated(sd));
+  return latestVersions(statements ?? []).filter((sd) => !isInvalidated(sd));
 });

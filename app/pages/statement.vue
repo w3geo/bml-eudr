@@ -16,6 +16,10 @@ useSeoMeta({
 });
 
 const { loggedIn } = useUserSession();
+const route = useRoute();
+const editSdId = computed(() =>
+  typeof route.query.edit === 'string' && route.query.edit ? route.query.edit : undefined,
+);
 // Read by the redirect-if-authenticated middleware on /account, which brings users back here
 // after logging in.
 const redirect = useCookie('redirect');
@@ -31,7 +35,7 @@ const steps = [
 <template>
   <template v-if="loggedIn">
     <DisclaimerDialog />
-    <StatementEditor />
+    <StatementEditor :key="editSdId ?? 'new'" :sd-id="editSdId" />
   </template>
   <v-container v-else>
     <v-row>
