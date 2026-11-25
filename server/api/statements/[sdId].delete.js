@@ -23,22 +23,22 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 500, statusMessage: 'Internal Server Error', message: error });
   }
 
-  if (getCattleCount(contents?.commodities)) {
-    const lfbis = CATTLE_LOGIN_PROVIDERS.includes(session.loginProvider)
-      ? session.secure?.lfbis
-      : undefined;
-    if (lfbis) {
-      await queueCattle({
-        sdId,
-        lfbis,
-        count: 0,
-        referenceNumber: sdInfo.referenceNumber,
-        verificationNumber: sdInfo.verificationNumber,
-        date: sdInfo.date,
-      });
-    } else {
-      console.error('Statement with cattle withdrawn without LFBIS, not sent to AMA', sdId);
-    }
+  const lfbis = CATTLE_LOGIN_PROVIDERS.includes(session.loginProvider)
+    ? session.secure?.lfbis
+    : undefined;
+  const hadCattle = getCattleCount(contents?.commodities) > 0;
+  // Without a stored copy, the statement may have had cattle
+  if (lfbis && (hadCattle || !contents)) {
+    await queueCattle({
+      sdId,
+      lfbis,
+      count: 0,
+      referenceNumber: sdInfo.referenceNumber,
+      verificationNumber: sdInfo.verificationNumber,
+      date: sdInfo.date,
+    });
+  } else if (hadCattle) {
+    console.error('Statement with cattle withdrawn without LFBIS, not sent to AMA', sdId);
   }
 
   return sendNoContent(event, 204);

@@ -25,12 +25,12 @@ export default defineEventHandler(async (event) => {
     throw createError({ status: 500, statusMessage: 'Internal Server Error', message: error });
   }
 
-  if (cattleCount || getCattleCount(previous?.commodities)) {
-    if (lfbis) {
-      await queueCattle({ sdId, lfbis, count: cattleCount });
-    } else {
-      console.error('Cattle count changed without LFBIS, not sent to AMA', sdId);
-    }
+  const hadCattle = getCattleCount(previous?.commodities) > 0;
+  // Without a stored copy, the statement may have had cattle
+  if (lfbis && (cattleCount || hadCattle || !previous)) {
+    await queueCattle({ sdId, lfbis, count: cattleCount });
+  } else if (hadCattle) {
+    console.error('Cattle removed without LFBIS, not sent to AMA', sdId);
   }
 
   try {
