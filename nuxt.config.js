@@ -59,6 +59,8 @@ export default defineNuxtConfig({
       smsSender: 'EUDRMeldung',
     },
     public: {
+      // Banner text on every page, e.g. on staging. Unset on production.
+      environmentBanner: '',
       // Self-hosted Umami, see app/app.vue. Only production sets these, so analytics are off
       // elsewhere.
       umami: {
