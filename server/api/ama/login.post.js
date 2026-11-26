@@ -26,17 +26,19 @@ export default defineEventHandler(async (event) => {
     /** @type {string} */
     const responseBody = await new Promise((resolve, reject) => {
       const req = request(options, (res) => {
-        if (res.statusCode !== 200) {
-          console.error(`AMA login request failed: ${res}`);
-          return reject(new Error(`Request failed with status code ${res.statusCode}`));
-        }
         /** @type {Array<Buffer>} */
         const chunks = [];
-        res.on('data', function (d) {
-          chunks.push(d);
-        });
+        res.on('data', (d) => chunks.push(d));
         res.on('end', () => {
-          resolve(Buffer.concat(chunks).toString());
+          const text = Buffer.concat(chunks).toString();
+          if (res.statusCode !== 200) {
+            const error = new Error(
+              `metadatenHolen returned ${res.statusCode}: ${text.slice(0, 500) || '(empty body)'}`,
+            );
+            error.name = 'AmaResponseError';
+            return reject(error);
+          }
+          resolve(text);
           // {
           //   partnerseitenDaten: {
           //     betriebsnummern: 1234567,
@@ -46,6 +48,7 @@ export default defineEventHandler(async (event) => {
           //   },
           // };
         });
+        res.on('error', reject);
       });
       req.on('error', reject);
       req.write(
@@ -93,18 +96,25 @@ export default defineEventHandler(async (event) => {
     deleteCookie(event, 'login-retry');
     return sendRedirect(event, '/account');
   } catch (error) {
-    console.error('AMA login error:', error);
+    const err = /** @type {Error} */ (error);
+    if (err.name === 'AmaResponseError') {
+      console.error('AMA login failed:', err.message);
+    } else {
+      console.error('AMA login error:', err);
+    }
     setCookie(event, 'login-retry', 'true', {
       maxAge: 10,
       secure: true,
     });
-    const message = /** @type {Error} */ (error).message;
-    if (message) {
-      setCookie(event, 'login-error', message, {
+    setCookie(
+      event,
+      'login-error',
+      'Die Anmeldung über eAMA ist fehlgeschlagen. Bitte versuchen Sie es noch einmal.',
+      {
         maxAge: 10,
         secure: true,
-      });
-    }
+      },
+    );
     return sendRedirect(event, '/account');
   }
 });
