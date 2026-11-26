@@ -94,7 +94,7 @@ export default defineTask({
         });
         doneSdIds.push(entry.sdId);
       } catch (e) {
-        console.error('AMA Rinder request error:', e);
+        console.error('AMA Rinder request error:', e.message);
       }
     }
     await useDb().delete(amaCattle).where(inArray(amaCattle.sdId, doneSdIds));
