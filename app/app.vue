@@ -20,7 +20,7 @@ if (siteConfig.indexable) {
 }
 // Umami analytics, only where NUXT_PUBLIC_UMAMI_* is set (production). Proxied through
 // server/routes/stats, which the script also sends its data to.
-const { umami } = useRuntimeConfig().public;
+const { umami, environmentBanner } = useRuntimeConfig().public;
 if (umami.websiteId && umami.scriptUrl) {
   useHead({
     script: [{ 'src': '/stats/script.js', 'defer': true, 'data-website-id': umami.websiteId }],
@@ -95,6 +95,22 @@ const logout = useLogout();
       </v-menu>
       <v-btn v-else variant="plain" to="/account" :icon="mdiAccountCircle" aria-label="Anmelden" />
     </v-app-bar>
+    <v-snackbar
+      v-if="environmentBanner"
+      :model-value="true"
+      class="d-print-none"
+      content-class="pointer-events-none"
+      location="top"
+      timeout="-1"
+      color="rgba(239, 108, 0, 0.75)"
+      rounded="pill"
+      min-width="0"
+      min-height="0"
+    >
+      <div class="text-center text-subtitle-1 font-weight-bold">
+        {{ environmentBanner }}
+      </div>
+    </v-snackbar>
     <v-navigation-drawer v-model="drawer" class="d-print-none" :permanent="mdAndUp">
       <template #prepend>
         <NuxtLink class="d-block px-2" to="https://bmluk.gv.at/" target="_blank">
