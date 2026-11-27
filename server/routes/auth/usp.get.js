@@ -41,7 +41,11 @@ export default defineOAuthUSPEventHandler({
     if (await handleInvalidGrant(event, 'USP', error)) {
       return;
     }
-    console.error('LOGIN ERROR USP', error);
+    console.error(
+      'LOGIN ERROR USP',
+      error.message,
+      /** @type {any} */ (error.data)?.error_description ?? '',
+    );
     setCookie(event, 'login-error', error.message, {
       maxAge: 10,
       secure: true,
